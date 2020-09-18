@@ -22,6 +22,10 @@ export class Canvas {
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         this.container.appendChild(this.canvas);
+        this.top = 0;
+        this.right = 0;
+        this.bottom = 0;
+        this.left = 0;
         this._spreadPaddings(paddings);
     }
 
