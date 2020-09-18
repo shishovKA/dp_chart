@@ -1,0 +1,28 @@
+body {
+    background-color: #EEEEEE;
+}
+
+.head {
+    text-align: center;
+}
+
+.chart__section {
+    display: flex;
+    flex-direction: column;
+    padding: 0px 50px 0px 50px;
+    align-items: center;
+}
+
+.chart__container {
+    width: 100%;
+    max-width: 1200px;
+    height: 450px;
+    background-color: white;
+    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+}
+
+@media screen and (max-width: 780px) {
+    .chart__container {
+        height: 360px;
+    }
+  }
