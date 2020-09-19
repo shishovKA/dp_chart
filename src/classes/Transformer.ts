@@ -19,7 +19,7 @@ export class Transformer {
 
         let tx: number = Math.abs(seriesRanges[0] - axisRanges[0]);
         console.log('tx', tx);
-        let ty: number = Math.abs(seriesRanges[2] - axisRanges[2]);
+        let ty: number = Math.abs(seriesRanges[3] - axisRanges[3]);
         console.log('ty', ty);
 
         //const scaleX = axisWidth / seriesWidth;
@@ -28,15 +28,10 @@ export class Transformer {
         const scaleX = seriesWidth / axisWidth;
         const scaleY = seriesHeight / axisHeight;
 
-        console.log('scaleX', scaleX);
-        console.log('scaleY', scaleY);
-
         tx = Math.round(tx*vp.width/axisWidth); 
         ty = Math.round(ty*vp.height/axisHeight);
         
-        
-        console.log('tx', tx);
-        console.log('ty', ty);
+
         
         const transMatrix: number[] = [scaleX, 0, tx, 0, scaleY, ty];       
         return transMatrix;
@@ -53,22 +48,18 @@ export class Transformer {
 
         if (transMatrix) {matrix = transMatrix;}
 
-        console.log('transformRect matrix', matrix);
-
         let x1: number;
         let y1: number;
         let x2: number;
         let y2: number;
 
-        console.log('matrix.slice(0,3)', matrix.slice(0,3));
-        console.log('matrix.slice(3)', matrix.slice(3));
+        const baseVp = new Rectangle (0, 0, viewport.width, viewport.height);     
         
+        x1 = this.trans(baseVp.x1, baseVp.y1, matrix.slice(0,3))+viewport.x1;
+        y1 = this.trans(baseVp.x1, baseVp.y1, matrix.slice(3))+viewport.y1;
         
-        x1 = this.trans(viewport.x1, viewport.y1, matrix.slice(0,3))
-        y1 = this.trans(viewport.x1, viewport.y1, matrix.slice(3))
-        
-        x2 = this.trans(viewport.x2, viewport.y2, matrix.slice(0,3))
-        y2 = this.trans(viewport.x2, viewport.y2, matrix.slice(3))
+        x2 = this.trans(baseVp.x2, baseVp.y2, matrix.slice(0,3))+viewport.x1;
+        y2 = this.trans(baseVp.x2, baseVp.y2, matrix.slice(3))+viewport.y1;
 
         return new Rectangle(x1, y1, x2, y2);
     }

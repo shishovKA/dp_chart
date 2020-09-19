@@ -18,8 +18,10 @@ import { Rectangle } from "./classes/Rectangle";
 const testCanvas = new Canvas(document.querySelector('.chart__container'), 50, 50, 50, 50);
 
 //Axis
-const xAxis = new Axis(0, 2000, 'horizontal', 1, 'gray');
-const yAxis = new Axis(0, 2000, 'vertical', 1, 'gray');
+const xAxis = new Axis(100, 1000, 'horizontal', 1, 'gray');
+const yAxis = new Axis(350, 1700, 'vertical', 1, 'gray');
+
+const axisRanges: number[] = [xAxis.min, xAxis.max, yAxis.min, yAxis.max];
 
 //Plots
 const plot1 = new Plot('default', 1, 'red', 'red', 1);
@@ -32,18 +34,6 @@ const cbh5Series = new Series ('cyberHedge', [cbh5]);
 //Transformer
 const transformer = new Transformer();
 
-console.log('cbh1Series.findExtremes()', cbh1Series.findExtremes());
-
-const axisRanges: number[] = [xAxis.min, xAxis.max, yAxis.min, yAxis.max];
-
-
-const matrix: number[] = transformer.formMatrix(axisRanges, cbh1Series.findExtremes(), testCanvas.viewport);
-
-console.log('matrix', matrix);
-
-const plotRect1 = transformer.transformRect(testCanvas.viewport, matrix);
-console.log('testCanvas.viewport', testCanvas.viewport);
-console.log('plotRect1', plotRect1);
 
 
 //Отрисовка в тестовом виде
@@ -58,11 +48,20 @@ function render() {
     testCanvas.clear();
     xAxis.drawAxis(testCanvas.ctx, testCanvas.viewport);
     yAxis.drawAxis(testCanvas.ctx, testCanvas.viewport);
-    plot1.drawPlot(testCanvas.ctx, plot1.convertSeriesToCoord(cbh1Series, plotRect1));
-    plot2.drawPlot(testCanvas.ctx, plot2.convertSeriesToCoord(cbh5Series, testCanvas.viewport));
 
-    drawRect(testCanvas.viewport, '#d40da5');
-    drawRect(plotRect1, '#1dbf45')
+    cbh1Series.replaceSeriesData(cbh1Series.getDataRange(xAxis.min, xAxis.max, yAxis.min, yAxis.max));
+    const matrix1: number[] = transformer.formMatrix(axisRanges, cbh1Series.findExtremes(), testCanvas.viewport);
+    const plotRect1 = transformer.transformRect(testCanvas.viewport, matrix1);
+    plot1.drawPlot(testCanvas.ctx, plot1.convertSeriesToCoord(cbh1Series, plotRect1));
+    
+    cbh5Series.replaceSeriesData(cbh5Series.getDataRange(xAxis.min, xAxis.max, yAxis.min, yAxis.max));
+    const matrix5: number[] = transformer.formMatrix(axisRanges, cbh5Series.findExtremes(), testCanvas.viewport);
+    const plotRect5 = transformer.transformRect(testCanvas.viewport, matrix5);
+    plot2.drawPlot(testCanvas.ctx, plot2.convertSeriesToCoord(cbh5Series, plotRect5));
+
+    //drawRect(testCanvas.viewport, '#d40da5');
+    //drawRect(plotRect1, '#1dbf45');
+    //drawRect(plotRect5, '#1dbf45')
 };
 
 function drawRect(rect: Rectangle, color: string) {

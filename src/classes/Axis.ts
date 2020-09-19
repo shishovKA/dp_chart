@@ -1,4 +1,6 @@
 import { Rectangle } from "./Rectangle";
+import { Ticks } from "./Ticks";
+
 
 interface axisOptions  {
     lineWidth: number;
@@ -14,7 +16,7 @@ export class Axis {
     max: number;
     type: string;
     _options: axisOptions;
-    //ticks: Ticks;
+    ticks: Ticks;
     
     constructor( min: number, max: number, type: string, ...options: any) {
         this.min = min;
@@ -27,6 +29,8 @@ export class Axis {
         };
 
         this._spreadOptions(...options);
+
+        this.ticks = new Ticks();
     }
 
     _spreadOptions(...options: any[]) {
@@ -63,14 +67,19 @@ export class Axis {
         switch(this.type) {
             case 'vertical':
                 ctx.lineTo(viewport.x1, viewport.y1);
+                this.ticks.generateTicks(this.min, this.max, viewport.height);
             break;
           
             case 'horizontal':
                 ctx.lineTo(viewport.x2, viewport.y2);
+                this.ticks.generateTicks(this.min, this.max, viewport.width);
             break;
           }
         ctx.closePath();
         ctx.stroke();
+
+        this.ticks.drawTicks(this.ticks.ticks, this.type,ctx, viewport);
+        
     }
 
   }

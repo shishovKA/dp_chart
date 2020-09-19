@@ -30,24 +30,45 @@ export class Series {
 
 
     findExtremes(): number[] {
+
         let xMin: number = this.seriesData[0][0];
         let xMax: number = this.seriesData[0][0];
         let yMin: number = this.seriesData[1][0];
         let yMax: number = this.seriesData[1][0];
     
         for (let ind = 0; ind < this.seriesData[0].length; ind++ ) {
-
             if (this.seriesData[0][ind] < xMin) xMin = this.seriesData[0][ind];
             if (this.seriesData[0][ind] > xMax) xMax = this.seriesData[0][ind];
             if (this.seriesData[1][ind] < yMin) yMin = this.seriesData[1][ind];
             if (this.seriesData[1][ind] > yMax) yMax = this.seriesData[1][ind];
-
         }
         
         return [xMin,xMax,yMin,yMax];
     }
 
+
+    getDataRange(xMin:number, xMax:number, yMin:number, yMax:number): number[][] {
+        const ind: number[] = [];
+        const val: number[] = [];
+        this.seriesData[0].forEach((el,i) => {
+            if ((this.seriesData[0][i] >= xMin) 
+            && (this.seriesData[0][i] <= xMax)
+            && (this.seriesData[1][i] >= yMin)
+            && (this.seriesData[1][i] <= yMax)) {
+                ind.push(this.seriesData[0][i]);
+                val.push(this.seriesData[1][i]);
+            }
+        });
+        return [ind, val];
+    }
+
+
+    replaceSeriesData(seriesData_to: number[][], duration?: number, transFunc?: any) {
+        this.seriesData = seriesData_to;
+    }
+
 }
+
 
 /*
 
@@ -63,11 +84,7 @@ export class Series {
     }
 
     
-    getDataRange(xMin:number, xMax:number, yMin:number, yMax:number): number[][] {
-        let seriesDataRange: number[][]
-        //Метод формирует и выдает усеченный массив seriesData, по заданным интервалам
-        return seriesDataRange;
-    }
+
 
 
 

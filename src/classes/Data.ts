@@ -15,7 +15,7 @@ class Data {
     }
 
     findExtremes(type: string, from: number, to: number): number[] {
-        let max: number;
+        let max: number = 0;
         let min: number;
         //поиск экстремумов на заданном интервале для всех series которые хранятся в Storage
         return [min,max];
