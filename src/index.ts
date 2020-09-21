@@ -8,9 +8,12 @@ import {Axis} from "./classes/Axis"
 import {Plot} from "./classes/Plot"
 import {Series} from "./classes/Series"
 import {Transformer} from "./classes/Transformer"
+import { Rectangle } from "./classes/Rectangle";
+import { Data } from "./classes/Data";
+
 import {cbh1} from "./data/cbh1"
 import {cbh5} from "./data/cbh5"     
-import { Rectangle } from "./classes/Rectangle";
+
 
 //создание элементов
 
@@ -18,14 +21,19 @@ import { Rectangle } from "./classes/Rectangle";
 const testCanvas = new Canvas(document.querySelector('.chart__container'), 50, 50, 50, 50);
 
 //Axis
-const xAxis = new Axis(100, 1000, 'horizontal', 1, 'gray');
-const yAxis = new Axis(350, 1700, 'vertical', 1, 'gray');
+const xAxis = new Axis([500, 900], 'horizontal', 1, 'gray');
+const yAxis = new Axis([500, 1500], 'vertical', 1, 'gray');
 
 const axisRanges: number[] = [xAxis.min, xAxis.max, yAxis.min, yAxis.max];
 
 //Plots
 const plot1 = new Plot('default', 1, 'red', 'red', 1);
 const plot2 = new Plot('default', 1, 'blue', 'blue', 1);
+
+//Data
+const data = new Data();
+data.addSeries('cyberHedge', [cbh1]);
+data.addSeries('cyberHedge', [cbh5]);
 
 //Series
 const cbh1Series = new Series ('cyberHedge', [cbh1]);
@@ -49,19 +57,25 @@ function render() {
     xAxis.drawAxis(testCanvas.ctx, testCanvas.viewport);
     yAxis.drawAxis(testCanvas.ctx, testCanvas.viewport);
 
+//    data.storage.forEach((series) => {
+//        const matrix: number[] = transformer.formMatrix(axisRanges, series.findExtremes(), testCanvas.viewport);
+//        const plotRect5 = transformer.transformRect(testCanvas.viewport, matrix);
+ //       plot2.drawPlot(testCanvas.ctx, plot2.convertSeriesToCoord(cbh5Series, plotRect5));      
+ //   })
+
     cbh1Series.replaceSeriesData(cbh1Series.getDataRange(xAxis.min, xAxis.max, yAxis.min, yAxis.max));
     const matrix1: number[] = transformer.formMatrix(axisRanges, cbh1Series.findExtremes(), testCanvas.viewport);
     const plotRect1 = transformer.transformRect(testCanvas.viewport, matrix1);
     plot1.drawPlot(testCanvas.ctx, plot1.convertSeriesToCoord(cbh1Series, plotRect1));
     
-    cbh5Series.replaceSeriesData(cbh5Series.getDataRange(xAxis.min, xAxis.max, yAxis.min, yAxis.max));
+//    cbh5Series.replaceSeriesData(cbh5Series.getDataRange(xAxis.min, xAxis.max, yAxis.min, yAxis.max));
     const matrix5: number[] = transformer.formMatrix(axisRanges, cbh5Series.findExtremes(), testCanvas.viewport);
     const plotRect5 = transformer.transformRect(testCanvas.viewport, matrix5);
     plot2.drawPlot(testCanvas.ctx, plot2.convertSeriesToCoord(cbh5Series, plotRect5));
 
-    //drawRect(testCanvas.viewport, '#d40da5');
-    //drawRect(plotRect1, '#1dbf45');
-    //drawRect(plotRect5, '#1dbf45')
+    drawRect(testCanvas.viewport, '#d40da5');
+    drawRect(plotRect1, '#1dbf45');
+    drawRect(plotRect5, '#1dbf45')
 };
 
 function drawRect(rect: Rectangle, color: string) {

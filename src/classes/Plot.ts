@@ -26,10 +26,10 @@ export class Plot {
             mainSize:  1,
         };
 
-        this._spreadOptions(options);
+        this.setOptions(options);
     }
 
-    _spreadOptions(options: any[]) {
+    setOptions(options: any[]) {
         switch(options.length) {
             case 1:
                 this._options.lineWidth = options[0];
@@ -53,10 +53,6 @@ export class Plot {
                 this._options.mainSize = options[3];
             break;
         }
-    }
-
-    setOptions(...options: any) {
-        this._spreadOptions(options);
     }
 
     get id(): string {

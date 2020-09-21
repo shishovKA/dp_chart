@@ -18,9 +18,12 @@ export class Axis {
     _options: axisOptions;
     ticks: Ticks;
     
-    constructor( min: number, max: number, type: string, ...options: any) {
-        this.min = min;
-        this.max = max;
+    constructor( MinMax: number[], type: string, ...options: any) {
+        this.min = 0;
+        this.max = 0;
+
+        this.setMinMax(MinMax);
+
         this.type = type;
 
         this._options = {
@@ -28,12 +31,11 @@ export class Axis {
             lineColor: '#000000'
         };
 
-        this._spreadOptions(...options);
-
+        this.setOptions(...options);
         this.ticks = new Ticks();
     }
 
-    _spreadOptions(...options: any[]) {
+    setOptions(...options: any[]) {
         //разбираем пакет опций для графика
 
         switch(options.length) {
@@ -48,17 +50,29 @@ export class Axis {
         }
     }
 
-    setOptions(...options: any) {
-        //устанавливаем опции оси
-    }
 
-    setMinMax(min: number, max: number) {
-        //присваивем min и max
+    setMinMax(MinMax: number[]) {
+        switch (MinMax.length) {
+            case 0:
+                this.min = 0;
+                this.max = 100;
+            break;
+
+            case 1:
+                this.min = MinMax[0];
+                this.max = 100;
+            break;
+
+            case 2:
+                this.min = MinMax[0];
+                this.max = MinMax[1];
+            break;
+        }
+
     }
 
 
     drawAxis(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        //функция отрисовки оси на канвасе
         ctx.beginPath();
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;

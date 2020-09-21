@@ -83,17 +83,6 @@ export class Series {
             
     }
 
-    
-
-
-
-
-    replaceSeriesData(seriesData_to: number[], duration?: number, transFunc?: any) {
-        //запуск анимации по изменению seriesData
-        //TODO: решить проблемы с типом функции
-    }
-
-
 
     transpose() {
         //Метод транспонирует данные серии

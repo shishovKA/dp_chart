@@ -3,7 +3,7 @@ import { Rectangle } from "./Rectangle";
 
 export class Canvas {
 
-    container: HTMLElement;
+    container: HTMLElement | null;
     canvas: HTMLCanvasElement;
     _ctx: CanvasRenderingContext2D;
     height: number;
@@ -13,27 +13,30 @@ export class Canvas {
     bottom: number;
     left: number;
     
-    constructor(container: HTMLElement, ...paddings: number[]) {
+    constructor(container: HTMLElement | null, ...paddings: number[]) {
         this.container = container;
         this.canvas = document.createElement('canvas');
         this._ctx = this.canvas.getContext('2d');
-        this.height = this.container.getBoundingClientRect().height;
-        this.width = this.container.getBoundingClientRect().width;
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-        this.container.appendChild(this.canvas);
+        
+        this.height = 0;
+        this.width = 0;
+
+        if (this.container) {
+            this.height = this.container.getBoundingClientRect().height;
+            this.width = this.container.getBoundingClientRect().width;
+            this.container.appendChild(this.canvas);
+        }
+        
+        this.canvas.width = this.height;
+        this.canvas.height = this.width;
         this.top = 0;
         this.right = 0;
         this.bottom = 0;
         this.left = 0;
-        this._spreadPaddings(paddings);
+        this.setPaddings(...paddings);
     }
 
     setPaddings(...paddings: number[]) {
-        this._spreadPaddings(paddings);
-    }
-
-    _spreadPaddings(paddings: number[]) {
         let fields = {};
         switch(paddings.length) {
             case 0:
@@ -74,24 +77,27 @@ export class Canvas {
         return 
     }
 
-    get ctx(): CanvasRenderingContext2D {
+
+    get ctx(): CanvasRenderingContext2D | null {
         return this._ctx;
     }
 
-    resize(newWidth?: number, newHeight?: number) {
-        if (newWidth) {
-            this.height = newHeight;
-            this.width = newWidth;
+    resize(wh?: number[]) {
+        if (wh) {
+            this.height = wh[1];
+            this.width = wh[0];
         } else {
-            this.height = this.container.getBoundingClientRect().height;
-            this.width = this.container.getBoundingClientRect().width;
+            if (this.container) {
+                this.height = this.container.getBoundingClientRect().height;
+                this.width = this.container.getBoundingClientRect().width;
+            }
         }
         this.canvas.width = this.width;
         this.canvas.height = this.height;
     }
 
     clear() {
-        this._ctx.clearRect(0, 0, this.width, this.height);
+        if (this._ctx) this._ctx.clearRect(0, 0, this.width, this.height);
     }
 
     get viewport(): Rectangle {

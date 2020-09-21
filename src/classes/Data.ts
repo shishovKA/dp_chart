@@ -1,4 +1,6 @@
-class Data {
+import { Series } from "./Series";
+
+export class Data {
 
     storage: Series[];
     
