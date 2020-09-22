@@ -1,10 +1,12 @@
-import "./styles/style.css";
-import "./styles/normalize.css";
 
+import "./styles/normalize.css";
+import "./styles/style.css";
 
 
 import {cbh1} from "./data/cbh1"
 import {cbh5} from "./data/cbh5"
+
+import {Panel} from "./control/Panel"
 
 import {Chart} from "./classes/Chart"
 
@@ -19,18 +21,28 @@ chart.addPlot('plot5', 1, 'blue', 'blue', 1);
 chart.reDraw();
 
 window.addEventListener('resize', function(){
-    chart.reDraw();;
+    chart.reDraw();
 });
 
 console.log(chart);
 //drawRect(chart.canvas.viewport, '#d40da5');
 
 
-function drawRect(rect: Rectangle, color: string) {
-    chart.canvas.ctx.strokeStyle = color;
-    chart.canvas.ctx.lineWidth = 2;
-    chart.canvas.ctx.strokeRect(rect.x1, rect.y1, rect.width, rect.height)
-}
+const panel1 = new Panel(document.querySelector('.panel'),'X axis','Min','Max')
+
+panel1.submitBtn.addEventListener("click", (event) => {
+    event.preventDefault()
+    console.log(panel1.values);
+    chart.xAxis.setMinMax(panel1.values);
+  })
+
+const panel2 = new Panel(document.querySelector('.panel'),'Y axis','Min','Max')
+
+panel2.submitBtn.addEventListener("click", (event) => {
+    event.preventDefault()
+    console.log(panel2.values);
+    chart.yAxis.setMinMax(panel2.values);
+  })
 
 /*
 //создание элементов в ручную

@@ -23,6 +23,11 @@ export class Chart {
         this.yAxis = new Axis(yMinMax, 'vertical');
 
         this._transformer = new Transformer();
+
+        this.reDraw = this.reDraw.bind(this);
+
+        this.xAxis.changed.add(this.reDraw);
+        this.yAxis.changed.add(this.reDraw);
     }
 
     reDraw() {

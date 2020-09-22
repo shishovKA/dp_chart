@@ -1,5 +1,8 @@
+import { Signal } from "signals"
+
 import { Rectangle } from "./Rectangle";
 import { Ticks } from "./Ticks";
+
 
 
 interface axisOptions  {
@@ -17,8 +20,13 @@ export class Axis {
     type: string;
     _options: axisOptions;
     ticks: Ticks;
+    changed: Signal;
+    
     
     constructor( MinMax: number[], type: string, ...options: any) {
+        
+        this.changed = new Signal();
+        
         this.min = 0;
         this.max = 0;
 
@@ -33,6 +41,8 @@ export class Axis {
 
         this.setOptions(...options);
         this.ticks = new Ticks();
+
+        
     }
 
     setOptions(...options: any[]) {
@@ -68,7 +78,8 @@ export class Axis {
                 this.max = MinMax[1];
             break;
         }
-
+        
+        this.changed.dispatch();
     }
 
 
