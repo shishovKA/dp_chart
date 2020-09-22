@@ -1,7 +1,39 @@
-import { csv } from "d3-fetch"
-import path from 'path';
 import "./styles/style.css";
 import "./styles/normalize.css";
+
+
+
+import {cbh1} from "./data/cbh1"
+import {cbh5} from "./data/cbh5"
+
+import {Chart} from "./classes/Chart"
+
+//работа с Chart
+const chart = new Chart(document.querySelector('.chart__container'), [500, 900], [500, 1500]);
+//chart.canvas.setPaddings(50, 50, 50, 50);
+chart.data.addSeries('cyberHedge1', [cbh1], 'plot1');
+chart.data.addSeries('cyberHedge5', [cbh5], 'plot5');
+chart.addPlot('plot1', 1, 'red', 'red', 1);
+chart.addPlot('plot5', 1, 'blue', 'blue', 1);
+
+chart.reDraw();
+
+window.addEventListener('resize', function(){
+    chart.reDraw();;
+});
+
+console.log(chart);
+//drawRect(chart.canvas.viewport, '#d40da5');
+
+
+function drawRect(rect: Rectangle, color: string) {
+    chart.canvas.ctx.strokeStyle = color;
+    chart.canvas.ctx.lineWidth = 2;
+    chart.canvas.ctx.strokeRect(rect.x1, rect.y1, rect.width, rect.height)
+}
+
+/*
+//создание элементов в ручную
 
 import {Canvas} from "./classes/Canvas"
 import {Axis} from "./classes/Axis"
@@ -10,12 +42,6 @@ import {Series} from "./classes/Series"
 import {Transformer} from "./classes/Transformer"
 import { Rectangle } from "./classes/Rectangle";
 import { Data } from "./classes/Data";
-
-import {cbh1} from "./data/cbh1"
-import {cbh5} from "./data/cbh5"     
-
-
-//создание элементов
 
 //Canvas
 const testCanvas = new Canvas(document.querySelector('.chart__container'), 50, 50, 50, 50);
@@ -86,3 +112,4 @@ function drawRect(rect: Rectangle, color: string) {
 
 render();
 
+*/

@@ -37,7 +37,7 @@ export class Ticks {
         
         function drawOneTick(xy:number[], ctx: CanvasRenderingContext2D) {
             ctx.beginPath();
-            ctx.strokeStyle = 'green';
+            ctx.strokeStyle = 'black';
             ctx.lineWidth = 1;
             let r = 10;
             ctx.moveTo(xy[0]-r, xy[1]);
@@ -51,6 +51,7 @@ export class Ticks {
         }
 
         function drawLabel(xy:number[], label:string, ctx: CanvasRenderingContext2D) {
+            ctx.fillStyle = 'black';
             ctx.font = "14px serif";
             ctx.fillText(label, xy[0]+5, xy[1]-5);
         }

@@ -26,6 +26,7 @@ export class Series {
         }
         
         this.plots = [];
+        this.setPlotsIds(plotIds);
     }
 
 
@@ -67,21 +68,22 @@ export class Series {
         this.seriesData = seriesData_to;
     }
 
-}
-
-
-/*
-
     setPlotsIds(plotIds: string[]) {
         
         this.plots.splice(0,this.plots.length);
-        
         
         plotIds.forEach( (plotId) => 
             this.plots.push(plotId)
         )
             
     }
+
+}
+
+
+/*
+
+
 
 
     transpose() {

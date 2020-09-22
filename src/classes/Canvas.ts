@@ -3,9 +3,9 @@ import { Rectangle } from "./Rectangle";
 
 export class Canvas {
 
-    container: HTMLElement | null;
+    container: HTMLElement;
     canvas: HTMLCanvasElement;
-    _ctx: CanvasRenderingContext2D;
+    _ctx: CanvasRenderingContext2D | null;
     height: number;
     width: number;
     top: number;
@@ -13,7 +13,7 @@ export class Canvas {
     bottom: number;
     left: number;
     
-    constructor(container: HTMLElement | null, ...paddings: number[]) {
+    constructor(container: HTMLElement, ...paddings: number[]) {
         this.container = container;
         this.canvas = document.createElement('canvas');
         this._ctx = this.canvas.getContext('2d');
@@ -38,19 +38,21 @@ export class Canvas {
 
     setPaddings(...paddings: number[]) {
         let fields = {};
+        const defaultPad: number = 50;
+
         switch(paddings.length) {
             case 0:
-                this.top = 0;
-                this.right = 0;
-                this.bottom = 0;
-                this.left = 0;
+                this.top = defaultPad;
+                this.right = defaultPad;
+                this.bottom = defaultPad;
+                this.left = defaultPad;
             break;
           
             case 1:
                 this.top = paddings[0];
-                this.right = 0;
-                this.bottom = 0;
-                this.left = 0;
+                this.right = defaultPad;
+                this.bottom = defaultPad;
+                this.left = defaultPad;
             break;
           
             case 2:
@@ -64,7 +66,7 @@ export class Canvas {
                 this.top = paddings[0];
                 this.right = paddings[1];
                 this.bottom = paddings[2];
-                this.left = 0;
+                this.left = defaultPad;
             break;
 
             case 4:
