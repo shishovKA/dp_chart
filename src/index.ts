@@ -12,7 +12,7 @@ import {Chart} from "./classes/Chart"
 
 //работа с Chart
 const chart = new Chart(document.querySelector('.chart__container'), [500, 900], [500, 1500]);
-//chart.canvas.setPaddings(50, 50, 50, 50);
+chart.canvas.setPaddings(50, 80, 50, 80);
 chart.data.addSeries('cyberHedge1', [cbh1], 'plot1');
 chart.data.addSeries('cyberHedge5', [cbh5], 'plot5');
 chart.addPlot('plot1', 1, 'red', 'red', 1);
@@ -28,20 +28,20 @@ console.log(chart);
 //drawRect(chart.canvas.viewport, '#d40da5');
 
 
-const panel1 = new Panel(document.querySelector('.panel'),'X axis','Min','Max')
+const panel1 = new Panel(document.querySelector('.panel'),'X axis','Min','Max', 500, 900)
 
 panel1.submitBtn.addEventListener("click", (event) => {
     event.preventDefault()
     console.log(panel1.values);
-    chart.xAxis.setMinMax(panel1.values);
+    chart.xAxis.setMinMax(panel1.values, 1000);
   })
 
-const panel2 = new Panel(document.querySelector('.panel'),'Y axis','Min','Max')
+const panel2 = new Panel(document.querySelector('.panel'),'Y axis','Min','Max', 500, 1500)
 
 panel2.submitBtn.addEventListener("click", (event) => {
     event.preventDefault()
     console.log(panel2.values);
-    chart.yAxis.setMinMax(panel2.values);
+    chart.yAxis.setMinMax(panel2.values, 1000);
   })
 
 /*

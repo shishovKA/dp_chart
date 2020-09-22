@@ -39,6 +39,7 @@ export class Panel {
         input1.type = "text";
         input1.name = "input1";
         input1.placeholder = "0";
+        input1.value = options[3];
 
         const label2 = document.createElement('p');
         label2.classList.add('panel__label');
@@ -49,6 +50,7 @@ export class Panel {
         input2.type = "text";
         input2.name = "input2";
         input2.placeholder = "0";
+        input2.value = options[4];
 
         const button = document.createElement('button');
         button.classList.add('panel__submit');

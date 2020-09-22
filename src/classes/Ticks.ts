@@ -25,7 +25,7 @@ export class Ticks {
                 value: min+i*stepValue,
                 label: '',  
             }
-            t.label = t.value.toString();
+            t.label = t.value.toFixed(2).toString();
             ticks.push(t);
         }
 
@@ -61,7 +61,7 @@ export class Ticks {
             case 'vertical':
                 ticks.forEach((t, i)=>{
                     drawOneTick([vp.x1, vp.zeroY-t.coord], ctx);
-                    drawLabel([vp.x1-35, vp.zeroY-t.coord], t.label, ctx);
+                    drawLabel([vp.x1-55, vp.zeroY-t.coord], t.label, ctx);
                 });
             break;
 

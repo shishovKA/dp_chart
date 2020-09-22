@@ -26,7 +26,7 @@ export class Axis {
     constructor( MinMax: number[], type: string, ...options: any) {
         
         this.changed = new Signal();
-        
+
         this.min = 0;
         this.max = 0;
 
@@ -61,7 +61,36 @@ export class Axis {
     }
 
 
-    setMinMax(MinMax: number[]) {
+    setMinMax(MinMax: number[], duration?:number) {
+        let to:number[];
+        let from:number[];
+
+        from = [this.min, this.max];
+
+        switch (MinMax.length) {
+            case 0:
+                to = [0, 100];
+            break;
+
+            case 1:
+                to = [MinMax[0], 100];
+            break;
+
+            case 2:
+                to = [MinMax[0], MinMax[1]];
+            break;
+        }
+
+        if (duration) {
+            this.axisRangeAnimation(from, to, duration);
+            return;
+        }
+
+        this.min = to[0];
+        this.max = to[1];
+        
+        this.changed.dispatch();
+        /*
         switch (MinMax.length) {
             case 0:
                 this.min = 0;
@@ -78,8 +107,35 @@ export class Axis {
                 this.max = MinMax[1];
             break;
         }
+        */
+
+
+    }
+
+    axisRangeAnimation(from: number[], to: number[], duration: number) {
+        let start = performance.now();
         
-        this.changed.dispatch();
+        // define some FRAME_PERIOD in units of ms - may be floating point
+        // if you want uSecond resolution
+        const animate = (time) => {
+
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) timeFraction = 1;
+            // вычисление текущего состояния анимации
+        
+            this.min = from[0]+(to[0] - from[0])*timeFraction;
+            this.max = from[1]+(to[1] - from[1])*timeFraction;
+
+            this.changed.dispatch(); // отрисовать её
+            // return if the desired time hasn't elapsed
+            if (timeFraction < 1) {
+                requestAnimationFrame(animate);
+            }
+
+        }
+
+        requestAnimationFrame(animate);
+
     }
 
 
