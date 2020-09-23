@@ -90,6 +90,7 @@ export class Axis {
         this.max = to[1];
         
         this.changed.dispatch();
+        
         /*
         switch (MinMax.length) {
             case 0:

@@ -20,6 +20,11 @@ export class Panel {
         return [+val1, +val2]
     }
 
+    get duration():number {
+        const duration = this.form.elements["input3"].value;
+        return duration
+    }
+
     _create(...options: string[]): HTMLElement {
 
         const form = document.createElement('form');
@@ -39,7 +44,7 @@ export class Panel {
         input1.type = "text";
         input1.name = "input1";
         input1.placeholder = "0";
-        input1.value = options[3];
+        input1.value = options[4];
 
         const label2 = document.createElement('p');
         label2.classList.add('panel__label');
@@ -50,7 +55,18 @@ export class Panel {
         input2.type = "text";
         input2.name = "input2";
         input2.placeholder = "0";
-        input2.value = options[4];
+        input2.value = options[5];
+
+        const label3 = document.createElement('p');
+        label3.classList.add('panel__label');
+        label3.textContent = options[3];
+
+        const input3 = document.createElement('input');
+        input3.classList.add("panel__input");
+        input3.type = "text";
+        input3.name = "input3";
+        input3.placeholder = "0";
+        input3.value = options[6];
 
         const button = document.createElement('button');
         button.classList.add('panel__submit');
@@ -61,6 +77,8 @@ export class Panel {
         form.append(input1);
         form.append(label2);
         form.append(input2);
+        form.append(label3);
+        form.append(input3);
         form.append(button);
         
         return form;

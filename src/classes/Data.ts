@@ -18,9 +18,17 @@ export class Data {
 
     findExtremes(type: string, from: number, to: number): number[] {
         let max: number = 0;
-        let min: number;
+        let min: number = 0;
         //поиск экстремумов на заданном интервале для всех series которые хранятся в Storage
         return [min,max];
+    }
+
+    findSeriesById(id: string):Series | null {
+        const series: Series[] = this.storage.filter((series) => {
+            return series.id === id
+        });
+        if (series.length !== 0) return series[0];
+        return null;
     }
 
   }

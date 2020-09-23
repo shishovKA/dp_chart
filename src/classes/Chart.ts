@@ -54,6 +54,12 @@ export class Chart {
         })
     }
 
+    addSeries(id: string, seriesData: number[][], ...plotIds: string[]) {
+        this.data.addSeries(id, seriesData, ...plotIds);
+        this.data.findSeriesById(id)?.changed.add(this.reDraw);
+        this.reDraw();
+    }
+
     addPlot(id: string, ...options: any) {
         const plot = new Plot(id, ...options);
         this.plots.push(plot);
