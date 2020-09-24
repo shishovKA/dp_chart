@@ -60,6 +60,11 @@ export class Chart {
         this.reDraw();
     }
 
+    removeSeries(id: string) {
+        this.data.removeSeries(id);
+        this.reDraw();  
+    }
+
     addPlot(id: string, ...options: any) {
         const plot = new Plot(id, ...options);
         this.plots.push(plot);

@@ -13,7 +13,10 @@ export class Data {
     }
 
     removeSeries(id: string) {
-        //удаляем серию из массива Storage по id  
+        const series: Series[] = this.storage.filter((series) => {
+            return series.id !== id
+        });
+        this.storage = series.slice();   
     }
 
     findExtremes(type: string, from: number, to: number): number[] {
