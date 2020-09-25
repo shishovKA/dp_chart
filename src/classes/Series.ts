@@ -37,32 +37,55 @@ export class Series {
     }
 
 
-    findExtremes(): number[] {
+    setPlotsIds(plotIds: string[]) {
+        this.plots = plotIds;      
+    }
 
-        let xMin: number = this.seriesData[0][0];
-        let xMax: number = this.seriesData[0][0];
-        let yMin: number = this.seriesData[1][0];
-        let yMax: number = this.seriesData[1][0];
+
+    findExtremes(data?:number[][]): number[] {
+
+        let seriesData:number[][] = [[],[]];
+
+        if (data) seriesData = data;
+        if (!data) seriesData = this.seriesData;
+
+        let xMin: number = seriesData[0][0];
+        let xMax: number = seriesData[0][0];
+        let yMin: number = seriesData[1][0];
+        let yMax: number = seriesData[1][0];
     
-        for (let ind = 0; ind < this.seriesData[0].length; ind++ ) {
-            if (this.seriesData[0][ind] < xMin) xMin = this.seriesData[0][ind];
-            if (this.seriesData[0][ind] > xMax) xMax = this.seriesData[0][ind];
-            if (this.seriesData[1][ind] < yMin) yMin = this.seriesData[1][ind];
-            if (this.seriesData[1][ind] > yMax) yMax = this.seriesData[1][ind];
+        for (let ind = 0; ind < seriesData[0].length; ind++ ) {
+            if (seriesData[0][ind] < xMin) xMin = seriesData[0][ind];
+            if (seriesData[0][ind] > xMax) xMax = seriesData[0][ind];
+            if (seriesData[1][ind] < yMin) yMin = seriesData[1][ind];
+            if (seriesData[1][ind] > yMax) yMax = seriesData[1][ind];
         }
         
         return [xMin,xMax,yMin,yMax];
     }
 
 
-    getDataRange(xMin:number, xMax:number, yMin:number, yMax:number): number[][] {
+    getDataRange(type:string, min:number, max:number): number[][] {
         const ind: number[] = [];
         const val: number[] = [];
+        let arrInd: number = 0;
+
+        switch (type) {
+            case 'ind':
+                arrInd = 0;
+            break;
+
+            case 'val':
+                arrInd = 1;
+            break;
+
+            default:
+                arrInd = 0;
+            break;
+        }
+
         this.seriesData[0].forEach((el,i) => {
-            if ((this.seriesData[0][i] >= xMin) 
-            && (this.seriesData[0][i] <= xMax)
-            && (this.seriesData[1][i] >= yMin)
-            && (this.seriesData[1][i] <= yMax)) {
+            if ((this.seriesData[arrInd][i] >= min) && (this.seriesData[arrInd][i] <= max)) {
                 ind.push(this.seriesData[0][i]);
                 val.push(this.seriesData[1][i]);
             }
@@ -107,6 +130,12 @@ export class Series {
 
         requestAnimationFrame(animate);
 
+    }
+
+    transpose() {
+        let buf = this.seriesData[0].slice();
+        this.seriesData[0]= this.seriesData[1].slice();
+        this.seriesData[1]=buf.slice();
     }
 
 
@@ -160,14 +189,6 @@ export class Series {
     */
     
 
-
-    setPlotsIds(plotIds: string[]) {
-        this.plots.splice(0,this.plots.length);
-        plotIds.forEach( (plotId) => 
-            this.plots.push(plotId)
-        )       
-    }
-
 }
 
 
@@ -176,13 +197,7 @@ export class Series {
 
 
 
-    transpose() {
-        //Метод транспонирует данные серии
-        //предварительный вариант реализации, возможно придется перезаписывать значения вручную, а не менять ссылки
-        let buf = this.seriesData[0];
-        this.seriesData[0]= this.seriesData[1];
-        this.seriesData[1]=buf;
-    }
+
 
     */
 

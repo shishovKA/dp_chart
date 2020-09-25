@@ -57,6 +57,7 @@ body {
 
 .panel__title {
     margin: 0px 0px 0px 0px;
+    width: 100%;
 }
 
 .panel__block > * {

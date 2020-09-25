@@ -1,4 +1,4 @@
-
+import { Signal } from "signals"
 import { Rectangle } from "./Rectangle";
 
 export class Canvas {
@@ -12,8 +12,11 @@ export class Canvas {
     right: number;
     bottom: number;
     left: number;
+    changed: Signal;
+
     
     constructor(container: HTMLElement, ...paddings: number[]) {
+        this.changed = new Signal();
         this.container = container;
         this.canvas = document.createElement('canvas');
         this._ctx = this.canvas.getContext('2d');
@@ -21,11 +24,9 @@ export class Canvas {
         this.height = 0;
         this.width = 0;
 
-        if (this.container) {
-            this.height = this.container.getBoundingClientRect().height;
-            this.width = this.container.getBoundingClientRect().width;
-            this.container.appendChild(this.canvas);
-        }
+        this.container.appendChild(this.canvas);
+
+        this.resize();
         
         this.canvas.width = this.height;
         this.canvas.height = this.width;
@@ -76,6 +77,8 @@ export class Canvas {
                 this.left = paddings[3];
             break;
           }
+        
+        this.changed.dispatch();
         return 
     }
 
@@ -94,8 +97,8 @@ export class Canvas {
                 this.width = this.container.getBoundingClientRect().width;
             }
         }
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
+
+        this.scaleCanvas(this.canvas, this._ctx, this.width, this.height)
     }
 
     clear() {
@@ -105,5 +108,42 @@ export class Canvas {
     get viewport(): Rectangle {
         return new Rectangle(this.left, this.top, this.width-this.right, this.height-this.bottom);
     }
+
+    scaleCanvas(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, width:number, height:number) {
+        // assume the device pixel ratio is 1 if the browser doesn't specify it
+        const devicePixelRatio = window.devicePixelRatio || 1;
+      
+        // determine the 'backing store ratio' of the canvas context
+        const backingStoreRatio = (
+          context.webkitBackingStorePixelRatio ||
+          context.mozBackingStorePixelRatio ||
+          context.msBackingStorePixelRatio ||
+          context.oBackingStorePixelRatio ||
+          context.backingStorePixelRatio || 1
+        );
+      
+        // determine the actual ratio we want to draw at
+        const ratio = devicePixelRatio / backingStoreRatio;
+      
+        if (devicePixelRatio !== backingStoreRatio) {
+          // set the 'real' canvas size to the higher width/height
+          canvas.width = width * ratio;
+          canvas.height = height * ratio;
+      
+          // ...then scale it back down with CSS
+          canvas.style.width = width + 'px';
+          canvas.style.height = height + 'px';
+        }
+        else {
+          // this is a normal 1:1 device; just scale it simply
+          canvas.width = width;
+          canvas.height = height;
+          canvas.style.width = '';
+          canvas.style.height = '';
+        }
+      
+        // scale the drawing context so everything will work at the higher ratio
+        context.scale(ratio, ratio);
+      }
 
   }

@@ -28,6 +28,9 @@ export class Chart {
 
         this.xAxis.changed.add(this.reDraw);
         this.yAxis.changed.add(this.reDraw);
+        this.canvas.changed.add(this.reDraw);
+
+        this.reDraw();
     }
 
     reDraw() {

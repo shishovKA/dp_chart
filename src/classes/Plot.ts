@@ -1,3 +1,4 @@
+import { throws } from "assert";
 import { Rectangle } from "./Rectangle";
 import { Series } from "./Series";
 
@@ -6,7 +7,6 @@ interface plotOptions  {
     lineColor: string;
     brushColor: string;
     mainSize: number;
-    // и тд
 }
 
 //описание класса
@@ -14,10 +14,12 @@ interface plotOptions  {
 export class Plot {
 
     _id: string;
+    type: string;
     _options: plotOptions;
     
-    constructor(id: string, ...options: any) {
+    constructor(id: string, type: string, ...options: any) {
         this._id = id;
+        this.type = type;
 
         this._options = {
             lineWidth: 0.5,
@@ -82,17 +84,45 @@ export class Plot {
     }
 
     drawPlot(ctx: CanvasRenderingContext2D, plotData: number[][]) {
+        switch (this.type) {
+            case 'dotted': 
+                this.drawDotted(ctx, plotData);
+            break;
+
+            case 'line': 
+                this.drawLine(ctx, plotData);
+            break;
+        }
+    }
+
+    drawDotted(ctx: CanvasRenderingContext2D, plotData: number[][]){
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = this._options.brushColor;
+
         for (let ind = 0; ind < plotData[0].length; ind++ ) {
             ctx.beginPath();
             ctx.arc(plotData[0][ind], plotData[1][ind], this._options.mainSize, 0, Math.PI * 2, true);
-            ctx.strokeStyle = this._options.lineColor;
-            ctx.lineWidth = this._options.lineWidth;
-            ctx.globalAlpha = 1;
-            ctx.fillStyle = this._options.brushColor;
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
         }
+    }
+
+    drawLine(ctx: CanvasRenderingContext2D, plotData: number[][]) {
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = this._options.brushColor;
+        ctx.beginPath();
+        ctx.moveTo(plotData[0][0], plotData[1][0])
+
+        for (let ind = 1; ind < plotData[0].length; ind++ ) {
+            ctx.lineTo(plotData[0][ind], plotData[1][ind]) 
+        }
+        
+        ctx.stroke();
     }
 
   }
