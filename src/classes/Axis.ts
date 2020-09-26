@@ -42,7 +42,9 @@ export class Axis {
         this.setOptions(...options);
         this.ticks = new Ticks();
 
-        
+        this.ticks.changed.add(() => {
+            this.changed.dispatch();
+        });
     }
 
     setOptions(...options: any[]) {
@@ -90,53 +92,25 @@ export class Axis {
         this.max = to[1];
         
         this.changed.dispatch();
-        
-        /*
-        switch (MinMax.length) {
-            case 0:
-                this.min = 0;
-                this.max = 100;
-            break;
-
-            case 1:
-                this.min = MinMax[0];
-                this.max = 100;
-            break;
-
-            case 2:
-                this.min = MinMax[0];
-                this.max = MinMax[1];
-            break;
-        }
-        */
-
 
     }
 
     axisRangeAnimation(from: number[], to: number[], duration: number) {
         let start = performance.now();
         
-        // define some FRAME_PERIOD in units of ms - may be floating point
-        // if you want uSecond resolution
         const animate = (time) => {
 
             let timeFraction = (time - start) / duration;
             if (timeFraction > 1) timeFraction = 1;
-            // вычисление текущего состояния анимации
-        
             this.min = from[0]+(to[0] - from[0])*timeFraction;
             this.max = from[1]+(to[1] - from[1])*timeFraction;
-
             this.changed.dispatch(); // отрисовать её
-            // return if the desired time hasn't elapsed
             if (timeFraction < 1) {
                 requestAnimationFrame(animate);
             }
-
         }
 
         requestAnimationFrame(animate);
-
     }
 
 
@@ -149,18 +123,18 @@ export class Axis {
         switch(this.type) {
             case 'vertical':
                 ctx.lineTo(viewport.x1, viewport.y1);
-                this.ticks.generateTicks(this.min, this.max, viewport.height);
+                this.ticks.createTicks(this.min, this.max, viewport.height);
             break;
           
             case 'horizontal':
                 ctx.lineTo(viewport.x2, viewport.y2);
-                this.ticks.generateTicks(this.min, this.max, viewport.width);
+                this.ticks.createTicks(this.min, this.max, viewport.width);
             break;
           }
         ctx.closePath();
         ctx.stroke();
 
-        this.ticks.drawTicks(this.ticks.ticks, this.type,ctx, viewport);
+        this.ticks.drawTicks(this.ticks.ticksArr, this.type, ctx, viewport);
         
     }
 

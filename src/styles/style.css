@@ -35,7 +35,7 @@ body {
 .panel {
     margin: 50px 0px 0px 0px;
     display: flex;
-    justify-content: space-between;
+    justify-content: start;
     width: 100%;
     max-width: 1200px;
     flex-wrap: wrap;
@@ -69,15 +69,15 @@ body {
 }
 
 .panel__btn {
+    margin-left: 20px;
     border-radius: 10px;
     height: 40px;
-    width: 150px;
+    width: 100px;
 }
 
 .panel__btn:hover {
     background: rgba(0,0,0,0);
-	color: #3a7999;
-	box-shadow: inset 0 0 0 3px #3a7999;
+	box-shadow: inset 0 0 0 3px #b02c5a;
 }
 
 .series {

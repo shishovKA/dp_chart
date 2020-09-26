@@ -1,3 +1,4 @@
+import { Signal } from "signals"
 import { Rectangle } from "./Rectangle";
 
 interface tick  {
@@ -8,13 +9,36 @@ interface tick  {
 
 export class Ticks {
     
-    ticks: tick[];
+    ticksArr: tick[];
+    type: string;
+    labels?: string[];
+    changed: Signal;
 
     constructor() {
-        this.ticks = [];
+        this.changed = new Signal();
+        this.ticksArr = [];
+        this.type = 'default';
     }
 
-    generateTicks(min: number, max: number, vpLength: number): tick[] {
+    setCustomTicksOptions(labels: string[]) {
+        this.type = 'custom';
+        this.labels = labels;
+        this.changed.dispatch();
+    }
+
+    createTicks(min: number, max: number, vpLength: number): tick[] {
+        switch (this.type) {
+            case 'default':
+                return this.generateDefaultTicks(min, max, vpLength);
+            break;
+
+            case 'custom':
+                return this.generateCustomTicks(min, max, vpLength);
+            break;
+        }
+    }
+
+    generateDefaultTicks(min: number, max: number, vpLength: number): tick[] {
         const ticks: tick[] = [];
         const tickCount = 5;
         let stepValue = Math.abs(max-min)/tickCount;
@@ -28,8 +52,33 @@ export class Ticks {
             t.label = t.value.toFixed(2).toString();
             ticks.push(t);
         }
+        this.ticksArr = ticks;
+        return ticks;
+    }
 
-        this.ticks = ticks;
+    generateCustomTicks(min: number, max: number, vpLength: number): tick[] {
+        const ticks: tick[] = [];
+        const tickCount = 5;
+        let stepValue = Math.abs(max-min)/tickCount;
+        let stepCoord = vpLength/tickCount;
+        const valToCoord:number = vpLength/Math.abs(max-min);
+
+        
+        for (let i=0; i<=tickCount; i++) {
+
+            const value: number = Math.round(min+i*stepValue);
+            const coord: number = (value-min)*valToCoord;
+
+            const t = {
+                coord: coord,
+                value: value,
+                label: this.labels[value],  
+            }
+
+            ticks.push(t);
+        }
+        
+        this.ticksArr = ticks;
         return ticks;
     }
 
@@ -43,7 +92,6 @@ export class Ticks {
             ctx.moveTo(xy[0]-r, xy[1]);
             ctx.lineTo(xy[0]+r, xy[1]);
             ctx.stroke();
-
             ctx.beginPath();
             ctx.moveTo(xy[0], xy[1]-r);
             ctx.lineTo(xy[0], xy[1]+r);

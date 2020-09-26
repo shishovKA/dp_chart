@@ -19,12 +19,18 @@ export class Data {
         this.storage = series.slice();   
     }
 
-    findExtremes(type: string, from: number, to: number): number[] {
+    findExtremes(type: string, from?: number, to?: number): number[] {
         let maxArr: number[] = [];
         let minArr: number[] = [];
 
+        
         this.storage.forEach((series) => {
-            const extremes = series.findExtremes(series.getDataRange(type, from, to));
+            let dataRange:  number[][];
+            if (from && to) { 
+                dataRange = series.getDataRange(type, from, to) 
+            } else { dataRange = series.seriesData }
+
+            const extremes = series.findExtremes(dataRange);
             switch (type) {
                 case 'ind':
                     minArr.push(extremes[2]);

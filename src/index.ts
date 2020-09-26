@@ -5,12 +5,14 @@ import "./styles/style.css";
 
 import {cbh1} from "./data/cbh1"
 import {cbh5} from "./data/cbh5"
+import {xLabels} from "./data/xLabels"
 
 //import {xDate} from "./data/xDate"
 
 import {Panel} from "./control/Panel"
+
 import {Btn} from "./control/Btn"
-import {SeriesCtrl} from "./control/SeriesCtrl"
+//import {SeriesCtrl} from "./control/SeriesCtrl"
 
 import {Chart} from "./classes/Chart"
 
@@ -25,6 +27,7 @@ chart.addSeries('cyberHedge1', [cbh1], 'plot1');
 chart.addSeries('cyberHedge5', [cbh5], 'plot5');
 
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
+chart.xAxis.ticks.setCustomTicksOptions(xLabels);
 
 console.log(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max))
 
@@ -35,8 +38,8 @@ window.addEventListener('resize', function(){
 console.log(chart);
 
 //drawRect(chart.canvas.viewport, '#d40da5');
-
 //элементы управления
+
 const panel1 = new Panel(document.querySelector('.panel'),'X axis','Min','Max', 'duration', 0, 900, 1000);
 
 panel1.submitBtn.addEventListener("click", (event) => {
@@ -52,3 +55,76 @@ panel1.submitBtn.addEventListener("click", (event) => {
       }
   console.log(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max))
 })
+
+const lastLb = xLabels[xLabels.length-1]
+
+//кнопка 6M
+const SixMBtn = new Btn(document.querySelector('.panel'),'6M','#e5e6e1');
+
+SixMBtn.element.addEventListener("click", (event) => {
+    const maxDate = dateParser(lastLb);
+    const minDate = maxDate.setMonth(maxDate.getMonth() - 6);
+    const max = xLabels.length-1;
+    const min = findDateInd(minDate);
+    chart.xAxis.setMinMax([min,max], 500);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+  })
+
+//кнопка 1Y
+const OneYBtn = new Btn(document.querySelector('.panel'),'1Y','#e5e6e1');
+
+OneYBtn.element.addEventListener("click", (event) => {
+    const maxDate = dateParser(lastLb);
+    const minDate = maxDate.setFullYear(maxDate.getFullYear() - 1);
+    const max = xLabels.length-1;
+    const min = findDateInd(minDate);
+    chart.xAxis.setMinMax([min,max], 500);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+  })
+
+//кнопка 2Y
+const TwoYBtn = new Btn(document.querySelector('.panel'),'2Y','#e5e6e1');
+
+TwoYBtn.element.addEventListener("click", (event) => {
+    const maxDate = dateParser(lastLb);
+    const minDate = maxDate.setFullYear(maxDate.getFullYear() - 2);
+    const max = xLabels.length-1;
+    const min = findDateInd(minDate);
+    chart.xAxis.setMinMax([min,max], 500);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+  })
+
+//кнопка Max
+const MaxBtn = new Btn(document.querySelector('.panel'),'MAX','#e5e6e1');
+
+MaxBtn.element.addEventListener("click", (event) => {
+    const max = xLabels.length-1;
+    const min = 0;
+    chart.xAxis.setMinMax([min,max], 500);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+  })
+
+
+//вспомогательные функции для работы с датами для определения области построения графика
+function dateParser(myDate: string) {
+  const arr = myDate.split('.');
+  arr[2] = '20'+arr[2];
+  const date = new Date(+arr[2], +arr[1], +arr[0]);
+  return date;
+}
+
+function findDateInd(date: Date) {
+  const ind =  xLabels.reduce((prev, curr, i) => {
+    const curDif = Math.abs(dateParser(curr)-date);
+    const prevDif = Math.abs(dateParser(xLabels[prev])-date);
+    if (curDif < prevDif) return i
+    return prev
+      }, 0);
+  return ind;
+}
+
+console.log(dateParser(lastLb))
+console.log(findDateInd(dateParser(lastLb)))
+
+
+
