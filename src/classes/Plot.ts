@@ -83,7 +83,7 @@ export class Plot {
         return [xPlot, yPlot];
     }
 
-    drawPlot(ctx: CanvasRenderingContext2D, plotData: number[][]) {
+    drawPlot(vp:Rectangle, ctx: CanvasRenderingContext2D, plotData: number[][]) {
         switch (this.type) {
             case 'dotted': 
                 this.drawDotted(ctx, plotData);
@@ -91,6 +91,10 @@ export class Plot {
 
             case 'line': 
                 this.drawLine(ctx, plotData);
+            break;
+
+            case 'area': 
+            this.drawArea(vp, ctx, plotData);
             break;
         }
     }
@@ -122,6 +126,26 @@ export class Plot {
             ctx.lineTo(plotData[0][ind], plotData[1][ind]) 
         }
         
+        ctx.stroke();
+    }
+
+    drawArea(vp:Rectangle, ctx: CanvasRenderingContext2D, plotData: number[][]) {
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = this._options.brushColor;
+        ctx.beginPath();
+        ctx.moveTo(plotData[0][0], vp.zeroY);
+        ctx.lineTo(plotData[0][0], plotData[1][0]);
+        
+        for (let ind = 1; ind < plotData[0].length; ind++ ) {
+            ctx.lineTo(plotData[0][ind], plotData[1][ind]) 
+        }
+
+        ctx.lineTo(plotData[0][plotData[0].length-1], vp.zeroY);
+        
+        ctx.closePath();
+        ctx.fill();
         ctx.stroke();
     }
 

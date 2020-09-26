@@ -52,7 +52,7 @@ export class Chart {
             const plotRect = this._transformer.transformRect(this.canvas.viewport, matrix);
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
-                if (plot) plot.drawPlot(this.canvas.ctx, plot.convertSeriesToCoord(series, plotRect));   
+                if (plot) plot.drawPlot(this.canvas.viewport, this.canvas.ctx, plot.convertSeriesToCoord(series, plotRect));   
             })
         })
     }

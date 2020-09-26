@@ -20,11 +20,18 @@ import {Chart} from "./classes/Chart"
 const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [0, 2000]);
 chart.canvas.setPaddings(50, 80, 50, 80);
 
-chart.addPlot('plot1', 'line', 0.5, 'red', 'red', 0.5);
-chart.addPlot('plot5', 'line', 0.5, 'blue', 'blue', 0.5);
+chart.addPlot('plot1', 'line', 1, 'red', 'red');
+chart.addPlot('plot1a', 'area', 0.5, '#ffe6e6', '#ffe6e6', 0.5);
 
-chart.addSeries('cyberHedge1', [cbh1], 'plot1');
+chart.addPlot('plot5', 'line', 0.5, 'blue', 'blue', 0.5);
+chart.addPlot('plot5a', 'area', 0.5, '#e6edff', '#e6edff', 0.5);
+
+chart.addSeries('cyberHedge5', [cbh5], 'plot5a');
+chart.addSeries('cyberHedge1', [cbh1], "plot1a");
+
 chart.addSeries('cyberHedge5', [cbh5], 'plot5');
+chart.addSeries('cyberHedge1', [cbh1], 'plot1');
+
 
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
 chart.xAxis.ticks.setCustomTicksOptions(xLabels);
