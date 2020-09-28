@@ -8,8 +8,8 @@ export class Data {
         this.storage = [];
     }
 
-    addSeries(id: string, seriesData: number[][], ...plotIds: string[]) {
-        this.storage.push(new Series(id, seriesData, ...plotIds));   
+    addSeries(id: string, seriesData: number[][], plotIds: string[], tooltipsIds?: string[]) {
+        this.storage.push(new Series(id, seriesData, plotIds, tooltipsIds));  
     }
 
     removeSeries(id: string) {

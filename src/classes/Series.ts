@@ -5,14 +5,17 @@ export class Series {
     id: string;
     seriesData: number[][];
     plots: string[];
+    tooltips: string[];
     changed: Signal;
     
-    constructor(id: string, seriesData: number[][], ...plotIds: string[]) {
+    constructor(id: string, seriesData: number[][], plotIds: string[], tooltipsIds?: string[]) {
         this.changed = new Signal();
         this.id = id;
         this.seriesData = this.getInitialData(seriesData);
         this.plots = [];
         this.setPlotsIds(plotIds);
+        this.tooltips = [];
+        this.setTooltipsIds(tooltipsIds);
     }
 
 
@@ -37,8 +40,12 @@ export class Series {
     }
 
 
-    setPlotsIds(plotIds: string[]) {
-        this.plots = plotIds;      
+    setPlotsIds(plotIds: string[] ) {
+        this.plots = plotIds;       
+    }
+
+    setTooltipsIds(tooltipsIds: string[] | undefined) {
+        if (tooltipsIds) this.tooltips = tooltipsIds;      
     }
 
 
@@ -130,6 +137,16 @@ export class Series {
 
         requestAnimationFrame(animate);
 
+    }
+
+    getClosestData(x: number): number[] {
+        const ind =  this.seriesData[0].reduce((prev, curr, i) => {
+            const curDif = Math.abs(i - x);
+            const prevDif = Math.abs(prev - x);
+            if (curDif < prevDif) return i
+            return prev
+              }, 0);
+        return [ind, this.seriesData[1][ind], ]
     }
 
     transpose() {

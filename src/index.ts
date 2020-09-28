@@ -1,46 +1,46 @@
 
+// импорт стилей
 import "./styles/normalize.css";
 import "./styles/style.css";
 
-
+// импорт данных
 import {cbh1} from "./data/cbh1"
 import {cbh5} from "./data/cbh5"
 import {xLabels} from "./data/xLabels"
 
-//import {xDate} from "./data/xDate"
-
+// импорт элементов управления графиком
 import {Panel} from "./control/Panel"
-
 import {Btn} from "./control/Btn"
-//import {SeriesCtrl} from "./control/SeriesCtrl"
 
+//импорт ключевого класса Chart
 import {Chart} from "./classes/Chart"
 
 //работа с Chart
 const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [0, 2000]);
-chart.canvas.setPaddings(50, 80, 50, 80);
 
+chart.canvas.setPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
+
+// задаем Plot
 chart.addPlot('plot1', 'line', 1, 'red', 'red');
 chart.addPlot('plot1a', 'area', 0.5, '#ffe6e6', '#ffe6e6', 0.5);
-
-chart.addPlot('plot5', 'line', 0.5, 'blue', 'blue', 0.5);
+chart.addPlot('plot5', 'line', 1, 'blue', 'blue', 1);
 chart.addPlot('plot5a', 'area', 0.5, '#e6edff', '#e6edff', 0.5);
 
-chart.addSeries('cyberHedge5', [cbh5], 'plot5a');
-chart.addSeries('cyberHedge1', [cbh1], "plot1a");
+// задаем Tooltip
+chart.addTooltip('red_tt', 'x', 3, '#ffffff', 'red', 4);
 
-chart.addSeries('cyberHedge5', [cbh5], 'plot5');
-chart.addSeries('cyberHedge1', [cbh1], 'plot1');
+// задаем Series
+chart.addSeries('cyberHedge5', [cbh5], ['plot5a']);
+chart.addSeries('cyberHedge1', [cbh1], ['plot1a']);
+chart.addSeries('cyberHedge5', [cbh5], ['plot5']);
+chart.addSeries('cyberHedge1', [cbh1], ['plot1'], ['red_tt']);
 
-
+// настраиваем оси
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
 chart.xAxis.ticks.setCustomTicksOptions(xLabels);
 
-console.log(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max))
 
-window.addEventListener('resize', function(){
-    chart.reDraw();
-});
+
 
 console.log(chart);
 
@@ -130,8 +130,6 @@ function findDateInd(date: Date) {
   return ind;
 }
 
-console.log(dateParser(lastLb))
-console.log(findDateInd(dateParser(lastLb)))
 
 
 

@@ -12,18 +12,23 @@ export class Canvas {
     right: number;
     bottom: number;
     left: number;
+    mouseCoords: number[];
     changed: Signal;
+    mouseMoved: Signal;
+
 
     
     constructor(container: HTMLElement, ...paddings: number[]) {
         this.changed = new Signal();
+        this.mouseMoved = new Signal();
+
         this.container = container;
         this.canvas = document.createElement('canvas');
         this._ctx = this.canvas.getContext('2d');
         
         this.height = 0;
         this.width = 0;
-
+        this.mouseCoords = [0,0];
         this.container.appendChild(this.canvas);
 
         this.resize();
@@ -35,6 +40,10 @@ export class Canvas {
         this.bottom = 0;
         this.left = 0;
         this.setPaddings(...paddings);
+
+        this.canvas.addEventListener('mousemove', (event) => {
+            this.mouseCoords = this.getMouseCoords(event);
+          });
     }
 
     setPaddings(...paddings: number[]) {
@@ -107,6 +116,12 @@ export class Canvas {
 
     get viewport(): Rectangle {
         return new Rectangle(this.left, this.top, this.width-this.right, this.height-this.bottom);
+    }
+
+    getMouseCoords(event) {
+        var bcr = this.canvas.getBoundingClientRect();
+        this.mouseMoved.dispatch();
+        return [event.clientX - bcr.left - this.viewport.zeroX, event.clientY - bcr.top];
     }
 
     scaleCanvas(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, width:number, height:number) {

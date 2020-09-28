@@ -1,4 +1,4 @@
-import { throws } from "assert";
+
 import { Rectangle } from "./Rectangle";
 import { Series } from "./Series";
 
