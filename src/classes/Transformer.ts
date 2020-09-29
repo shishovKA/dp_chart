@@ -44,13 +44,13 @@ export class Transformer {
         let x2: number;
         let y2: number;
 
-        const baseVp = new Rectangle (0, 0, viewport.width, viewport.height);     
+        const startRect = new Rectangle (0, 0, viewport.width, viewport.height);     
         
-        x1 = trans(baseVp.x1, baseVp.y1, matrix.slice(0,3))+viewport.x1;
-        y1 = trans(baseVp.x1, baseVp.y1, matrix.slice(3))+viewport.y1;
+        x1 = trans(startRect.x1, startRect.y1, matrix.slice(0,3))+viewport.x1;
+        y1 = trans(startRect.x1, startRect.y1, matrix.slice(3))+viewport.y1;
         
-        x2 = trans(baseVp.x2, baseVp.y2, matrix.slice(0,3))+viewport.x1;
-        y2 = trans(baseVp.x2, baseVp.y2, matrix.slice(3))+viewport.y1;
+        x2 = trans(startRect.x2, startRect.y2, matrix.slice(0,3))+viewport.x1;
+        y2 = trans(startRect.x2, startRect.y2, matrix.slice(3))+viewport.y1;
 
         return new Rectangle(x1, y1, x2, y2);
     }

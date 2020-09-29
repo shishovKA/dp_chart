@@ -66,6 +66,10 @@ export class Tooltip {
             case 'x': 
                 this.drawX(vp, ctx, tooltipRect);
             break;
+
+            case 'v_line': 
+                this.drawVerticalLine(vp, ctx, tooltipRect);
+            break;
         }
     }
 
@@ -73,14 +77,24 @@ export class Tooltip {
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
-
+        ctx.setLineDash([]);
+        
         ctx.beginPath();
         ctx.arc(tooltipRect.zeroX, tooltipRect.zeroY, this._options.mainSize, 0, Math.PI * 2, true);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
-        
-        console.log('отрисовал тул тип',tooltipRect.zeroX, tooltipRect.zeroY);
+    }
+
+    drawVerticalLine(vp:Rectangle, ctx: CanvasRenderingContext2D, tooltipRect: Rectangle){
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.fillStyle = this._options.brushColor;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.moveTo(tooltipRect.zeroX, vp.y1);
+        ctx.lineTo(tooltipRect.zeroX, vp.zeroY);
+        ctx.stroke();
     }
 
   }

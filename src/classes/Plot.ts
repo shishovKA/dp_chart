@@ -104,6 +104,7 @@ export class Plot {
         ctx.lineWidth = this._options.lineWidth;
         ctx.globalAlpha = 1;
         ctx.fillStyle = this._options.brushColor;
+        ctx.setLineDash([]);
 
         for (let ind = 0; ind < plotData[0].length; ind++ ) {
             ctx.beginPath();
@@ -119,6 +120,8 @@ export class Plot {
         ctx.lineWidth = this._options.lineWidth;
         ctx.globalAlpha = 1;
         ctx.fillStyle = this._options.brushColor;
+        ctx.setLineDash([]);
+
         ctx.beginPath();
         ctx.moveTo(plotData[0][0], plotData[1][0])
 
@@ -134,6 +137,8 @@ export class Plot {
         ctx.lineWidth = this._options.lineWidth;
         ctx.globalAlpha = 1;
         ctx.fillStyle = this._options.brushColor;
+        ctx.setLineDash([]);
+        
         ctx.beginPath();
         ctx.moveTo(plotData[0][0], vp.zeroY);
         ctx.lineTo(plotData[0][0], plotData[1][0]);

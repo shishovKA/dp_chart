@@ -28,12 +28,14 @@ chart.addPlot('plot5a', 'area', 0.5, '#e6edff', '#e6edff', 0.5);
 
 // задаем Tooltip
 chart.addTooltip('red_tt', 'x', 3, '#ffffff', 'red', 4);
+chart.addTooltip('blue_tt', 'x', 3, '#ffffff', 'blue', 4);
+chart.addTooltip('xLine_tt', 'v_line', 1, '#b3b3b3', '#b3b3b3');
 
 // задаем Series
 chart.addSeries('cyberHedge5', [cbh5], ['plot5a']);
 chart.addSeries('cyberHedge1', [cbh1], ['plot1a']);
-chart.addSeries('cyberHedge5', [cbh5], ['plot5']);
-chart.addSeries('cyberHedge1', [cbh1], ['plot1'], ['red_tt']);
+chart.addSeries('cyberHedge5', [cbh5], ['plot5'], ['blue_tt']);
+chart.addSeries('cyberHedge1', [cbh1], ['plot1'], ['xLine_tt','red_tt']);
 
 // настраиваем оси
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
