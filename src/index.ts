@@ -19,37 +19,35 @@ import {Chart} from "./classes/Chart"
 const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [0, 2000]);
 
 chart.canvas.setPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
+chart.canvasTT.setPaddings(50, 80, 50, 80);
 
 // создаем Plot
-chart.addPlot('plot1', 'line', 1, 'red', 'red');
-chart.addPlot('plot1a', 'area', 0.5, '#ffe6e6', '#ffe6e6', 0.5);
-chart.addPlot('plot5', 'line', 1, 'blue', 'blue', 1);
-chart.addPlot('plot5a', 'area', 0.5, '#e6edff', '#e6edff', 0.5);
+chart.addPlot('red_line', 'line', 1, 'red', 'red');
+chart.addPlot('red_area', 'area', 0.5, '#ffe6e6', '#ffe6e6', 0.5);
+chart.addPlot('blue_line', 'line', 1, 'blue', 'blue', 1);
+chart.addPlot('blue_area', 'area', 0.5, '#e6edff', '#e6edff', 0.5);
 
 // создаем Tooltip
-chart.addTooltip('red_tt', 'x', [3, '#ffffff', 'red', 4]);
-chart.addTooltip('blue_tt', 'x', [3, '#ffffff', 'blue', 4]);
-chart.addTooltip('xLine_tt', 'v_line', [1, '#b3b3b3', '#b3b3b3'], xLabels);
+chart.findPlotById('red_line')?.addTooltip('xLine_tt', 'v_line', [1, '#b3b3b3', '#b3b3b3'], xLabels);
+chart.findPlotById('blue_line')?.addTooltip('blue_tt', 'x', [3, '#ffffff', 'blue', 4]);
+chart.findPlotById('red_line')?.addTooltip('red_tt', 'x', [3, '#ffffff', 'red', 4]);
+
 
 // создаем Series
-chart.addSeries('cyberHedge5', [cbh5], ['plot5a']);
-chart.addSeries('cyberHedge1', [cbh1], ['plot1a']);
-chart.addSeries('cyberHedge5', [cbh5], ['plot5'], ['blue_tt']);
-chart.addSeries('cyberHedge1', [cbh1], ['plot1'], ['xLine_tt','red_tt']);
+chart.addSeries('cyberHedge5', [cbh5], ['blue_area']);
+chart.addSeries('cyberHedge1', [cbh1], ['red_area']);
+chart.addSeries('cyberHedge5', [cbh5], ['blue_line']);
+chart.addSeries('cyberHedge1', [cbh1], ['red_line']);
 
 // настраиваем оси
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
 chart.xAxis.ticks.setCustomTicksOptions(xLabels);
 
 
-
-
-console.log(chart);
-
 //drawRect(chart.canvas.viewport, '#d40da5');
 //элементы управления
 
-const panel1 = new Panel(document.querySelector('.panel'),'X axis','Min','Max', 'duration', 0, 900, 1000);
+const panel1 = new Panel(document.querySelector('.panel'),'X axis (indices)','Min','Max', 'duration', 0, 900, 1000);
 
 panel1.submitBtn.addEventListener("click", (event) => {
   event.preventDefault()
@@ -62,7 +60,8 @@ panel1.submitBtn.addEventListener("click", (event) => {
       chart.xAxis.setMinMax(panel1.values);
       chart.yAxis.setMinMax(chart.data.findExtremes('ind', panel1.values[0], panel1.values[1]));
       }
-  console.log(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max))
+
+  console.log(chart.data.findExtremes('ind', panel1.values[0], panel1.values[1]))
 })
 
 const lastLb = xLabels[xLabels.length-1]

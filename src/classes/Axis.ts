@@ -138,4 +138,8 @@ export class Axis {
         
     }
 
+    get length():number {
+        return Math.abs(this.max-this.min);
+    }
+
   }

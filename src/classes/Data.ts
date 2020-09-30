@@ -26,9 +26,9 @@ export class Data {
         
         this.storage.forEach((series) => {
             let dataRange:  number[][];
-            if (from && to) { 
-                dataRange = series.getDataRange(type, from, to) 
-            } else { dataRange = series.seriesData }
+            if ((from !== undefined) && (to !== undefined)) { 
+                    dataRange = series.getDataRange(type, from, to) 
+                } else { dataRange = series.seriesData }
 
             const extremes = series.findExtremes(dataRange);
             switch (type) {

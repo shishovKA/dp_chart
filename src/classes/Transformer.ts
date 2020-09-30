@@ -1,34 +1,64 @@
+import { Axis } from "./Axis";
+import { Series } from "./Series";
 import { Rectangle } from "./Rectangle";
+import { Point } from "./Point";
 
 export class Transformer {
 
+    matrix: number[];
+
     constructor() {
-
+        this.matrix = [];
     }
 
-    formMatrix(axisRanges: number[], seriesRanges: number[], vp: Rectangle): number[] {
+    getPlotRect(axisX: Axis, axisY: Axis, series: Series, vp: Rectangle): Rectangle {
 
-        const axisWidth: number = Math.abs(axisRanges[1]-axisRanges[0]);
-        const seriesWidth: number = Math.abs(seriesRanges[1]-seriesRanges[0]);
-        const axisHeight: number = Math.abs(axisRanges[3]-axisRanges[2]);
-        const seriesHeight: number = Math.abs(seriesRanges[3]-seriesRanges[2]);
+        const seriesExtremes = series.findExtremes();
 
-        let tx: number = (seriesRanges[0] - axisRanges[0]);
-        let ty: number = -(seriesRanges[3] - axisRanges[3]);
+        const seriesWidth: number = Math.abs(seriesExtremes[1]-seriesExtremes[0]);
+        const seriesHeight: number = Math.abs(seriesExtremes[3]-seriesExtremes[2]);
 
-        const scaleX = seriesWidth / axisWidth;
-        const scaleY = seriesHeight / axisHeight;
+        let tx: number = (seriesExtremes[0] - axisX.min);
+        let ty: number = -(seriesExtremes[3] - axisY.max);
 
-        tx = Math.round(tx*vp.width/axisWidth); 
-        ty = Math.round(ty*vp.height/axisHeight);
+        const scaleX = seriesWidth / axisX.length;
+        const scaleY = seriesHeight / axisY.length;
+
+        tx = Math.round(tx*vp.width/axisX.length); 
+        ty = Math.round(ty*vp.height/axisY.length);
         
-        const transMatrix: number[] = [scaleX, 0, tx, 0, scaleY, ty];       
-        return transMatrix;
+        const transMatrix: number[] = [scaleX, 0, tx, 0, scaleY, ty]; 
+
+        this.matrix = transMatrix;
+
+        return this.transform(vp);
+    }
+
+
+    getVeiwportCoord(axisX: Axis, axisY: Axis, data: number[], vp: Rectangle): Point {
+
+        let tx: number = (data[0] - axisX.min);
+        let ty: number = -(data[1] - axisY.max);
+
+        const scaleX = 0;
+        const scaleY = 0;
+
+        tx = Math.round(tx*vp.width/axisX.length); 
+        ty = Math.round(ty*vp.height/axisY.length);
+        
+        const transMatrix: number[] = [0, 0, tx, 0, 0, ty];
+
+        this.matrix = transMatrix;
+
+        const coordRect = this.transform(vp);
+        const coord = new Point(coordRect.zeroX, coordRect.zeroY)
+
+        return coord;
     }
 
 
 
-    transformRect(viewport: Rectangle, transMatrix: number[]): Rectangle {
+    transform(viewport: Rectangle): Rectangle {
 
         function trans(x: number, y: number, coeff: number[]): number {
             let res:number;
@@ -37,7 +67,7 @@ export class Transformer {
 
         let matrix: number[] = [1, 0, 0, 0, 1, 0];
 
-        if (transMatrix) {matrix = transMatrix;}
+        if (this.matrix) {matrix = this.matrix;}
 
         let x1: number;
         let y1: number;

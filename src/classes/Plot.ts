@@ -1,6 +1,8 @@
 
 import { Rectangle } from "./Rectangle";
 import { Series } from "./Series";
+import { Point } from "./Point";
+import { Tooltip } from "./Tooltip";
 
 interface plotOptions  {
     lineWidth: number;
@@ -16,6 +18,8 @@ export class Plot {
     _id: string;
     type: string;
     _options: plotOptions;
+    plotData: Point[];
+    tooltips: Tooltip[];
     
     constructor(id: string, type: string, ...options: any) {
         this._id = id;
@@ -29,7 +33,32 @@ export class Plot {
         };
 
         this.setOptions(options);
+
+        this.plotData = [];
+        this.tooltips = [];
     }
+
+
+    addTooltip(id: string, type: string, options: any[], labels?:string[]) {
+        const tooltip = new Tooltip(id, type, options, labels);
+        this.tooltips.push(tooltip);
+    }
+
+    findTooltipById(id: string):Tooltip | null {
+        const tooltips: Tooltip[] = this.tooltips.filter((tooltip) => {
+            return tooltip.id === id
+        });
+        if (tooltips.length !== 0) return tooltips[0];
+        return null;
+    }
+
+
+    tooltipsDraw(ctx: CanvasRenderingContext2D, vp:Rectangle,  ttCoord: Point, pointData: Point) {
+        this.tooltips.forEach((tooltip) => {
+            if (tooltip) tooltip.drawTooltip(ctx, vp, ttCoord, pointData);   
+            })
+    }
+
 
     setOptions(options: any[]) {
         switch(options.length) {
@@ -61,93 +90,79 @@ export class Plot {
         return this._id;
     }
 
-    convertSeriesToCoord(series: Series, plotArea: Rectangle): number[][] {
+    convertSeriesToCoord(series: Series, plotArea: Rectangle) {
         let extremes = series.findExtremes();
         let kx: number = plotArea.width / Math.abs(extremes[1] - extremes[0]);
         let ky: number = plotArea.height / Math.abs(extremes[3] - extremes[2]);
 
-        let xPlot: number[] = [];
+        let plotData: Point[] = [];
 
         for (let i = 0; i < series.seriesData[0].length; i++ ) {
            const x: number = (series.seriesData[0][i]-extremes[0])*kx + plotArea.x1;
-           xPlot.push(Math.round(x));
+           const y: number = plotArea.zeroY - (series.seriesData[1][i]-extremes[2])*ky;
+           plotData.push(new Point(x,y));
         }
-        
-        let yPlot: number[] = [];
-
-        for (let i = 0; i < series.seriesData[1].length; i++ ) {
-            const y: number = plotArea.zeroY - (series.seriesData[1][i]-extremes[2])*ky;
-            yPlot.push(Math.round(y));
-        }
-        
-        return [xPlot, yPlot];
+        this.plotData = plotData;
+        return this;
     }
 
-    drawPlot(vp:Rectangle, ctx: CanvasRenderingContext2D, plotData: number[][]) {
-        switch (this.type) {
-            case 'dotted': 
-                this.drawDotted(ctx, plotData);
-            break;
-
-            case 'line': 
-                this.drawLine(ctx, plotData);
-            break;
-
-            case 'area': 
-            this.drawArea(vp, ctx, plotData);
-            break;
-        }
-    }
-
-    drawDotted(ctx: CanvasRenderingContext2D, plotData: number[][]){
+    drawPlot(vp:Rectangle, ctx: CanvasRenderingContext2D) {
+        
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.globalAlpha = 1;
         ctx.fillStyle = this._options.brushColor;
-        ctx.setLineDash([]);
 
-        for (let ind = 0; ind < plotData[0].length; ind++ ) {
+        switch (this.type) {
+            case 'dotted': 
+                this.drawDotted(ctx);
+            break;
+
+            case 'line': 
+                this.drawLine(ctx);
+            break;
+
+            case 'area': 
+            this.drawArea(vp, ctx);
+            break;
+        }
+
+    }
+
+    drawDotted(ctx: CanvasRenderingContext2D){
+
+        for (let i = 1; i < this.plotData.length; i++ ) {
             ctx.beginPath();
-            ctx.arc(plotData[0][ind], plotData[1][ind], this._options.mainSize, 0, Math.PI * 2, true);
+            ctx.arc(this.plotData[i].x, this.plotData[i].y, this._options.mainSize, 0, Math.PI * 2, true);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
         }
     }
 
-    drawLine(ctx: CanvasRenderingContext2D, plotData: number[][]) {
-        ctx.strokeStyle = this._options.lineColor;
-        ctx.lineWidth = this._options.lineWidth;
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = this._options.brushColor;
-        ctx.setLineDash([]);
+    drawLine(ctx: CanvasRenderingContext2D) {        
 
         ctx.beginPath();
-        ctx.moveTo(plotData[0][0], plotData[1][0])
+        ctx.moveTo(this.plotData[0].x, this.plotData[0].y);
 
-        for (let ind = 1; ind < plotData[0].length; ind++ ) {
-            ctx.lineTo(plotData[0][ind], plotData[1][ind]) 
+        for (let i = 1; i < this.plotData.length; i++ ) {
+            ctx.lineTo(this.plotData[i].x, this.plotData[i].y) 
         }
-        
+    
         ctx.stroke();
     }
 
-    drawArea(vp:Rectangle, ctx: CanvasRenderingContext2D, plotData: number[][]) {
-        ctx.strokeStyle = this._options.lineColor;
-        ctx.lineWidth = this._options.lineWidth;
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = this._options.brushColor;
-        ctx.setLineDash([]);
-        
+    drawArea(vp:Rectangle, ctx: CanvasRenderingContext2D) {
+
         ctx.beginPath();
-        ctx.moveTo(plotData[0][0], vp.zeroY);
-        ctx.lineTo(plotData[0][0], plotData[1][0]);
+        ctx.moveTo(this.plotData[0].x, vp.zeroY);
+        ctx.lineTo(this.plotData[0].x, this.plotData[0].y);
         
-        for (let ind = 1; ind < plotData[0].length; ind++ ) {
-            ctx.lineTo(plotData[0][ind], plotData[1][ind]) 
+        for (let i = 1; i < this.plotData.length; i++ ) {
+            ctx.lineTo(this.plotData[i].x, this.plotData[i].y) 
         }
 
-        ctx.lineTo(plotData[0][plotData[0].length-1], vp.zeroY);
+        ctx.lineTo(this.plotData[this.plotData.length-1].x, vp.zeroY);
         
         ctx.closePath();
         ctx.fill();

@@ -1,5 +1,6 @@
 
 import { Rectangle } from "./Rectangle";
+import { Point } from "./Point";
 
 interface tooltipOptions  {
     lineWidth: number;
@@ -64,55 +65,55 @@ export class Tooltip {
     }
 
 
-    drawTooltip(ctx: CanvasRenderingContext2D, vp:Rectangle, tooltipRect: Rectangle, xyData: number[]) {
+    drawTooltip(ctx: CanvasRenderingContext2D, vp:Rectangle, ttCoord: Point, xyData: Point) {
         switch (this.type) {
             case 'x': 
-                this.drawX(ctx, vp, tooltipRect);
+                this.drawX(ctx, vp, ttCoord);
             break;
 
             case 'v_line': 
-                this.drawVerticalLine(ctx, vp, tooltipRect, xyData);
+                this.drawVerticalLine(ctx, vp, ttCoord, xyData);
             break;
         }
     }
 
-    drawX(ctx: CanvasRenderingContext2D, vp:Rectangle, tooltipRect: Rectangle){
+    drawX(ctx: CanvasRenderingContext2D, vp:Rectangle, ttCoord: Point){
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
         ctx.setLineDash([]);
 
         ctx.beginPath();
-        ctx.arc(tooltipRect.zeroX, tooltipRect.zeroY, this._options.mainSize, 0, Math.PI * 2, true);
+        ctx.arc(ttCoord.x, ttCoord.y, this._options.mainSize, 0, Math.PI * 2, true);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
     }
 
-    drawVerticalLine(ctx: CanvasRenderingContext2D, vp:Rectangle, tooltipRect: Rectangle, xyData: number[]){
+    drawVerticalLine(ctx: CanvasRenderingContext2D, vp:Rectangle, ttCoord: Point, xyData: Point){
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
         ctx.setLineDash([2, 3]);
         ctx.beginPath();
-        ctx.moveTo(tooltipRect.zeroX, vp.y1);
-        ctx.lineTo(tooltipRect.zeroX, vp.zeroY);
+        ctx.moveTo(ttCoord.x, vp.y1);
+        ctx.lineTo(ttCoord.x, vp.zeroY);
         ctx.stroke();
 
         ctx.setLineDash([]);
         
         ctx.font = "14px serif";
-        const text = ctx.measureText(this.labels[xyData[0]); // TextMetrics object
+        const text = ctx.measureText(this.labels[xyData.x]); // TextMetrics object
 
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1;
         ctx.fillStyle = '#ededed';
 
-        ctx.strokeRect(tooltipRect.zeroX - text.width/2-5, vp.zeroY+20-15, text.width+10, 20);
-        ctx.fillRect(tooltipRect.zeroX - text.width/2-5, vp.zeroY+20-15, text.width+10, 20)
+        ctx.strokeRect(ttCoord.x - text.width/2-5, vp.zeroY+20-15, text.width+10, 20);
+        ctx.fillRect(ttCoord.x - text.width/2-5, vp.zeroY+20-15, text.width+10, 20)
 
         ctx.fillStyle = 'black';
-        ctx.fillText(this.labels[xyData[0]], tooltipRect.zeroX - text.width/2, vp.zeroY+20);
+        ctx.fillText(this.labels[xyData.x], ttCoord.x - text.width/2, vp.zeroY+20);
     }
 
   }

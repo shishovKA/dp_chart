@@ -5,7 +5,6 @@ export class Series {
     id: string;
     seriesData: number[][];
     plots: string[];
-    tooltips: string[];
     changed: Signal;
     
     constructor(id: string, seriesData: number[][], plotIds: string[], tooltipsIds?: string[]) {
@@ -14,8 +13,6 @@ export class Series {
         this.seriesData = this.getInitialData(seriesData);
         this.plots = [];
         this.setPlotsIds(plotIds);
-        this.tooltips = [];
-        this.setTooltipsIds(tooltipsIds);
     }
 
 
@@ -42,10 +39,6 @@ export class Series {
 
     setPlotsIds(plotIds: string[] ) {
         this.plots = plotIds;       
-    }
-
-    setTooltipsIds(tooltipsIds: string[] | undefined) {
-        if (tooltipsIds) this.tooltips = tooltipsIds;      
     }
 
 
