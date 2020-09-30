@@ -20,18 +20,18 @@ const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [
 
 chart.canvas.setPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
 
-// задаем Plot
+// создаем Plot
 chart.addPlot('plot1', 'line', 1, 'red', 'red');
 chart.addPlot('plot1a', 'area', 0.5, '#ffe6e6', '#ffe6e6', 0.5);
 chart.addPlot('plot5', 'line', 1, 'blue', 'blue', 1);
 chart.addPlot('plot5a', 'area', 0.5, '#e6edff', '#e6edff', 0.5);
 
-// задаем Tooltip
-chart.addTooltip('red_tt', 'x', 3, '#ffffff', 'red', 4);
-chart.addTooltip('blue_tt', 'x', 3, '#ffffff', 'blue', 4);
-chart.addTooltip('xLine_tt', 'v_line', 1, '#b3b3b3', '#b3b3b3');
+// создаем Tooltip
+chart.addTooltip('red_tt', 'x', [3, '#ffffff', 'red', 4]);
+chart.addTooltip('blue_tt', 'x', [3, '#ffffff', 'blue', 4]);
+chart.addTooltip('xLine_tt', 'v_line', [1, '#b3b3b3', '#b3b3b3'], xLabels);
 
-// задаем Series
+// создаем Series
 chart.addSeries('cyberHedge5', [cbh5], ['plot5a']);
 chart.addSeries('cyberHedge1', [cbh1], ['plot1a']);
 chart.addSeries('cyberHedge5', [cbh5], ['plot5'], ['blue_tt']);

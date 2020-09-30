@@ -78,11 +78,12 @@ export class Chart {
             const tooltipRect = this._transformer.transformRect(this.canvas.viewport, matrix);
             series.tooltips.forEach((tooltipId) => {
                 const tooltip: Tooltip | null = this.findTooltipById(tooltipId);
-                if (tooltip) tooltip.drawTooltip(this.canvas.viewport, this.canvas.ctx, tooltipRect);   
+                if (tooltip) tooltip.drawTooltip(this.canvas.ctx, this.canvas.viewport, tooltipRect, tipXY);
             })
         })
     }
 
+    
     addSeries(id: string, seriesData: number[][], plotIds: string[], tooltipsIds?: string[]) {
         this.data.addSeries(id, seriesData, plotIds, tooltipsIds);
         this.data.findSeriesById(id)?.changed.add(this.reDraw);
@@ -99,8 +100,8 @@ export class Chart {
         this.plots.push(plot);
     }
 
-    addTooltip(id: string, type: string, ...options: any) {
-        const tooltip = new Tooltip(id, type, ...options);
+    addTooltip(id: string, type: string, options: any[], labels?:string[]) {
+        const tooltip = new Tooltip(id, type, options, labels);
         this.tooltips.push(tooltip);
     }
 
