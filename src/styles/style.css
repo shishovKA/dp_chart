@@ -42,8 +42,10 @@ body {
 }
 
 .panel__block {
+    height: 100%;
     padding: 10px 10px;
     margin-bottom: 20px;
+    margin-left: 10px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;

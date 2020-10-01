@@ -1,4 +1,5 @@
 import { Signal } from "signals"
+import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 
 interface tick  {
@@ -11,39 +12,87 @@ export class Ticks {
     
     ticksArr: tick[];
     type: string;
+    count?: number;
+    step?: number;
     labels?: string[];
+
     changed: Signal;
 
     constructor() {
         this.changed = new Signal();
         this.ticksArr = [];
         this.type = 'default';
+        this.count = 5;
+        this.step = 100;
     }
 
-    setCustomTicksOptions(labels: string[]) {
-        this.type = 'custom';
-        this.labels = labels;
+    setTicksOptions(type: string, options: any[], duration?: number) {
+        switch (type) {
+            case 'default':
+                this.type = type;
+                this.count = options[0];
+            break;
+
+            case 'fixedStep':
+                this.type = type;
+                if (duration) {
+                    this.tickStepAnimation(this.step, options[0], duration);
+                return;
+                }
+                this.step = options[0];
+            break;
+
+            case 'labeled':
+                this.type = type;
+                this.count = options[0];
+                this.labels = options[1];
+            break;
+        }
         this.changed.dispatch();
     }
 
-    createTicks(min: number, max: number, vpLength: number): tick[] {
+
+    tickStepAnimation(from: number, to: number, duration: number) {
+        let start = performance.now();
+        
+        const animate = (time) => {
+
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) timeFraction = 1;
+            this.step = from+(to - from)*timeFraction;
+            this.changed.dispatch(); // отрисовать её
+            if (timeFraction < 1) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    createTicks(min: number, max: number, vpLength: number) {
         switch (this.type) {
             case 'default':
-                return this.generateDefaultTicks(min, max, vpLength);
+                this.ticksArr = this.generateFixedCountTicks(min, max, vpLength);
+                return this
             break;
 
-            case 'custom':
-                return this.generateCustomTicks(min, max, vpLength);
+            case 'fixedStep':
+                this.ticksArr = this.generateFixedStepTicks(min, max, vpLength);
+                return this
+            break;
+
+            case 'labeled':
+                this.ticksArr = this.generateLabeledTicks(min, max, vpLength);
+                return this
             break;
         }
     }
 
-    generateDefaultTicks(min: number, max: number, vpLength: number): tick[] {
+    generateFixedCountTicks(min: number, max: number, vpLength: number): tick[] {
         const ticks: tick[] = [];
-        const tickCount = 5;
-        let stepValue = Math.abs(max-min)/tickCount;
-        let stepCoord = vpLength/tickCount;
-        for (let i=0; i<=tickCount; i++) {
+        let stepValue = Math.abs(max-min)/this.count;
+        let stepCoord = vpLength/this.count;
+        for (let i=0; i<=this.count; i++) {
             const t = {
                 coord: i*stepCoord,
                 value: min+i*stepValue,
@@ -56,15 +105,41 @@ export class Ticks {
         return ticks;
     }
 
-    generateCustomTicks(min: number, max: number, vpLength: number): tick[] {
+    generateFixedStepTicks(min: number, max: number, vpLength: number): tick[] {
         const ticks: tick[] = [];
-        const tickCount = 5;
-        let stepValue = Math.abs(max-min)/tickCount;
-        let stepCoord = vpLength/tickCount;
+        let coordСoeff = vpLength/Math.abs(max-min);
+
+        const startValue = 0;
+        let curValue = startValue;
+        
+        while (curValue < max) {
+            if ((curValue >= min) && (curValue <= max)) { 
+                
+                const t = {
+                    coord: (curValue - min)*coordСoeff,
+                    value: curValue,
+                    label: curValue.toFixed(2).toString()  
+                    }
+
+                ticks.push(t);
+
+                }
+
+            curValue = curValue + this.step;
+        } 
+
+        this.ticksArr = ticks;
+        return ticks;
+    }
+
+    generateLabeledTicks(min: number, max: number, vpLength: number): tick[] {
+        const ticks: tick[] = [];
+        let stepValue = Math.abs(max-min)/this.count;
+        let stepCoord = vpLength/this.count;
         const valToCoord:number = vpLength/Math.abs(max-min);
 
         
-        for (let i=0; i<=tickCount; i++) {
+        for (let i=0; i<=this.count; i++) {
 
             const value: number = Math.round(min+i*stepValue);
             const coord: number = (value-min)*valToCoord;
@@ -82,7 +157,7 @@ export class Ticks {
         return ticks;
     }
 
-    drawTicks(ticks: tick[], type: string, ctx: CanvasRenderingContext2D, vp: Rectangle) {
+    drawTicks(type: string, ctx: CanvasRenderingContext2D, vp: Rectangle) {
         
         function drawOneTick(xy:number[], ctx: CanvasRenderingContext2D) {
             ctx.beginPath();
@@ -98,25 +173,39 @@ export class Ticks {
             ctx.stroke();
         }
 
+        function drawGrid(from: Point, to: Point, ctx: CanvasRenderingContext2D) {
+            ctx.strokeStyle = '#b3b3b3';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#b3b3b3';
+            ctx.setLineDash([2, 3]);
+            ctx.beginPath();
+            ctx.moveTo(from.x, from.y);
+            ctx.lineTo(to.x, to.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
         function drawLabel(xy:number[], label:string, ctx: CanvasRenderingContext2D) {
             ctx.fillStyle = 'black';
             ctx.font = "14px serif";
             ctx.fillText(label, xy[0]+5, xy[1]-5);
         }
-
         
         switch (type) {
             case 'vertical':
-                ticks.forEach((t, i)=>{
+                this.ticksArr.forEach((t, i)=>{
                     drawOneTick([vp.x1, vp.zeroY-t.coord], ctx);
                     drawLabel([vp.x1-55, vp.zeroY-t.coord], t.label, ctx);
+
+                    drawGrid(new Point(vp.x1, vp.zeroY-t.coord), new Point(vp.x2, vp.zeroY-t.coord), ctx)
                 });
             break;
 
             case 'horizontal':
-                ticks.forEach((t, i)=>{
+                this.ticksArr.forEach((t, i)=>{
                     drawOneTick([vp.x1+t.coord, vp.zeroY], ctx);
                     drawLabel([vp.x1+t.coord, vp.zeroY+20], t.label, ctx);
+
                 });
             break;
         } 

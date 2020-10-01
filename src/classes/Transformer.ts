@@ -47,9 +47,7 @@ export class Transformer {
         ty = Math.round(ty*vp.height/axisY.length);
         
         const transMatrix: number[] = [0, 0, tx, 0, 0, ty];
-
         this.matrix = transMatrix;
-
         const coordRect = this.transform(vp);
         const coord = new Point(coordRect.zeroX, coordRect.zeroY)
 

@@ -3,9 +3,13 @@ export class Panel {
     container: HTMLElement;
     element: HTMLElement;
     form: HTMLElement;
+    fieldsCount: number;
+    title: string;
 
-    constructor (container: HTMLElement, ...options: string[]) {
+    constructor (container: HTMLElement, title: string, fieldsCount: number, ...options: string[]) {
         this.container = container;
+        this.fieldsCount = fieldsCount;
+        this.title = title;
         this.element = this._create(...options);
         this.container.append(this.element);
     }
@@ -15,15 +19,13 @@ export class Panel {
     }
 
     get values():number[] {
-        const val1 = this.form.elements["input1"].value;
-        const val2 = this.form.elements["input2"].value;
-        return [+val1, +val2]
+        const values: number[] = [];
+        for (let i=0; i<this.form.elements.length-1; i++) {
+            values.push(+this.form.elements[i].value)
+        }
+        return values;
     }
 
-    get duration():number {
-        const duration = this.form.elements["input3"].value;
-        return duration
-    }
 
     _create(...options: string[]): HTMLElement {
 
@@ -33,52 +35,30 @@ export class Panel {
 
         const title = document.createElement('h3');
         title.classList.add('panel__title');
-        title.textContent = options[0];
+        title.textContent = this.title;
 
-        const label1 = document.createElement('p');
-        label1.classList.add('panel__label');
-        label1.textContent = options[1];
+        form.append(title);
 
-        const input1 = document.createElement('input');
-        input1.classList.add("panel__input");
-        input1.type = "text";
-        input1.name = "input1";
-        input1.placeholder = "0";
-        input1.value = options[4];
+        for (let i=0; i<this.fieldsCount; i++) {
+            const label = document.createElement('p');
+            label.classList.add('panel__label');
+            label.textContent = options[i*2];
+    
+            const input = document.createElement('input');
+            input.classList.add("panel__input");
+            input.type = "text";
+            input.name = `input${i}`;
+            input.placeholder = "0";
+            input.value = options[i*2+1];
 
-        const label2 = document.createElement('p');
-        label2.classList.add('panel__label');
-        label2.textContent = options[2];
-
-        const input2 = document.createElement('input');
-        input2.classList.add("panel__input");
-        input2.type = "text";
-        input2.name = "input2";
-        input2.placeholder = "0";
-        input2.value = options[5];
-
-        const label3 = document.createElement('p');
-        label3.classList.add('panel__label');
-        label3.textContent = options[3];
-
-        const input3 = document.createElement('input');
-        input3.classList.add("panel__input");
-        input3.type = "text";
-        input3.name = "input3";
-        input3.placeholder = "0";
-        input3.value = options[6];
+            form.append(label);
+            form.append(input);
+        }
 
         const button = document.createElement('button');
         button.classList.add('panel__submit');
         button.textContent = 'Update';
         
-        form.append(title);
-        form.append(label1);
-        form.append(input1);
-        form.append(label2);
-        form.append(input2);
-        form.append(label3);
-        form.append(input3);
         form.append(button);
         
         return form;

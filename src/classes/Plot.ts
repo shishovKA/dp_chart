@@ -39,27 +39,6 @@ export class Plot {
     }
 
 
-    addTooltip(id: string, type: string, options: any[], labels?:string[]) {
-        const tooltip = new Tooltip(id, type, options, labels);
-        this.tooltips.push(tooltip);
-    }
-
-    findTooltipById(id: string):Tooltip | null {
-        const tooltips: Tooltip[] = this.tooltips.filter((tooltip) => {
-            return tooltip.id === id
-        });
-        if (tooltips.length !== 0) return tooltips[0];
-        return null;
-    }
-
-
-    tooltipsDraw(ctx: CanvasRenderingContext2D, vp:Rectangle,  ttCoord: Point, pointData: Point) {
-        this.tooltips.forEach((tooltip) => {
-            if (tooltip) tooltip.drawTooltip(ctx, vp, ttCoord, pointData);   
-            })
-    }
-
-
     setOptions(options: any[]) {
         switch(options.length) {
             case 1:
@@ -167,6 +146,27 @@ export class Plot {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+    }
+
+
+    addTooltip(id: string, type: string, options: any[], labels?:string[]) {
+        const tooltip = new Tooltip(id, type, options, labels);
+        this.tooltips.push(tooltip);
+    }
+
+    findTooltipById(id: string):Tooltip | null {
+        const tooltips: Tooltip[] = this.tooltips.filter((tooltip) => {
+            return tooltip.id === id
+        });
+        if (tooltips.length !== 0) return tooltips[0];
+        return null;
+    }
+
+
+    tooltipsDraw(ctx: CanvasRenderingContext2D, vp:Rectangle,  ttCoord: Point, pointData: Point) {
+        this.tooltips.forEach((tooltip) => {
+            if (tooltip) tooltip.drawTooltip(ctx, vp, ttCoord, pointData);   
+            })
     }
 
   }

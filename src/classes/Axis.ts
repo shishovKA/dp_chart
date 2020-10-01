@@ -129,12 +129,13 @@ export class Axis {
             case 'horizontal':
                 ctx.lineTo(viewport.x2, viewport.y2);
                 this.ticks.createTicks(this.min, this.max, viewport.width);
+
             break;
           }
         ctx.closePath();
         ctx.stroke();
 
-        this.ticks.drawTicks(this.ticks.ticksArr, this.type, ctx, viewport);
+        this.ticks.drawTicks(this.type, ctx, viewport);
         
     }
 

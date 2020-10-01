@@ -78,6 +78,7 @@ export class Chart {
 
             const transformer = new Transformer();
             const mouseX = this.canvasTT.mouseCoords[0];
+            
             const seriesX = this.xAxis.min + mouseX*(this.xAxis.length)/this.canvasTT.viewport.width;
             const tipXY = series.getClosestData(seriesX);
             const pointData = new Point(tipXY[0], tipXY[1]);

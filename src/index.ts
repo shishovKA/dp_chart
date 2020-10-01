@@ -41,30 +41,55 @@ chart.addSeries('cyberHedge1', [cbh1], ['red_line']);
 
 // настраиваем оси
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
-chart.xAxis.ticks.setCustomTicksOptions(xLabels);
+chart.yAxis.ticks.setTicksOptions('fixedStep', [100]);
+chart.xAxis.ticks.setTicksOptions('labeled', [5, xLabels]);
 
 
 //drawRect(chart.canvas.viewport, '#d40da5');
 //элементы управления
 
-const panel1 = new Panel(document.querySelector('.panel'),'X axis (indices)','Min','Max', 'duration', 0, 900, 1000);
+const panel = new Panel(document.querySelector('.panel'), 'X axis (0 - 974)', 3,'Min', 0, 'Max', 900, 'duration', 1000);
 
-panel1.submitBtn.addEventListener("click", (event) => {
-  event.preventDefault()
-  console.log(panel1.values);
 
-  if (panel1.duration != 0) {
-      chart.xAxis.setMinMax(panel1.values, panel1.duration);
-      chart.yAxis.setMinMax(chart.data.findExtremes('ind', panel1.values[0], panel1.values[1]), panel1.duration);
+panel.submitBtn.addEventListener("click", (event) => {
+  event.preventDefault();
+  const values = panel.values;
+
+  
+  if (values[2] != 0) {
+      chart.xAxis.setMinMax([values[0],values[1]], values[2]);
+      chart.yAxis.setMinMax(chart.data.findExtremes('ind', values[0], values[1]), values[2]);
     } else {
-      chart.xAxis.setMinMax(panel1.values);
-      chart.yAxis.setMinMax(chart.data.findExtremes('ind', panel1.values[0], panel1.values[1]));
+      chart.xAxis.setMinMax([values[0],values[1]]);
+      chart.yAxis.setMinMax(chart.data.findExtremes('ind', values[0], values[1]));
       }
+    
+});
 
-  console.log(chart.data.findExtremes('ind', panel1.values[0], panel1.values[1]))
-})
+const panelStep = new Panel(document.querySelector('.panel'), 'Y axis ticks', 2,'Step', 100, 'duration', 1000);
+
+panelStep.submitBtn.addEventListener("click", (event) => {
+  event.preventDefault();
+  const values = panelStep.values;
+  chart.yAxis.ticks.setTicksOptions('fixedStep', [values[0]], values[1]);
+});
+
 
 const lastLb = xLabels[xLabels.length-1]
+
+const btnDuration = 2000;
+//кнопка 1st Y
+const FirstYBtn = new Btn(document.querySelector('.panel'),'1st Y','#e5e6e1');
+
+FirstYBtn.element.addEventListener("click", (event) => {
+    const minDate = dateParser(xLabels[0]);
+    const maxDate = minDate.setFullYear(minDate.getFullYear() + 1);
+    const max = findDateInd(maxDate);
+    const min = 0;
+    chart.xAxis.setMinMax([min,max], btnDuration);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), btnDuration);
+  })
+
 
 //кнопка 6M
 const SixMBtn = new Btn(document.querySelector('.panel'),'6M','#e5e6e1');
@@ -74,8 +99,8 @@ SixMBtn.element.addEventListener("click", (event) => {
     const minDate = maxDate.setMonth(maxDate.getMonth() - 6);
     const max = xLabels.length-1;
     const min = findDateInd(minDate);
-    chart.xAxis.setMinMax([min,max], 500);
-    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+    chart.xAxis.setMinMax([min,max], btnDuration);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), btnDuration);
   })
 
 //кнопка 1Y
@@ -86,8 +111,8 @@ OneYBtn.element.addEventListener("click", (event) => {
     const minDate = maxDate.setFullYear(maxDate.getFullYear() - 1);
     const max = xLabels.length-1;
     const min = findDateInd(minDate);
-    chart.xAxis.setMinMax([min,max], 500);
-    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+    chart.xAxis.setMinMax([min,max], btnDuration);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), btnDuration);
   })
 
 //кнопка 2Y
@@ -98,8 +123,8 @@ TwoYBtn.element.addEventListener("click", (event) => {
     const minDate = maxDate.setFullYear(maxDate.getFullYear() - 2);
     const max = xLabels.length-1;
     const min = findDateInd(minDate);
-    chart.xAxis.setMinMax([min,max], 500);
-    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+    chart.xAxis.setMinMax([min,max], btnDuration);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), btnDuration);
   })
 
 //кнопка Max
@@ -108,8 +133,8 @@ const MaxBtn = new Btn(document.querySelector('.panel'),'MAX','#e5e6e1');
 MaxBtn.element.addEventListener("click", (event) => {
     const max = xLabels.length-1;
     const min = 0;
-    chart.xAxis.setMinMax([min,max], 500);
-    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), 500);
+    chart.xAxis.setMinMax([min,max], btnDuration);
+    chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), btnDuration);
   })
 
 
