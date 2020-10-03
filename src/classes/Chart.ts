@@ -4,6 +4,7 @@ import { Plot } from "./Plot";
 import { Axis } from "./Axis";
 import { Transformer } from "./Transformer";
 import { Point } from "./Point";
+import { Rectangle } from "./Rectangle";
 
 export class Chart {
     
@@ -28,15 +29,37 @@ export class Chart {
         this.reDraw = this.reDraw.bind(this);
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
 
-        this.xAxis.changed.add(this.reDraw);
-        this.yAxis.changed.add(this.reDraw);
+        this.xAxis.onOptionsSetted.add(this.reDraw);
+        this.xAxis.onMinMaxSetted.add(this.reDraw);
+
+        this.yAxis.onOptionsSetted.add(this.reDraw);
+        this.yAxis.onMinMaxSetted.add(this.reDraw);
+
         this.canvas.changed.add(this.reDraw);
 
-        this.canvasTT.mouseMoved.add(this.tooltipsDraw);
+        /*
+        this.label.offset = 10;
+        
+        switch(this.type) {
+            case 'horizontal':
+                this.label.position = 'bottom'
+            break;
+
+            case 'vertical':
+                this.label.position = 'left'
+            break;
+        }
+        */
+
+        //this.canvasTT.mouseMoved.add(this.tooltipsDraw);
 
         window.addEventListener('resize', () => { this.reSize() });
 
         this.reSize();
+    }
+
+    get axisRect(): Rectangle {
+        return (new Rectangle(this.xAxis.min, this.yAxis.min, this.xAxis.max, this.yAxis.max))
     }
 
     reSize() {
@@ -52,15 +75,15 @@ export class Chart {
     }
 
     axisDraw() {
-        this.xAxis.drawAxis(this.canvas.ctx, this.canvas.viewport);
-        this.yAxis.drawAxis(this.canvas.ctx, this.canvas.viewport);
+        this.xAxis.draw(this.canvas.ctx, this.canvas.viewport);
+        this.yAxis.draw(this.canvas.ctx, this.canvas.viewport);
     }
 
     plotsDraw() {
         this.data.storage.forEach((series) => {
 
             const transformer = new Transformer();
-            const plotRect = transformer.getPlotRect(this.xAxis, this.yAxis, series, this.canvas.viewport);
+            const plotRect = transformer.getPlotRect(this.axisRect, series.dataRect, this.canvas.viewport);
             
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
@@ -80,8 +103,8 @@ export class Chart {
             const mouseX = this.canvasTT.mouseCoords[0];
             
             const seriesX = this.xAxis.min + mouseX*(this.xAxis.length)/this.canvasTT.viewport.width;
-            const tipXY = series.getClosestData(seriesX);
-            const pointData = new Point(tipXY[0], tipXY[1]);
+            const tipXY = series.getClosestPoint(seriesX);
+            const pointData = tipXY;
             
             const tooltipCoord = transformer.getVeiwportCoord(this.xAxis, this.yAxis, tipXY, this.canvasTT.viewport);
   

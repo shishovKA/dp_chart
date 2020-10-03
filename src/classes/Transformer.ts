@@ -1,5 +1,3 @@
-import { Axis } from "./Axis";
-import { Series } from "./Series";
 import { Rectangle } from "./Rectangle";
 import { Point } from "./Point";
 
@@ -11,57 +9,32 @@ export class Transformer {
         this.matrix = [];
     }
 
-    getPlotRect(axisX: Axis, axisY: Axis, series: Series, vp: Rectangle): Rectangle {
-
-        const seriesExtremes = series.findExtremes();
-
-        const seriesWidth: number = Math.abs(seriesExtremes[1]-seriesExtremes[0]);
-        const seriesHeight: number = Math.abs(seriesExtremes[3]-seriesExtremes[2]);
-
-        let tx: number = (seriesExtremes[0] - axisX.min);
-        let ty: number = -(seriesExtremes[3] - axisY.max);
-
-        const scaleX = seriesWidth / axisX.length;
-        const scaleY = seriesHeight / axisY.length;
-
-        tx = Math.round(tx*vp.width/axisX.length); 
-        ty = Math.round(ty*vp.height/axisY.length);
-        
-        const transMatrix: number[] = [scaleX, 0, tx, 0, scaleY, ty]; 
-
-        this.matrix = transMatrix;
-
+    getPlotRect(axisRect: Rectangle, seriesRect: Rectangle, vp: Rectangle): Rectangle {
+        let tx: number = (seriesRect.x1 - axisRect.x1);
+        let ty: number = -(seriesRect.y2 - axisRect.y2);
+        const scaleX = seriesRect.width / axisRect.width;
+        const scaleY = seriesRect.height / axisRect.height;
+        tx = Math.round(tx*vp.width/axisRect.width); 
+        ty = Math.round(ty*vp.height/axisRect.height);
+        this.matrix = [scaleX, 0, tx, 0, scaleY, ty]; 
         return this.transform(vp);
     }
 
 
-    getVeiwportCoord(axisX: Axis, axisY: Axis, data: number[], vp: Rectangle): Point {
-
-        let tx: number = (data[0] - axisX.min);
-        let ty: number = -(data[1] - axisY.max);
-
-        const scaleX = 0;
-        const scaleY = 0;
-
-        tx = Math.round(tx*vp.width/axisX.length); 
-        ty = Math.round(ty*vp.height/axisY.length);
-        
-        const transMatrix: number[] = [0, 0, tx, 0, 0, ty];
-        this.matrix = transMatrix;
-        const coordRect = this.transform(vp);
+    getVeiwportCoord(fromRect: Rectangle, toRect: Rectangle, point: Point): Point {
+        let tx: number = (point.x - fromRect.x1);
+        let ty: number = -(point.y - fromRect.y2);
+        tx = Math.round(tx*toRect.width/fromRect.width); 
+        ty = Math.round(ty*toRect.height/fromRect.height);
+        this.matrix = [0, 0, tx, 0, 0, ty];
+        const coordRect = this.transform(toRect);
         const coord = new Point(coordRect.zeroX, coordRect.zeroY)
-
         return coord;
     }
 
 
 
     transform(viewport: Rectangle): Rectangle {
-
-        function trans(x: number, y: number, coeff: number[]): number {
-            let res:number;
-            return res = coeff[0]*x + coeff[1]*y + coeff[2];
-        }
 
         let matrix: number[] = [1, 0, 0, 0, 1, 0];
 
@@ -70,17 +43,19 @@ export class Transformer {
         let x1: number;
         let y1: number;
         let x2: number;
-        let y2: number;
-
-        const startRect = new Rectangle (0, 0, viewport.width, viewport.height);     
-        
-        x1 = trans(startRect.x1, startRect.y1, matrix.slice(0,3))+viewport.x1;
-        y1 = trans(startRect.x1, startRect.y1, matrix.slice(3))+viewport.y1;
-        
-        x2 = trans(startRect.x2, startRect.y2, matrix.slice(0,3))+viewport.x1;
-        y2 = trans(startRect.x2, startRect.y2, matrix.slice(3))+viewport.y1;
+        let y2: number;   
+    
+        x1 = this.transFunc(0, 0, matrix.slice(0,3))+viewport.x1;
+        y1 = this.transFunc(0, 0, matrix.slice(3))+viewport.y1;
+        x2 = this.transFunc(viewport.width, viewport.height, matrix.slice(0,3))+viewport.x1;
+        y2 = this.transFunc(viewport.width, viewport.height, matrix.slice(3))+viewport.y1;
 
         return new Rectangle(x1, y1, x2, y2);
+    }
+
+    transFunc(x: number, y: number, coeff: number[]): number {  
+        let res:number;
+        return res = coeff[0]*x + coeff[1]*y + coeff[2];
     }
 
 }

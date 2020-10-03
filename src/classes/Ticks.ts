@@ -1,113 +1,152 @@
 import { Signal } from "signals"
 import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
+import { Label } from "./Label";
+import { Transformer } from "./Transformer";
 
-interface tick  {
-    coord: number;
-    value: number;
-    label: string;
-}
 
 export class Ticks {
-    
-    ticksArr: tick[];
+
     type: string;
-    count?: number;
-    step?: number;
-    labels?: string[];
+    distributionType: string;
+    count: number;
+    step: number;
 
-    changed: Signal;
+    coords: Point[];
+    values: number[];
+    labels: string[];
 
-    constructor() {
-        this.changed = new Signal();
-        this.ticksArr = [];
-        this.type = 'default';
+    onOptionsSetted: Signal;
+
+    constructor(axistype: string) {
+        this.onOptionsSetted = new Signal();
+        
+        this.coords = [];
+        this.values = [];
+        this.labels = [];
+
+        this.type = axistype;
+
+        this.distributionType = 'default';
         this.count = 5;
         this.step = 100;
     }
 
-    setTicksOptions(type: string, options: any[], duration?: number) {
-        switch (type) {
+    setOptions(distributionType: string, distParam: number, duration?: number) {
+        switch (distributionType) {
             case 'default':
-                this.type = type;
-                this.count = options[0];
+                this.distributionType = distributionType;
+                this.count = distParam;
             break;
 
             case 'fixedStep':
-                this.type = type;
+                this.distributionType = distributionType;
+            /*
                 if (duration) {
-                    this.tickStepAnimation(this.step, options[0], duration);
+                    this.tickStepAnimation(this.step, distParam, duration);
                 return;
                 }
-                this.step = options[0];
-            break;
-
-            case 'labeled':
-                this.type = type;
-                this.count = options[0];
-                this.labels = options[1];
+            */
+                this.step = distParam;
             break;
         }
-        this.changed.dispatch();
+        this.onOptionsSetted.dispatch();
     }
 
 
-    tickStepAnimation(from: number, to: number, duration: number) {
-        let start = performance.now();
-        
-        const animate = (time) => {
-
-            let timeFraction = (time - start) / duration;
-            if (timeFraction > 1) timeFraction = 1;
-            this.step = from+(to - from)*timeFraction;
-            this.changed.dispatch(); // отрисовать её
-            if (timeFraction < 1) {
-                requestAnimationFrame(animate);
-            }
-        }
-
-        requestAnimationFrame(animate);
+    setLables(labels: string[]) {
+        //this.labels = labels;
     }
 
-    createTicks(min: number, max: number, vpLength: number) {
-        switch (this.type) {
+
+    createTicks(min: number, max: number, vp: Rectangle) {
+        switch (this.distributionType) {
             case 'default':
-                this.ticksArr = this.generateFixedCountTicks(min, max, vpLength);
+                this.generateFixedCountTicks(min, max, vp);
                 return this
             break;
 
             case 'fixedStep':
-                this.ticksArr = this.generateFixedStepTicks(min, max, vpLength);
+                this.generateFixedStepTicks(min, max, vp);
                 return this
             break;
 
-            case 'labeled':
-                this.ticksArr = this.generateLabeledTicks(min, max, vpLength);
+            case 'fixedCount':
+                //this.generateFixedCountTicks(min, max, vpLength);
                 return this
             break;
         }
     }
 
-    generateFixedCountTicks(min: number, max: number, vpLength: number): tick[] {
-        const ticks: tick[] = [];
+    generateFixedCountTicks(min:number, max:number, vp: Rectangle) {
+        this.coords = [];
+        this.values = [];
+        this.labels = [];
+        let stepCoord = 0;
+        let rectXY: number[] = [];
+        const transformer = new Transformer();
+       
         let stepValue = Math.abs(max-min)/this.count;
-        let stepCoord = vpLength/this.count;
-        for (let i=0; i<=this.count; i++) {
-            const t = {
-                coord: i*stepCoord,
-                value: min+i*stepValue,
-                label: '',  
-            }
-            t.label = t.value.toFixed(2).toString();
-            ticks.push(t);
+
+        switch (this.type) {
+            case 'vertical':
+                stepCoord = vp.height/this.count;
+                rectXY = [0,min,1,max];
+            break;
+
+            case 'horizontal':
+                stepCoord = vp.width/this.count;
+                rectXY = [min,0,max,1];
+            break;
         }
-        this.ticksArr = ticks;
-        return ticks;
+
+        const fromRect = new Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
+        
+
+        for (let i=0; i<=this.count; i++) {
+ 
+            let pointXY: number[] = [];
+
+            switch (this.type) {
+                case 'vertical':
+                    pointXY = [0,min+i*stepValue];
+                break;
+    
+                case 'horizontal':
+                    pointXY = [min+i*stepValue, 0];
+                break;
+            }
+
+            const valuePoint = new Point(pointXY[0], pointXY[1]);
+            const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+            this.coords.push(coordPoint);
+            this.values.push(min+i*stepValue);
+            this.labels.push((min+i*stepValue).toFixed(2).toString());
+ 
+        }
+
+        return this;
     }
 
-    generateFixedStepTicks(min: number, max: number, vpLength: number): tick[] {
-        const ticks: tick[] = [];
-        let coordСoeff = vpLength/Math.abs(max-min);
+    
+    generateFixedStepTicks(min:number, max:number, vp: Rectangle) {
+        this.coords = [];
+        this.values = [];
+        this.labels = [];
+        let rectXY: number[] = [];
+        const transformer = new Transformer();
+       
+        switch (this.type) {
+            case 'vertical':
+                rectXY = [0,min,1,max];
+            break;
+
+            case 'horizontal':
+                rectXY = [min,0,max,1];
+            break;
+        }
+
+        const fromRect = new Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
 
         const startValue = 0;
         let curValue = startValue;
@@ -115,23 +154,33 @@ export class Ticks {
         while (curValue < max) {
             if ((curValue >= min) && (curValue <= max)) { 
                 
-                const t = {
-                    coord: (curValue - min)*coordСoeff,
-                    value: curValue,
-                    label: curValue.toFixed(2).toString()  
-                    }
+                let pointXY: number[] = [];
 
-                ticks.push(t);
-
+                switch (this.type) {
+                    case 'vertical':
+                        pointXY = [0,curValue];
+                    break;
+        
+                    case 'horizontal':
+                        pointXY = [curValue, 0];
+                    break;
                 }
+
+                const valuePoint = new Point(pointXY[0], pointXY[1]);
+                const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+                this.coords.push(coordPoint);
+                this.values.push(curValue);
+                this.labels.push(curValue.toFixed(2).toString());    
+
+            }
 
             curValue = curValue + this.step;
         } 
 
-        this.ticksArr = ticks;
-        return ticks;
+        return this;
     }
 
+/*
     generateLabeledTicks(min: number, max: number, vpLength: number): tick[] {
         const ticks: tick[] = [];
         let stepValue = Math.abs(max-min)/this.count;
@@ -156,59 +205,45 @@ export class Ticks {
         this.ticksArr = ticks;
         return ticks;
     }
+*/
 
-    drawTicks(type: string, ctx: CanvasRenderingContext2D, vp: Rectangle) {
+    draw(ctx: CanvasRenderingContext2D, label?: Label) {
+        this.coords.forEach((tickCoord, i)=>{
+            this.drawTick(ctx, tickCoord);
+            if (label) label.draw(ctx, tickCoord, this.labels[i]);
+        }); 
+    }
+
+
+    drawTick(ctx: CanvasRenderingContext2D, tick:Point) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+        let r = 10;
+        ctx.moveTo(tick.x-r, tick.y);
+        ctx.lineTo(tick.x+r, tick.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(tick.x, tick.y-r);
+        ctx.lineTo(tick.x, tick.y+r);
+        ctx.stroke();
+    }
+
+    // Метод анимации изменение параметра step
+    tickStepAnimation(from: number, to: number, duration: number) {
+        let start = performance.now();
         
-        function drawOneTick(xy:number[], ctx: CanvasRenderingContext2D) {
-            ctx.beginPath();
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 1;
-            let r = 10;
-            ctx.moveTo(xy[0]-r, xy[1]);
-            ctx.lineTo(xy[0]+r, xy[1]);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(xy[0], xy[1]-r);
-            ctx.lineTo(xy[0], xy[1]+r);
-            ctx.stroke();
+        const animate = (time) => {
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) timeFraction = 1;
+            this.step = from+(to - from)*timeFraction;
+            this.changed.dispatch(); // отрисовать её
+            if (timeFraction < 1) {
+                requestAnimationFrame(animate);
+            }
         }
 
-        function drawGrid(from: Point, to: Point, ctx: CanvasRenderingContext2D) {
-            ctx.strokeStyle = '#b3b3b3';
-            ctx.lineWidth = 1;
-            ctx.fillStyle = '#b3b3b3';
-            ctx.setLineDash([2, 3]);
-            ctx.beginPath();
-            ctx.moveTo(from.x, from.y);
-            ctx.lineTo(to.x, to.y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        function drawLabel(xy:number[], label:string, ctx: CanvasRenderingContext2D) {
-            ctx.fillStyle = 'black';
-            ctx.font = "14px serif";
-            ctx.fillText(label, xy[0]+5, xy[1]-5);
-        }
-        
-        switch (type) {
-            case 'vertical':
-                this.ticksArr.forEach((t, i)=>{
-                    drawOneTick([vp.x1, vp.zeroY-t.coord], ctx);
-                    drawLabel([vp.x1-55, vp.zeroY-t.coord], t.label, ctx);
-
-                    drawGrid(new Point(vp.x1, vp.zeroY-t.coord), new Point(vp.x2, vp.zeroY-t.coord), ctx)
-                });
-            break;
-
-            case 'horizontal':
-                this.ticksArr.forEach((t, i)=>{
-                    drawOneTick([vp.x1+t.coord, vp.zeroY], ctx);
-                    drawLabel([vp.x1+t.coord, vp.zeroY+20], t.label, ctx);
-
-                });
-            break;
-        } 
+        requestAnimationFrame(animate);
     }
 
   }

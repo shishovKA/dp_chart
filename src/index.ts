@@ -12,14 +12,17 @@ import {xLabels} from "./data/xLabels"
 import {Panel} from "./control/Panel"
 import {Btn} from "./control/Btn"
 
-//импорт ключевого класса Chart
+// импорт ключевого класса Chart
 import {Chart} from "./classes/Chart"
 
-//работа с Chart
+// работа с Chart
 const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [0, 2000]);
-
 chart.canvas.setPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
 chart.canvasTT.setPaddings(50, 80, 50, 80);
+
+chart.yAxis.grid.display = true;
+chart.yAxis.ticks.setOptions('fixedStep', 200);
+chart.yAxis.grid.setOptions('#bfbfbf', 1, [3,3])
 
 // создаем Plot
 chart.addPlot('red_line', 'line', 1, 'red', 'red');
@@ -41,15 +44,14 @@ chart.addSeries('cyberHedge1', [cbh1], ['red_line']);
 
 // настраиваем оси
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
-chart.yAxis.ticks.setTicksOptions('fixedStep', [100]);
-chart.xAxis.ticks.setTicksOptions('labeled', [5, xLabels]);
+//chart.yAxis.ticks.setOptions('fixedStep', [100]);
+//chart.xAxis.ticks.setOptions('labeled', [5, xLabels]);
 
 
 //drawRect(chart.canvas.viewport, '#d40da5');
 //элементы управления
 
 const panel = new Panel(document.querySelector('.panel'), 'X axis (0 - 974)', 3,'Min', 0, 'Max', 900, 'duration', 1000);
-
 
 panel.submitBtn.addEventListener("click", (event) => {
   event.preventDefault();
@@ -71,13 +73,13 @@ const panelStep = new Panel(document.querySelector('.panel'), 'Y axis ticks', 2,
 panelStep.submitBtn.addEventListener("click", (event) => {
   event.preventDefault();
   const values = panelStep.values;
-  chart.yAxis.ticks.setTicksOptions('fixedStep', [values[0]], values[1]);
+  chart.yAxis.ticks.setOptions('fixedStep', values[0]);
 });
 
 
 const lastLb = xLabels[xLabels.length-1]
 
-const btnDuration = 2000;
+const btnDuration = 1000;
 //кнопка 1st Y
 const FirstYBtn = new Btn(document.querySelector('.panel'),'1st Y','#e5e6e1');
 

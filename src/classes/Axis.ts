@@ -1,14 +1,14 @@
 import { Signal } from "signals"
-
 import { Rectangle } from "./Rectangle";
 import { Ticks } from "./Ticks";
+import { Label } from "./Label";
+import { Grid } from "./Grid";
 
 
 
 interface axisOptions  {
     lineWidth: number;
     lineColor: string;
-    // и тд
 }
 
 //описание класса
@@ -19,19 +19,24 @@ export class Axis {
     max: number;
     type: string;
     _options: axisOptions;
+    gridOn: boolean = false;
+
     ticks: Ticks;
-    changed: Signal;
+    label: Label;
+    grid: Grid;
+
+    onOptionsSetted: Signal;
+    onMinMaxSetted: Signal;
     
     
     constructor( MinMax: number[], type: string, ...options: any) {
         
-        this.changed = new Signal();
+        this.onOptionsSetted = new Signal();
+        this.onMinMaxSetted = new Signal();
 
         this.min = 0;
         this.max = 0;
-
         this.setMinMax(MinMax);
-
         this.type = type;
 
         this._options = {
@@ -39,16 +44,31 @@ export class Axis {
             lineColor: '#000000'
         };
 
-        this.setOptions(...options);
-        this.ticks = new Ticks();
+        this.ticks = new Ticks(this.type);
+        this.label = new Label(this.type);
+        this.grid = new Grid(this.type);
 
-        this.ticks.changed.add(() => {
-            this.changed.dispatch();
+        this.setOptions(...options);
+
+        this.ticks.onOptionsSetted.add(() => {
+            this.onOptionsSetted.dispatch();
         });
+
+        this.label.onOptionsSetted.add(() => {
+            this.onOptionsSetted.dispatch();
+        });
+
+        this.grid.onOptionsSetted.add(() => {
+            this.onOptionsSetted.dispatch();
+        });
+
+    }
+
+    get length():number {
+        return Math.abs(this.max-this.min);
     }
 
     setOptions(...options: any[]) {
-        //разбираем пакет опций для графика
 
         switch(options.length) {
             case 1:
@@ -60,6 +80,8 @@ export class Axis {
                 this._options.lineColor = options[1];
             break;
         }
+
+        this.onOptionsSetted.dispatch();
     }
 
 
@@ -91,28 +113,16 @@ export class Axis {
         this.min = to[0];
         this.max = to[1];
         
-        this.changed.dispatch();
+        this.onMinMaxSetted.dispatch();
 
     }
 
-    axisRangeAnimation(from: number[], to: number[], duration: number) {
-        let start = performance.now();
-        
-        const animate = (time) => {
-
-            let timeFraction = (time - start) / duration;
-            if (timeFraction > 1) timeFraction = 1;
-            this.min = from[0]+(to[0] - from[0])*timeFraction;
-            this.max = from[1]+(to[1] - from[1])*timeFraction;
-            this.changed.dispatch(); // отрисовать её
-            if (timeFraction < 1) {
-                requestAnimationFrame(animate);
-            }
-        }
-
-        requestAnimationFrame(animate);
+    draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
+        this.drawAxis(ctx, viewport);
+        this.ticks.createTicks(this.min, this.max, viewport);
+        this.ticks.draw(ctx, this.label);
+        if (this.grid.display) this.grid.draw(ctx, viewport, this.ticks.coords);
     }
-
 
     drawAxis(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
         ctx.beginPath();
@@ -123,24 +133,39 @@ export class Axis {
         switch(this.type) {
             case 'vertical':
                 ctx.lineTo(viewport.x1, viewport.y1);
-                this.ticks.createTicks(this.min, this.max, viewport.height);
             break;
           
             case 'horizontal':
                 ctx.lineTo(viewport.x2, viewport.y2);
-                this.ticks.createTicks(this.min, this.max, viewport.width);
-
             break;
-          }
+        }
+
         ctx.closePath();
         ctx.stroke();
+    }
 
-        this.ticks.drawTicks(this.type, ctx, viewport);
+
+    axisRangeAnimation(from: number[], to: number[], duration: number) {
         
+        let start = performance.now();
+        
+        const animate = (time) => {
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) timeFraction = 1;
+            this.min = from[0]+(to[0] - from[0])*timeFraction;
+            this.max = from[1]+(to[1] - from[1])*timeFraction;
+            this.onMinMaxSetted.dispatch();
+            if (timeFraction < 1) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        requestAnimationFrame(animate);
     }
 
-    get length():number {
-        return Math.abs(this.max-this.min);
-    }
+
+
+
+
 
   }

@@ -1,4 +1,6 @@
 import { Signal } from "signals"
+import { Point } from "./Point";
+import { Rectangle } from "./Rectangle";
 
 export class Series {
 
@@ -62,6 +64,12 @@ export class Series {
         }
         
         return [xMin,xMax,yMin,yMax];
+    }
+
+
+    get dataRect(): Rectangle {
+        const extremes = this.findExtremes();
+        return new Rectangle(extremes[0], extremes[2], extremes[1], extremes[3]);
     }
 
 
@@ -132,14 +140,14 @@ export class Series {
 
     }
 
-    getClosestData(x: number): number[] {
+    getClosestPoint(x: number): Point {
         const ind =  this.seriesData[0].reduce((prev, curr, i) => {
             const curDif = Math.abs(i - x);
             const prevDif = Math.abs(prev - x);
             if (curDif < prevDif) return i
             return prev
               }, 0);
-        return [ind, this.seriesData[1][ind], ]
+        return new Point(ind, this.seriesData[1][ind])
     }
 
     transpose() {

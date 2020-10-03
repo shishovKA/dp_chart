@@ -8,4 +8,5 @@ export class Point {
         this.y = y;
     }
 
+
 }
