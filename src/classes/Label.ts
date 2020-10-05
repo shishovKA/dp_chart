@@ -2,6 +2,7 @@ import { Point } from "./Point";
 import { Signal } from "signals"
 
 export class Label {
+    display: boolean = true;
     
     color: string = 'black';
     font: string = '16px serif';

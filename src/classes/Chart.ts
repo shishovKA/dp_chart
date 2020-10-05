@@ -3,7 +3,6 @@ import { Data } from "./Data";
 import { Plot } from "./Plot";
 import { Axis } from "./Axis";
 import { Transformer } from "./Transformer";
-import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 
 export class Chart {
@@ -28,34 +27,26 @@ export class Chart {
 
         this.reDraw = this.reDraw.bind(this);
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
-
-        this.xAxis.onOptionsSetted.add(this.reDraw);
-        this.xAxis.onMinMaxSetted.add(this.reDraw);
-
-        this.yAxis.onOptionsSetted.add(this.reDraw);
-        this.yAxis.onMinMaxSetted.add(this.reDraw);
-
-        this.canvas.changed.add(this.reDraw);
-
-        /*
-        this.label.offset = 10;
         
-        switch(this.type) {
-            case 'horizontal':
-                this.label.position = 'bottom'
-            break;
+        this.bindChildSignals();
 
-            case 'vertical':
-                this.label.position = 'left'
-            break;
-        }
-        */
-
-        //this.canvasTT.mouseMoved.add(this.tooltipsDraw);
+        //  this.canvasTT.mouseMoved.add(this.tooltipsDraw);
 
         window.addEventListener('resize', () => { this.reSize() });
 
         this.reSize();
+    }
+
+    bindChildSignals() {
+        this.xAxis.onOptionsSetted.add(this.reDraw);
+        this.xAxis.onMinMaxSetted.add(this.reDraw);
+        this.xAxis.onCustomLabelsAdded.add(this.reDraw);
+
+        this.yAxis.onOptionsSetted.add(this.reDraw);
+        this.yAxis.onMinMaxSetted.add(this.reDraw);
+        this.yAxis.onCustomLabelsAdded.add(this.reDraw);
+
+        this.canvas.changed.add(this.reDraw);
     }
 
     get axisRect(): Rectangle {

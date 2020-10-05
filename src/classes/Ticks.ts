@@ -7,6 +7,9 @@ import { Transformer } from "./Transformer";
 
 export class Ticks {
 
+    display: boolean = false;
+    hasCustomLabels: boolean = false;
+
     type: string;
     distributionType: string;
     count: number;
@@ -16,10 +19,14 @@ export class Ticks {
     values: number[];
     labels: string[];
 
+    customLabels?: string[];
+
     onOptionsSetted: Signal;
+    onCustomLabelsAdded: Signal;
 
     constructor(axistype: string) {
         this.onOptionsSetted = new Signal();
+        this.onCustomLabelsAdded = new Signal();
         
         this.coords = [];
         this.values = [];
@@ -31,6 +38,13 @@ export class Ticks {
         this.count = 5;
         this.step = 100;
     }
+
+    setCustomLabels(labels:string[]) {
+        this.hasCustomLabels = true;
+        this.customLabels = labels;
+        this.onCustomLabelsAdded.dispatch();
+    }
+
 
     setOptions(distributionType: string, distParam: number, duration?: number) {
         switch (distributionType) {
@@ -54,11 +68,6 @@ export class Ticks {
     }
 
 
-    setLables(labels: string[]) {
-        //this.labels = labels;
-    }
-
-
     createTicks(min: number, max: number, vp: Rectangle) {
         switch (this.distributionType) {
             case 'default':
@@ -72,11 +81,12 @@ export class Ticks {
             break;
 
             case 'fixedCount':
-                //this.generateFixedCountTicks(min, max, vpLength);
+                this.generateFixedCountTicks(min, max, vp);
                 return this
             break;
         }
     }
+
 
     generateFixedCountTicks(min:number, max:number, vp: Rectangle) {
         this.coords = [];
@@ -107,21 +117,29 @@ export class Ticks {
  
             let pointXY: number[] = [];
 
+            let value = min+i*stepValue;
+
+                if (this.hasCustomLabels) {
+                    value = Math.round(value);
+                    this.labels.push(this.customLabels[value]);
+                } else {
+                        this.labels.push(value.toFixed(2).toString());
+                    }
+
             switch (this.type) {
                 case 'vertical':
-                    pointXY = [0,min+i*stepValue];
+                    pointXY = [0,value];
                 break;
     
                 case 'horizontal':
-                    pointXY = [min+i*stepValue, 0];
+                    pointXY = [value, 0];
                 break;
             }
 
             const valuePoint = new Point(pointXY[0], pointXY[1]);
             const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
             this.coords.push(coordPoint);
-            this.values.push(min+i*stepValue);
-            this.labels.push((min+i*stepValue).toFixed(2).toString());
+            this.values.push(value);
  
         }
 
@@ -154,24 +172,31 @@ export class Ticks {
         while (curValue < max) {
             if ((curValue >= min) && (curValue <= max)) { 
                 
+
                 let pointXY: number[] = [];
+                let value = curValue;
+
+                if (this.hasCustomLabels) {
+                    value = Math.round(curValue);
+                    this.labels.push(this.customLabels[value]);
+                } else {
+                        this.labels.push(value.toFixed(2).toString());
+                    }
 
                 switch (this.type) {
                     case 'vertical':
-                        pointXY = [0,curValue];
+                        pointXY = [0,value];
                     break;
         
                     case 'horizontal':
-                        pointXY = [curValue, 0];
+                        pointXY = [value, 0];
                     break;
                 }
 
                 const valuePoint = new Point(pointXY[0], pointXY[1]);
                 const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
                 this.coords.push(coordPoint);
-                this.values.push(curValue);
-                this.labels.push(curValue.toFixed(2).toString());    
-
+                this.values.push(value);    
             }
 
             curValue = curValue + this.step;
@@ -180,37 +205,11 @@ export class Ticks {
         return this;
     }
 
-/*
-    generateLabeledTicks(min: number, max: number, vpLength: number): tick[] {
-        const ticks: tick[] = [];
-        let stepValue = Math.abs(max-min)/this.count;
-        let stepCoord = vpLength/this.count;
-        const valToCoord:number = vpLength/Math.abs(max-min);
 
-        
-        for (let i=0; i<=this.count; i++) {
-
-            const value: number = Math.round(min+i*stepValue);
-            const coord: number = (value-min)*valToCoord;
-
-            const t = {
-                coord: coord,
-                value: value,
-                label: this.labels[value],  
-            }
-
-            ticks.push(t);
-        }
-        
-        this.ticksArr = ticks;
-        return ticks;
-    }
-*/
-
-    draw(ctx: CanvasRenderingContext2D, label?: Label) {
+    draw(ctx: CanvasRenderingContext2D, label: Label) {
         this.coords.forEach((tickCoord, i)=>{
-            this.drawTick(ctx, tickCoord);
-            if (label) label.draw(ctx, tickCoord, this.labels[i]);
+            if (this.display) this.drawTick(ctx, tickCoord);
+            if (label.display) label.draw(ctx, tickCoord, this.labels[i]);
         }); 
     }
 
@@ -242,7 +241,6 @@ export class Ticks {
                 requestAnimationFrame(animate);
             }
         }
-
         requestAnimationFrame(animate);
     }
 

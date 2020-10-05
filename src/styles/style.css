@@ -64,6 +64,22 @@ canvas {
     width: 100%;
 }
 
+.panel__input {
+    margin: 0px 0px 0px 0px;
+    width: 100%;
+}
+
+.panel__label__container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.checkbox__container {
+    display: flex;
+    align-items: center;
+}
+
 .panel__block > * {
     margin-bottom: 10px;
 }

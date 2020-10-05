@@ -11,6 +11,7 @@ import {xLabels} from "./data/xLabels"
 // импорт элементов управления графиком
 import {Panel} from "./control/Panel"
 import {Btn} from "./control/Btn"
+import {ChartPanel} from "./control/ChartPanel"
 
 // импорт ключевого класса Chart
 import {Chart} from "./classes/Chart"
@@ -20,9 +21,11 @@ const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [
 chart.canvas.setPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
 chart.canvasTT.setPaddings(50, 80, 50, 80);
 
+//настраиваем параметры осей
 chart.yAxis.grid.display = true;
 chart.yAxis.ticks.setOptions('fixedStep', 200);
-chart.yAxis.grid.setOptions('#bfbfbf', 1, [3,3])
+chart.yAxis.grid.setOptions('#bfbfbf', 2, [3,3]);
+chart.xAxis.ticks.setCustomLabels(xLabels);
 
 // создаем Plot
 chart.addPlot('red_line', 'line', 1, 'red', 'red');
@@ -43,6 +46,7 @@ chart.addSeries('cyberHedge5', [cbh5], ['blue_line']);
 chart.addSeries('cyberHedge1', [cbh1], ['red_line']);
 
 // настраиваем оси
+chart.xAxis.setMinMax(chart.data.findExtremes('val'));
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
 //chart.yAxis.ticks.setOptions('fixedStep', [100]);
 //chart.xAxis.ticks.setOptions('labeled', [5, xLabels]);
@@ -51,6 +55,10 @@ chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxi
 //drawRect(chart.canvas.viewport, '#d40da5');
 //элементы управления
 
+const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
+
+
+/*
 const panel = new Panel(document.querySelector('.panel'), 'X axis (0 - 974)', 3,'Min', 0, 'Max', 900, 'duration', 1000);
 
 panel.submitBtn.addEventListener("click", (event) => {
@@ -158,6 +166,7 @@ function findDateInd(date: Date) {
   return ind;
 }
 
+*/
 
 
 

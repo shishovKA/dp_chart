@@ -15,6 +15,8 @@ interface axisOptions  {
 
 export class Axis {
 
+    display: boolean = false;
+
     min: number;
     max: number;
     type: string;
@@ -27,12 +29,13 @@ export class Axis {
 
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
-    
+    onCustomLabelsAdded: Signal;
     
     constructor( MinMax: number[], type: string, ...options: any) {
         
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
+        this.onCustomLabelsAdded = new Signal();
 
         this.min = 0;
         this.max = 0;
@@ -49,9 +52,16 @@ export class Axis {
         this.grid = new Grid(this.type);
 
         this.setOptions(...options);
+        this.bindChildSignals();
+    }
 
+    bindChildSignals() {
         this.ticks.onOptionsSetted.add(() => {
             this.onOptionsSetted.dispatch();
+        });
+
+        this.ticks.onCustomLabelsAdded.add(() => {
+            this.onCustomLabelsAdded.dispatch();
         });
 
         this.label.onOptionsSetted.add(() => {
@@ -61,7 +71,6 @@ export class Axis {
         this.grid.onOptionsSetted.add(() => {
             this.onOptionsSetted.dispatch();
         });
-
     }
 
     get length():number {
@@ -118,7 +127,7 @@ export class Axis {
     }
 
     draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        this.drawAxis(ctx, viewport);
+        if (this.display) this.drawAxis(ctx, viewport);
         this.ticks.createTicks(this.min, this.max, viewport);
         this.ticks.draw(ctx, this.label);
         if (this.grid.display) this.grid.draw(ctx, viewport, this.ticks.coords);
@@ -162,10 +171,6 @@ export class Axis {
 
         requestAnimationFrame(animate);
     }
-
-
-
-
 
 
   }
