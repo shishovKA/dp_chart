@@ -1,5 +1,6 @@
 import { Point } from "./Point";
 import { Signal } from "signals"
+import { Rectangle } from "./Rectangle";
 
 export class Label {
     display: boolean = true;
@@ -69,6 +70,12 @@ export class Label {
         }
         
         ctx.fillText(labeltext, labelCoord.x, labelCoord.y);
+    }
+
+    getlabelRect(ctx: CanvasRenderingContext2D, coord:Point, labeltext:string): Rectangle {
+        ctx.font = this.font;
+        const text = ctx.measureText(labeltext);
+        return new Rectangle(coord.x, coord.y, coord.x+text.width, coord.y+this.fontSize);
     }
 
 

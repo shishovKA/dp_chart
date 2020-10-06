@@ -1,9 +1,6 @@
 import { Signal } from "signals"
 import { Rectangle } from "./Rectangle";
 import { Ticks } from "./Ticks";
-import { Label } from "./Label";
-import { Grid } from "./Grid";
-
 
 
 interface axisOptions  {
@@ -24,8 +21,6 @@ export class Axis {
     gridOn: boolean = false;
 
     ticks: Ticks;
-    label: Label;
-    grid: Grid;
 
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
@@ -48,8 +43,8 @@ export class Axis {
         };
 
         this.ticks = new Ticks(this.type);
-        this.label = new Label(this.type);
-        this.grid = new Grid(this.type);
+        
+        
 
         this.setOptions(...options);
         this.bindChildSignals();
@@ -62,14 +57,6 @@ export class Axis {
 
         this.ticks.onCustomLabelsAdded.add(() => {
             this.onCustomLabelsAdded.dispatch();
-        });
-
-        this.label.onOptionsSetted.add(() => {
-            this.onOptionsSetted.dispatch();
-        });
-
-        this.grid.onOptionsSetted.add(() => {
-            this.onOptionsSetted.dispatch();
         });
     }
 
@@ -128,9 +115,7 @@ export class Axis {
 
     draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
         if (this.display) this.drawAxis(ctx, viewport);
-        this.ticks.createTicks(this.min, this.max, viewport);
-        this.ticks.draw(ctx, this.label);
-        if (this.grid.display) this.grid.draw(ctx, viewport, this.ticks.coords);
+        this.ticks.createTicks(this.min, this.max, viewport, ctx).draw(ctx, viewport);
     }
 
     drawAxis(ctx: CanvasRenderingContext2D, viewport: Rectangle) {

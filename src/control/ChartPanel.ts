@@ -230,6 +230,9 @@ export class ChartPanel {
 
     _setListeners() {
         this.minX_input.addEventListener('input', (event) => {
+            if (+event.target.value > this.chart.xAxis.max) {
+                event.target.value =  this.chart.xAxis.max - 1;   
+            }
             const max = this.chart.xAxis.max;
             const min = +event.target.value;
             this.minX_label.textContent = event.target.value;
@@ -241,6 +244,11 @@ export class ChartPanel {
         })
 
         this.maxX_input.addEventListener('input', (event) => {
+
+            if (+event.target.value < this.chart.xAxis.min) {
+                event.target.value =  this.chart.xAxis.min + 1;  
+            }
+
             const min = this.chart.xAxis.min;
             const max = +event.target.value;
             this.maxX_label.textContent = event.target.value;
@@ -251,6 +259,11 @@ export class ChartPanel {
         })
 
         this.minY_input.addEventListener('input', (event) => {
+
+            if (+event.target.value > this.chart.yAxis.max) {
+                event.target.value =  this.chart.yAxis.max - 1;   
+            }
+
             const max = this.chart.yAxis.max;
             const min = +event.target.value;
             this.minY_label.textContent = event.target.value;
@@ -258,6 +271,11 @@ export class ChartPanel {
         })
 
         this.maxY_input.addEventListener('input', (event) => {
+
+            if (+event.target.value < this.chart.yAxis.min) {
+                event.target.value =  this.chart.yAxis.min + 1;  
+            }
+
             const min = this.chart.yAxis.min;
             const max = +event.target.value;
             this.maxY_label.textContent = event.target.value;

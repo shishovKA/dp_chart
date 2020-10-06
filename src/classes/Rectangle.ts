@@ -36,4 +36,20 @@ export class Rectangle {
         this.y2 = y2;
     }
 
+
+    countDistBetweenRects(type: string, next: Rectangle) : number {
+        switch (type) {
+            case 'vertical':
+                return this.y1 - next.y2
+            break;
+
+            case 'horizontal':
+                return this.x1 - next.x2
+            break;
+        }
+        
+
+        return Math.min(...distances);
+    }
+
 }

@@ -22,10 +22,13 @@ chart.canvas.setPaddings(50, 80, 50, 80); // задаем отступы для 
 chart.canvasTT.setPaddings(50, 80, 50, 80);
 
 //настраиваем параметры осей
-chart.yAxis.grid.display = true;
-chart.yAxis.ticks.setOptions('fixedStep', 200);
-chart.yAxis.grid.setOptions('#bfbfbf', 2, [3,3]);
+chart.yAxis.ticks.grid.display = true;
+chart.yAxis.ticks.setOptions('fixedStep', 50);
+chart.yAxis.ticks.grid.setOptions('#bfbfbf', 2, [3,3]);
 chart.xAxis.ticks.setCustomLabels(xLabels);
+chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year'], 2);
+chart.xAxis.display = true;
+chart.xAxis.setOptions(1, '#7F7F7F');
 
 // создаем Plot
 chart.addPlot('red_line', 'line', 1, 'red', 'red');
@@ -48,8 +51,6 @@ chart.addSeries('cyberHedge1', [cbh1], ['red_line']);
 // настраиваем оси
 chart.xAxis.setMinMax(chart.data.findExtremes('val'));
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
-//chart.yAxis.ticks.setOptions('fixedStep', [100]);
-//chart.xAxis.ticks.setOptions('labeled', [5, xLabels]);
 
 
 //drawRect(chart.canvas.viewport, '#d40da5');

@@ -2,6 +2,7 @@ import { Signal } from "signals"
 import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 import { Label } from "./Label";
+import { Grid } from "./Grid";
 import { Transformer } from "./Transformer";
 
 
@@ -9,6 +10,9 @@ export class Ticks {
 
     display: boolean = false;
     hasCustomLabels: boolean = false;
+
+    label: Label;
+    grid: Grid;
 
     type: string;
     distributionType: string;
@@ -21,22 +25,39 @@ export class Ticks {
 
     customLabels?: string[];
 
+    customTicksOptions?: any[];
+
     onOptionsSetted: Signal;
     onCustomLabelsAdded: Signal;
 
     constructor(axistype: string) {
         this.onOptionsSetted = new Signal();
         this.onCustomLabelsAdded = new Signal();
-        
+
         this.coords = [];
         this.values = [];
         this.labels = [];
 
         this.type = axistype;
 
+        this.label = new Label(this.type);
+        this.grid = new Grid(this.type);
+
         this.distributionType = 'default';
         this.count = 5;
         this.step = 100;
+
+        this.bindChildSignals();
+    }
+
+    bindChildSignals() {
+        this.label.onOptionsSetted.add(() => {
+            this.onOptionsSetted.dispatch();
+        });
+
+        this.grid.onOptionsSetted.add(() => {
+            this.onOptionsSetted.dispatch();
+        });
     }
 
     setCustomLabels(labels:string[]) {
@@ -46,29 +67,28 @@ export class Ticks {
     }
 
 
-    setOptions(distributionType: string, distParam: number, duration?: number) {
+    setOptions(distributionType: string, ...options: any[]) {
         switch (distributionType) {
             case 'default':
                 this.distributionType = distributionType;
-                this.count = distParam;
+                this.count = options[0];
             break;
 
             case 'fixedStep':
                 this.distributionType = distributionType;
-            /*
-                if (duration) {
-                    this.tickStepAnimation(this.step, distParam, duration);
-                return;
-                }
-            */
-                this.step = distParam;
+                this.step = options[0];
+            break;
+
+            case 'customDateTicks':
+                this.distributionType = distributionType;
+                this.customTicksOptions = options;
             break;
         }
         this.onOptionsSetted.dispatch();
     }
 
 
-    createTicks(min: number, max: number, vp: Rectangle) {
+    createTicks(min: number, max: number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
         switch (this.distributionType) {
             case 'default':
                 this.generateFixedCountTicks(min, max, vp);
@@ -82,6 +102,11 @@ export class Ticks {
 
             case 'fixedCount':
                 this.generateFixedCountTicks(min, max, vp);
+                return this
+            break;
+
+            case 'customDateTicks':
+                this.generateCustomDateTicks(min, max, vp, ctx);
                 return this
             break;
         }
@@ -206,11 +231,153 @@ export class Ticks {
     }
 
 
-    draw(ctx: CanvasRenderingContext2D, label: Label) {
+    generateCustomDateTicks(min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
+
+        function dateParser(myDate: string) {
+            const arr = myDate.split('.');
+            arr[2] = '20'+arr[2];
+            const date = new Date(+arr[2], +arr[1]-1, +arr[0]);
+            return date;
+        }
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            
+
+        let rectXY: number[] = [];
+        const transformer = new Transformer();
+       
+        switch (this.type) {
+            case 'vertical':
+                rectXY = [0,min,1,max];
+            break;
+
+            case 'horizontal':
+                rectXY = [min,0,max,1];
+            break;
+        }
+
+        const fromRect = new Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
+
+        let pointXY: number[] = [];
+
+        for (let j = 0; j < this.customTicksOptions[0].length; j++) {
+
+        let coords = [];
+        let values = [];
+        let labels = [];
+
+        for (let i = min+1; i <= max; i++) {
+            let curLabel = this.customLabels[i];
+            let preLabel = this.customLabels[i-1];
+            let curDate = dateParser(curLabel);
+            let preDate = dateParser(preLabel);
+
+
+            //начала годов
+            if ((curDate.getFullYear() - preDate.getFullYear()) !== 0) {
+
+                switch (this.type) {
+                    case 'vertical':
+                        pointXY = [0, i];
+                    break;
+        
+                    case 'horizontal':
+                        pointXY = [i, 0];
+                    break;
+                }
+
+                const valuePoint = new Point(pointXY[0], pointXY[1]);
+                const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+                coords.push(coordPoint);
+                values.push(i); 
+                labels.push(curDate.getFullYear());
+            } else {
+                        //начала месяцев
+                    if ( (this.customTicksOptions[0][j] !== 'half year') || (!(curDate.getMonth() % 2)) ) {
+                            if ((curDate.getMonth() - preDate.getMonth()) !== 0) {
+
+                                switch (this.type) {
+                                    case 'vertical':
+                                        pointXY = [0, i];
+                                    break;
+                        
+                                    case 'horizontal':
+                                        pointXY = [i, 0];
+                                    break;
+                                }
+
+                                const valuePoint = new Point(pointXY[0], pointXY[1]);
+                                const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+                                coords.push(coordPoint);
+                                values.push(i); 
+                                labels.push(monthNames[curDate.getMonth()]);
+                            }
+                        }
+                    }
+            
+            //середины месяцев
+            if (this.customTicksOptions[0][j] == 'half month') { 
+                if ((curDate.getDay() !== 0) && (curDate.getDay() !== 6)) {
+                    if ((curDate.getDate() == 14 || curDate.getDate() == 15 || curDate.getDate() == 16) && 
+                        (curDate.getDay() == 1 || curDate.getDay() == 5)) {
+                        switch (this.type) {
+                            case 'vertical':
+                                pointXY = [0, i];
+                            break;
+                
+                            case 'horizontal':
+                                pointXY = [i, 0];
+                            break;
+                        }
+
+                        const valuePoint = new Point(pointXY[0], pointXY[1]);
+                        const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+                        coords.push(coordPoint);
+                        values.push(i); 
+                        labels.push(curDate.getDate());
+                    }
+                }
+            }
+
+        }
+
+
+        if (this.checkLabelsOverlap(ctx, coords, labels)) {
+            this.coords = coords;
+            this.values = values;
+            this.labels = labels;
+
+            if (this.customTicksOptions[1] !== j) {
+                this.customTicksOptions[1] = j;
+                console.log('step');
+            }
+            
+            return this;
+        }
+
+        
+        }
+
+        return this;
+    }
+
+
+    checkLabelsOverlap(ctx: CanvasRenderingContext2D, coords: Point[], labels: string[]): boolean {
+        for (let i=1; i<coords.length; i++) {
+            const curRec = this.label.getlabelRect(ctx, coords[i], labels[i]);
+            const preRec = this.label.getlabelRect(ctx, coords[i-1], labels[i-1]);
+            if (curRec.countDistBetweenRects(this.type, preRec) <= 0) return false;
+        }
+        return true;
+    }
+
+
+    draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
         this.coords.forEach((tickCoord, i)=>{
             if (this.display) this.drawTick(ctx, tickCoord);
-            if (label.display) label.draw(ctx, tickCoord, this.labels[i]);
+            if (this.label.display) this.label.draw(ctx, tickCoord, this.labels[i]);
         }); 
+        if (this.grid.display) this.grid.draw(ctx, viewport, this.coords);
     }
 
 
