@@ -25,12 +25,14 @@ export class Axis {
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
     onCustomLabelsAdded: Signal;
+    onAnimated: Signal;
     
     constructor( MinMax: number[], type: string, ...options: any) {
         
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
         this.onCustomLabelsAdded = new Signal();
+        this.onAnimated = new Signal();
 
         this.min = 0;
         this.max = 0;
@@ -57,6 +59,10 @@ export class Axis {
 
         this.ticks.onCustomLabelsAdded.add(() => {
             this.onCustomLabelsAdded.dispatch();
+        });
+
+        this.ticks.onAnimated.add(() => {
+            this.onAnimated.dispatch();
         });
     }
 

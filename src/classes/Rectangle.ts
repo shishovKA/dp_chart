@@ -48,8 +48,6 @@ export class Rectangle {
             break;
         }
         
-
-        return Math.min(...distances);
     }
 
 }

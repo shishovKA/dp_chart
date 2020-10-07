@@ -132,7 +132,7 @@ export class ChartPanel {
         minY_input.classList.add("panel__input");
         minY_input.type = "range";
         minY_input.name = 'minY_input';
-        minY_input.min = -this.chart.data.findExtremes('ind')[1].toFixed();
+        minY_input.min = 0;
         minY_input.max = this.chart.data.findExtremes('ind')[1].toFixed();
         minY_input.value = this.chart.data.findExtremes('ind')[0].toFixed();
         minY_input.step = "1";
@@ -171,7 +171,7 @@ export class ChartPanel {
         maxY_input.classList.add("panel__input");
         maxY_input.type = "range";
         maxY_input.name = 'maxY_input';
-        maxY_input.min = this.chart.data.findExtremes('ind')[0].toFixed();
+        maxY_input.min = 0;
         maxY_input.max = this.chart.data.findExtremes('ind')[1].toFixed();
         maxY_input.value = this.chart.data.findExtremes('ind')[1].toFixed();
         maxY_input.step = "1";
@@ -230,7 +230,7 @@ export class ChartPanel {
 
     _setListeners() {
         this.minX_input.addEventListener('input', (event) => {
-            if (+event.target.value > this.chart.xAxis.max) {
+            if (+event.target.value >= this.chart.xAxis.max - 1) {
                 event.target.value =  this.chart.xAxis.max - 1;   
             }
             const max = this.chart.xAxis.max;
@@ -245,7 +245,7 @@ export class ChartPanel {
 
         this.maxX_input.addEventListener('input', (event) => {
 
-            if (+event.target.value < this.chart.xAxis.min) {
+            if (+event.target.value <= this.chart.xAxis.min +1) {
                 event.target.value =  this.chart.xAxis.min + 1;  
             }
 
@@ -260,7 +260,7 @@ export class ChartPanel {
 
         this.minY_input.addEventListener('input', (event) => {
 
-            if (+event.target.value > this.chart.yAxis.max) {
+            if (+event.target.value >= this.chart.yAxis.max - 1) {
                 event.target.value =  this.chart.yAxis.max - 1;   
             }
 
@@ -272,7 +272,7 @@ export class ChartPanel {
 
         this.maxY_input.addEventListener('input', (event) => {
 
-            if (+event.target.value < this.chart.yAxis.min) {
+            if (+event.target.value <= this.chart.yAxis.min + 1) {
                 event.target.value =  this.chart.yAxis.min + 1;  
             }
 

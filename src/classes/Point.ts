@@ -8,5 +8,9 @@ export class Point {
         this.y = y;
     }
 
+    findDist(next: Point): number {
+        const dist = Math.sqrt((this.x-next.x)*(this.x-next.x)+(this.y-next.y)*(this.y-next.y));
+        return dist;
+    }
 
 }

@@ -4,12 +4,14 @@ import { Rectangle } from "./Rectangle";
 import { Label } from "./Label";
 import { Grid } from "./Grid";
 import { Transformer } from "./Transformer";
+import { pid } from "process";
 
 
 export class Ticks {
 
     display: boolean = false;
     hasCustomLabels: boolean = false;
+
 
     label: Label;
     grid: Grid;
@@ -27,12 +29,16 @@ export class Ticks {
 
     customTicksOptions?: any[];
 
+    animationOn?: boolean = false;
+
     onOptionsSetted: Signal;
     onCustomLabelsAdded: Signal;
+    onAnimated: Signal;
 
     constructor(axistype: string) {
         this.onOptionsSetted = new Signal();
         this.onCustomLabelsAdded = new Signal();
+        this.onAnimated = new Signal();
 
         this.coords = [];
         this.values = [];
@@ -106,6 +112,10 @@ export class Ticks {
             break;
 
             case 'customDateTicks':
+                if (this.animationOn) {
+                    return this
+                } 
+
                 this.generateCustomDateTicks(min, max, vp, ctx);
                 return this
             break;
@@ -233,6 +243,98 @@ export class Ticks {
 
     generateCustomDateTicks(min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
 
+        for (let j = 0; j < this.customTicksOptions[0].length; j++) {
+
+            const ticksArr = this.generateCustomDateTicksByOption(j, min, max, vp, ctx);
+
+            let coords = ticksArr[0];
+            let values = ticksArr[1];
+            let labels = ticksArr[2];
+
+
+            if (this.checkLabelsOverlap(ctx, coords, labels)) {
+
+                this.animationOn = true;
+
+                const from = this.makeFromPointArr(this.coords, coords);
+
+                this.coords = from;
+                this.values = values;
+                this.labels = labels;
+
+                
+                if (from.length == 0) {
+                    this.animationOn = false;
+                    this.coords = coords;
+                    return this;
+                }
+                
+
+                this.tickCoordAnimation(from, coords, 300);
+                
+                return this;
+            }
+
+        }
+
+        return this;
+    }
+
+
+    // Метод анимации изменение набора координат тиков
+    tickCoordAnimation(from: Point[], to: Point[], duration: number) {
+
+        let start = performance.now();
+        
+        const animate = (time) => {
+            
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) timeFraction = 1;
+
+            const tek = this.coords.map((el,i)=> {
+                return new Point(from[i].x + (to[i].x - from[i].x)*timeFraction, from[i].y + (to[i].y - from[i].y)*timeFraction);
+            });
+
+            this.coords = tek;
+
+            this.onAnimated.dispatch();
+
+            if (timeFraction < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                this.animationOn = false;
+            }
+
+        }
+
+        requestAnimationFrame(animate);
+
+
+        
+    }
+
+
+    makeFromPointArr(from: Point[], to: Point[]): Point[] {
+        const resultArr: Point[] = [];
+        
+        to.forEach((toPoint) => {
+            if (from.length !== 0) {
+                const minP = from.reduce((fromPoint, cur) => {
+                        if (fromPoint.findDist(toPoint) < cur.findDist(toPoint)) return fromPoint
+                        return cur; 
+                    }, from[0])
+                resultArr.push(minP);
+            }
+        });
+
+        return resultArr;
+    }
+
+
+    // генерация пробных тиков
+
+    generateCustomDateTicksByOption(j:number, min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D): any[] {
+
         function dateParser(myDate: string) {
             const arr = myDate.split('.');
             arr[2] = '20'+arr[2];
@@ -260,7 +362,6 @@ export class Ticks {
 
         let pointXY: number[] = [];
 
-        for (let j = 0; j < this.customTicksOptions[0].length; j++) {
 
         let coords = [];
         let values = [];
@@ -341,25 +442,10 @@ export class Ticks {
 
         }
 
-
-        if (this.checkLabelsOverlap(ctx, coords, labels)) {
-            this.coords = coords;
-            this.values = values;
-            this.labels = labels;
-
-            if (this.customTicksOptions[1] !== j) {
-                this.customTicksOptions[1] = j;
-                console.log('step');
-            }
-            
-            return this;
-        }
-
-        
-        }
-
-        return this;
+        return [coords, values, labels];
     }
+
+
 
 
     checkLabelsOverlap(ctx: CanvasRenderingContext2D, coords: Point[], labels: string[]): boolean {

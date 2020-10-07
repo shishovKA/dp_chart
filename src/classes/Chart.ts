@@ -41,6 +41,7 @@ export class Chart {
         this.xAxis.onOptionsSetted.add(this.reDraw);
         this.xAxis.onMinMaxSetted.add(this.reDraw);
         this.xAxis.onCustomLabelsAdded.add(this.reDraw);
+        this.xAxis.onAnimated.add(this.reDraw);
 
         this.yAxis.onOptionsSetted.add(this.reDraw);
         this.yAxis.onMinMaxSetted.add(this.reDraw);
