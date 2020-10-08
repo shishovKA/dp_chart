@@ -4,7 +4,11 @@ import { Chart } from "../classes/Chart";
 export class ChartPanel {
 
     container: HTMLElement;
-    element: HTMLElement;
+
+    axisRanges: HTMLElement;
+    xAxisOptions: HTMLElement;
+    yAxisOptions: HTMLElement;
+
     chart: Chart;
 
     minX_input: HTMLElement;
@@ -28,21 +32,23 @@ export class ChartPanel {
         this.container = container;
         this.chart = chart;
 
-        this._create();
-        this.container.append(this.element);
+        this.axisRanges = this._createAxisRanges();
+        this.container.append(this.axisRanges);
+
+        this.xAxisOptions = this._createXAxisOptions();
+        this.container.append(this.xAxisOptions);
+
+        this.yAxisOptions = this._createYAxisOptions();
+        this.container.append(this.yAxisOptions);
+
         this._setListeners();
 
     }
 
 
-    _create() {
-
-        const panel = document.createElement('div');
-        panel.classList.add('panel__block');
-        this.element = panel;
-
-        const title = document.createElement('h3');
-        title.classList.add('panel__title');
+    _createAxisRanges(): HTMLElement {
+        const panel = document.createElement('fieldset');
+        const title = document.createElement('legend');
         title.textContent = 'Chart control panel';
 
         panel.append(title);
@@ -226,6 +232,214 @@ export class ChartPanel {
 
         this.scaleToFit_input = scaleToFit;
 
+        return panel;
+    }
+
+
+
+    _createXAxisOptions() {
+
+        const fieldset = document.createElement('fieldset');
+    
+
+        const legend = document.createElement('legend');
+        legend.textContent = 'X Axis Options';
+
+        fieldset.append(legend);
+
+        // fixedCount
+        const distType_input1 = document.createElement('input');
+        distType_input1.type = "radio";
+        distType_input1.id = 'distType_input1';
+        distType_input1.name = 'distType_input';
+        distType_input1.value = 'fixedCount';
+        fieldset.append(distType_input1);
+
+        const label1 = document.createElement('label');
+        label1.textContent = 'fixed count';
+        fieldset.append(label1);
+
+        const count_input = document.createElement('input');
+        count_input.type = "number";
+        count_input.id = 'count_input';
+        count_input.name = 'count_input';
+        count_input.min = '1';
+        count_input.max = '100';
+        count_input.value = '10';
+        fieldset.append(count_input);
+
+        const label_count = document.createElement('label');
+        label_count.textContent = 'Count';
+        fieldset.append(label_count);
+
+        let br = document.createElement('br');
+        fieldset.append(br);
+
+        distType_input1.addEventListener('change', (event) => {
+            this.chart.xAxis.ticks.setOptions(event.target.value, +count_input.value);
+        });
+
+        count_input.addEventListener('change', (event) => {
+            if (this.chart.xAxis.ticks.distributionType == 'fixedCount') {
+                this.chart.xAxis.ticks.setOptions('fixedCount', +event.target.value) 
+            }
+        });
+
+        // fixedStep
+        const distType_input2 = document.createElement('input');
+        distType_input2.type = "radio";
+        distType_input2.id = 'distType_input2';
+        distType_input2.name = 'distType_input';
+        distType_input2.value = 'fixedStep';
+        
+        fieldset.append(distType_input2);
+
+        const label2 = document.createElement('label');
+        label2.textContent = 'fixed step';
+        fieldset.append(label2);
+
+
+        const step_input = document.createElement('input');
+        step_input.type = "number";
+        step_input.id = 'step_input';
+        step_input.name = 'step_input';
+        step_input.min = '1';
+        step_input.max = '1000';
+        step_input.value = '100';
+        fieldset.append(step_input);
+
+        const label_step = document.createElement('label');
+        label_step.textContent = 'Step';
+        fieldset.append(label_step);
+
+
+        br = document.createElement('br');
+        fieldset.append(br);
+
+        distType_input2.addEventListener('change', (event) => {
+            this.chart.xAxis.ticks.setOptions(event.target.value, +step_input.value);
+        });
+
+        step_input.addEventListener('change', (event) => {
+            if (this.chart.xAxis.ticks.distributionType == 'fixedStep') {
+                this.chart.xAxis.ticks.setOptions('fixedStep', +event.target.value) 
+            }
+        });
+
+        // customDateTicks
+
+        const distType_input3 = document.createElement('input');
+        distType_input3.type = "radio";
+        distType_input3.id = 'distType_input3';
+        distType_input3.name = 'distType_input';
+        distType_input3.value = 'customDateTicks';
+        
+        distType_input3.addEventListener('change', (event) => {
+            this.chart.xAxis.ticks.setOptions(event.target.value);
+        });
+
+        fieldset.append(distType_input3);
+
+        const label3 = document.createElement('label');
+        label3.textContent = 'customDateTicks';
+        fieldset.append(label3);
+
+        return fieldset;
+
+    }
+
+
+    _createYAxisOptions() {
+
+        const fieldset = document.createElement('fieldset');
+    
+
+        const legend = document.createElement('legend');
+        legend.textContent = 'Y Axis Options';
+
+        fieldset.append(legend);
+
+        // fixedCount
+        const distType_input1 = document.createElement('input');
+        distType_input1.type = "radio";
+        distType_input1.id = 'distType_input1';
+        distType_input1.name = 'distType_input';
+        distType_input1.value = 'fixedCount';
+        fieldset.append(distType_input1);
+
+        const label1 = document.createElement('label');
+        label1.textContent = 'fixed count';
+        fieldset.append(label1);
+
+        const count_input = document.createElement('input');
+        count_input.type = "number";
+        count_input.id = 'count_input';
+        count_input.name = 'count_input';
+        count_input.min = '1';
+        count_input.max = '100';
+        count_input.value = '10';
+        fieldset.append(count_input);
+
+        const label_count = document.createElement('label');
+        label_count.textContent = 'Count';
+        fieldset.append(label_count);
+
+        let br = document.createElement('br');
+        fieldset.append(br);
+
+        distType_input1.addEventListener('change', (event) => {
+            this.chart.yAxis.ticks.setOptions(event.target.value, +count_input.value);
+        });
+
+        count_input.addEventListener('change', (event) => {
+            if (this.chart.yAxis.ticks.distributionType == 'fixedCount') {
+                this.chart.yAxis.ticks.setOptions('fixedCount', +event.target.value) 
+            }
+        });
+
+        // fixedStep
+        const distType_input2 = document.createElement('input');
+        distType_input2.type = "radio";
+        distType_input2.id = 'distType_input2';
+        distType_input2.name = 'distType_input';
+        distType_input2.value = 'fixedStep';
+        
+        fieldset.append(distType_input2);
+
+        const label2 = document.createElement('label');
+        label2.textContent = 'fixed step';
+        fieldset.append(label2);
+
+
+        const step_input = document.createElement('input');
+        step_input.type = "number";
+        step_input.id = 'step_input';
+        step_input.name = 'step_input';
+        step_input.min = '1';
+        step_input.max = '1000';
+        step_input.value = '100';
+        fieldset.append(step_input);
+
+        const label_step = document.createElement('label');
+        label_step.textContent = 'Step';
+        fieldset.append(label_step);
+
+
+        br = document.createElement('br');
+        fieldset.append(br);
+
+        distType_input2.addEventListener('change', (event) => {
+            this.chart.yAxis.ticks.setOptions(event.target.value, +step_input.value);
+        });
+
+        step_input.addEventListener('change', (event) => {
+            if (this.chart.yAxis.ticks.distributionType == 'fixedStep') {
+                this.chart.yAxis.ticks.setOptions('fixedStep', +event.target.value) 
+            }
+        });
+
+        return fieldset;
+
     }
 
     _setListeners() {
@@ -298,7 +512,6 @@ export class ChartPanel {
                     this.maxY_input.disabled = this.scaleToFit;
                 }
         })
-
 
     }
 

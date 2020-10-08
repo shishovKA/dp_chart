@@ -18,23 +18,31 @@ import {Chart} from "./classes/Chart"
 
 // работа с Chart
 const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [0, 2000]);
-chart.canvas.setPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
-chart.canvasTT.setPaddings(50, 80, 50, 80);
+chart.setCanvasPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
 
 //настраиваем параметры осей
-chart.yAxis.ticks.grid.display = true;
 chart.yAxis.ticks.setOptions('fixedStep', 50);
-chart.yAxis.ticks.grid.setOptions('#bfbfbf', 2, [3,3]);
 chart.xAxis.ticks.setCustomLabels(xLabels);
 chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year'], 2);
 chart.xAxis.display = true;
-chart.xAxis.setOptions(1, '#7F7F7F');
+
+// ось X
+chart.xAxis.setOptions(2, '#7F7F7F');
+chart.xAxis.ticks.display = true;
+chart.xAxis.ticks.settickDrawOptions(6, 2, '#7F7F7F');
+chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['11', '"Transcript Pro"']);
+
+// ось Y
+chart.yAxis.setOptions(2, '#B2B2B2', [1, 2]);
+chart.yAxis.display = true;
+chart.yAxis.position = 'end';
+chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 13, ['11', '"Transcript Pro"']);
 
 // создаем Plot
-chart.addPlot('red_line', 'line', 1, 'red', 'red');
-chart.addPlot('red_area', 'area', 0.5, '#ffe6e6', '#ffe6e6', 0.5);
-chart.addPlot('blue_line', 'line', 1, 'blue', 'blue', 1);
-chart.addPlot('blue_area', 'area', 0.5, '#e6edff', '#e6edff', 0.5);
+chart.addPlot('red_line', 'line', 1, '#FF2222', '#FF2222');
+chart.addPlot('red_area', 'area', 0.5, '#FFE5E5', '#FFE5E5', 0.5);
+chart.addPlot('blue_line', 'line', 1, '#0070FF', '#0070FF', 1);
+chart.addPlot('blue_area', 'area', 0.5, '#D9EAFF', '#D9EAFF', 0.5);
 
 // создаем Tooltip
 chart.findPlotById('red_line')?.addTooltip('xLine_tt', 'v_line', [1, '#b3b3b3', '#b3b3b3'], xLabels);
@@ -55,6 +63,7 @@ chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxi
 
 //drawRect(chart.canvas.viewport, '#d40da5');
 //элементы управления
+
 
 const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
 

@@ -4,7 +4,6 @@ import { Rectangle } from "./Rectangle";
 import { Label } from "./Label";
 import { Grid } from "./Grid";
 import { Transformer } from "./Transformer";
-import { pid } from "process";
 
 
 export class Ticks {
@@ -30,6 +29,11 @@ export class Ticks {
     customTicksOptions?: any[];
 
     animationOn?: boolean = false;
+
+    // параметры отрисовки тика
+    linewidth: number = 2;
+    tickSize: number = 5;
+    color: string = 'black'
 
     onOptionsSetted: Signal;
     onCustomLabelsAdded: Signal;
@@ -72,10 +76,21 @@ export class Ticks {
         this.onCustomLabelsAdded.dispatch();
     }
 
+    settickDrawOptions(length: number, width: number, color: string) {
+        this.linewidth = width;
+        this.tickSize = length;
+        this.color = color;
+    }
+
 
     setOptions(distributionType: string, ...options: any[]) {
         switch (distributionType) {
             case 'default':
+                this.distributionType = distributionType;
+                this.count = options[0];
+            break;
+
+            case 'fixedCount':
                 this.distributionType = distributionType;
                 this.count = options[0];
             break;
@@ -87,7 +102,7 @@ export class Ticks {
 
             case 'customDateTicks':
                 this.distributionType = distributionType;
-                this.customTicksOptions = options;
+                if (options.length !== 0) this.customTicksOptions = options;
             break;
         }
         this.onOptionsSetted.dispatch();
@@ -227,6 +242,7 @@ export class Ticks {
                         pointXY = [value, 0];
                     break;
                 }
+
 
                 const valuePoint = new Point(pointXY[0], pointXY[1]);
                 const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
@@ -459,7 +475,7 @@ export class Ticks {
 
 
     draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        this.coords.forEach((tickCoord, i)=>{
+        this.coords.forEach((tickCoord, i) => {
             if (this.display) this.drawTick(ctx, tickCoord);
             if (this.label.display) this.label.draw(ctx, tickCoord, this.labels[i]);
         }); 
@@ -469,16 +485,23 @@ export class Ticks {
 
     drawTick(ctx: CanvasRenderingContext2D, tick:Point) {
         ctx.beginPath();
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 1;
-        let r = 10;
-        ctx.moveTo(tick.x-r, tick.y);
-        ctx.lineTo(tick.x+r, tick.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(tick.x, tick.y-r);
-        ctx.lineTo(tick.x, tick.y+r);
-        ctx.stroke();
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.linewidth;
+        let r = this.tickSize;
+
+        switch (this.type) {
+            case 'vertical' :
+                ctx.moveTo(tick.x-r, tick.y);
+                ctx.lineTo(tick.x+r, tick.y);
+                ctx.stroke();
+            break;
+
+            case 'horizontal' :
+                ctx.moveTo(tick.x, tick.y-r);
+                ctx.lineTo(tick.x, tick.y);
+                ctx.stroke();
+            break;
+        }
     }
 
     // Метод анимации изменение параметра step

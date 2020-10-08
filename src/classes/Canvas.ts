@@ -107,7 +107,8 @@ export class Canvas {
             }
         }
 
-        this.scaleCanvas(this.canvas, this._ctx, this.width, this.height)
+        this.scaleCanvas(this.canvas, this._ctx, this.width, this.height);
+
     }
 
     clear() {
@@ -115,13 +116,26 @@ export class Canvas {
     }
 
     get viewport(): Rectangle {
-        return new Rectangle(this.left, this.top, this.width-this.right, this.height-this.bottom);
+        return new Rectangle(this.left, this.top, this.canvas.width-this.right, this.canvas.height-this.bottom);
+    }
+
+    drawVp() {
+        const rect = this.viewport;
+        this.ctx.rect(rect.x1, rect.y1, rect.width, rect.height);
+        this.ctx.stroke();
     }
 
     getMouseCoords(event) {
         var bcr = this.canvas.getBoundingClientRect();
         this.mouseMoved.dispatch();
         return [event.clientX - bcr.left - this.viewport.zeroX, event.clientY - bcr.top];
+    }
+
+    clipCanvas() {
+        const rect = this.viewport;
+        let squarePath = new Path2D();
+        squarePath.rect( rect.x1, rect.y1, rect.width, rect.height );
+        this.ctx.clip(squarePath);
     }
 
     scaleCanvas(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, width:number, height:number) {

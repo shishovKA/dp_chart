@@ -45,6 +45,7 @@ export class Label {
         
         ctx.fillStyle = this.color;
         ctx.font = this.font;
+        
         ctx.textBaseline = 'middle';
 
         const text = ctx.measureText(labeltext);

@@ -8,6 +8,7 @@ import { Rectangle } from "./Rectangle";
 export class Chart {
     
     canvas: Canvas;
+    canvasA: Canvas;
     canvasTT: Canvas;
     data: Data;
     plots: Plot[];
@@ -17,6 +18,7 @@ export class Chart {
     constructor(container: HTMLElement | null, xMinMax: number[], yMinMax: number[]) {
         
         this.canvas = new Canvas(container);
+        this.canvasA = new Canvas(container);
         this.canvasTT = new Canvas(container);
 
         this.data = new Data();
@@ -26,7 +28,7 @@ export class Chart {
         this.yAxis = new Axis(yMinMax, 'vertical');
 
         this.reDraw = this.reDraw.bind(this);
-        this.tooltipsDraw = this.tooltipsDraw.bind(this);
+        //this.tooltipsDraw = this.tooltipsDraw.bind(this);
         
         this.bindChildSignals();
 
@@ -48,6 +50,7 @@ export class Chart {
         this.yAxis.onCustomLabelsAdded.add(this.reDraw);
 
         this.canvas.changed.add(this.reDraw);
+        this.canvasA.changed.add(this.reDraw);
     }
 
     get axisRect(): Rectangle {
@@ -56,19 +59,23 @@ export class Chart {
 
     reSize() {
         this.canvas.resize();
+        this.canvasA.resize();
         this.canvasTT.resize();
         this.reDraw();
     }
 
     reDraw() {
         this.canvas.clear();
+        this.canvasA.clear();
         this.plotsDraw();
         this.axisDraw();
+
+        this.canvas.clipCanvas();  
     }
 
     axisDraw() {
-        this.xAxis.draw(this.canvas.ctx, this.canvas.viewport);
-        this.yAxis.draw(this.canvas.ctx, this.canvas.viewport);
+        this.xAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
+        this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
     }
 
     plotsDraw() {
@@ -87,6 +94,7 @@ export class Chart {
     }
 
 
+/*
     tooltipsDraw() {
         this.canvasTT.clear();
         this.data.storage.forEach((series) => {
@@ -108,7 +116,13 @@ export class Chart {
                 })
             })
     }
+*/
 
+    setCanvasPaddings(...paddings: number[]) {
+        this.canvas.setPaddings(...paddings);
+        this.canvasTT.setPaddings(...paddings);
+        this.canvasA.setPaddings(...paddings);
+    }
 
     
     addSeries(id: string, seriesData: number[][], plotIds: string[], tooltipsIds?: string[]) {

@@ -6,6 +6,7 @@ import { Ticks } from "./Ticks";
 interface axisOptions  {
     lineWidth: number;
     lineColor: string;
+    lineDash: number[];
 }
 
 //описание класса
@@ -13,6 +14,7 @@ interface axisOptions  {
 export class Axis {
 
     display: boolean = false;
+    position: string = 'start'
 
     min: number;
     max: number;
@@ -41,13 +43,12 @@ export class Axis {
 
         this._options = {
             lineWidth: 1,
-            lineColor: '#000000'
+            lineColor: '#000000',
+            lineDash: [1,0]
         };
 
         this.ticks = new Ticks(this.type);
         
-        
-
         this.setOptions(...options);
         this.bindChildSignals();
     }
@@ -80,6 +81,12 @@ export class Axis {
             case 2:
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
+            break;
+
+            case 3:
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.lineDash = options[2];
             break;
         }
 
@@ -120,28 +127,55 @@ export class Axis {
     }
 
     draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        if (this.display) this.drawAxis(ctx, viewport);
-        this.ticks.createTicks(this.min, this.max, viewport, ctx).draw(ctx, viewport);
+        const axisVp = this.getaxisViewport(viewport);
+        if (this.display) this.drawAxis(ctx, axisVp);
+        this.ticks.createTicks(this.min, this.max, axisVp, ctx).draw(ctx, viewport);
     }
 
-    drawAxis(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        ctx.beginPath();
-        ctx.strokeStyle = this._options.lineColor;
-        ctx.lineWidth = this._options.lineWidth;
-        ctx.moveTo(viewport.x1, viewport.y2);
-
-        switch(this.type) {
-            case 'vertical':
-                ctx.lineTo(viewport.x1, viewport.y1);
+    getaxisViewport(vp: Rectangle): Rectangle {
+        let axisVP;
+        switch(this.position) {
+            case 'start':
+                switch(this.type) {
+                    case 'vertical':
+                        axisVP = new Rectangle(vp.x1, vp.y1, vp.x1, vp.y2);
+                    break;
+                  
+                    case 'horizontal':
+                        axisVP = new Rectangle(vp.x1, vp.y2, vp.x2, vp.y2);
+                    break;
+                }
             break;
           
-            case 'horizontal':
-                ctx.lineTo(viewport.x2, viewport.y2);
+            case 'end':
+                case 'start':
+                    switch(this.type) {
+                        case 'vertical':
+                            axisVP = new Rectangle(vp.x2, vp.y1, vp.x2, vp.y2);
+                        break;
+                      
+                        case 'horizontal':
+                            axisVP = new Rectangle(vp.x1, vp.y1, vp.x2, vp.y1);
+                        break;
+                    }
+                break;
             break;
         }
 
-        ctx.closePath();
+        return axisVP
+    }
+
+    drawAxis(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
+        
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.setLineDash(this._options.lineDash);
+
+        ctx.beginPath();
+        ctx.moveTo(viewport.x1, viewport.y1);
+        ctx.lineTo(viewport.x2, viewport.y2);
         ctx.stroke();
+        ctx.setLineDash([]);
     }
 
 
