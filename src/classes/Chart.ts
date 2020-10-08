@@ -28,11 +28,11 @@ export class Chart {
         this.yAxis = new Axis(yMinMax, 'vertical');
 
         this.reDraw = this.reDraw.bind(this);
-        //this.tooltipsDraw = this.tooltipsDraw.bind(this);
+        this.tooltipsDraw = this.tooltipsDraw.bind(this);
         
         this.bindChildSignals();
 
-        //  this.canvasTT.mouseMoved.add(this.tooltipsDraw);
+        this.canvasTT.mouseMoved.add(this.tooltipsDraw);
 
         window.addEventListener('resize', () => { this.reSize() });
 
@@ -69,7 +69,6 @@ export class Chart {
         this.canvasA.clear();
         this.plotsDraw();
         this.axisDraw();
-
         this.canvas.clipCanvas();  
     }
 
@@ -94,19 +93,18 @@ export class Chart {
     }
 
 
-/*
     tooltipsDraw() {
         this.canvasTT.clear();
+        const mouseXY = this.canvasTT.mouseCoords;
+    
+        const transformer = new Transformer();
+
         this.data.storage.forEach((series) => {
 
-            const transformer = new Transformer();
-            const mouseX = this.canvasTT.mouseCoords[0];
+            const seriesX = this.xAxis.min + mouseXY.x*(this.xAxis.length)/this.canvasTT.viewport.width;
+            const pointData = series.getClosestPoint(seriesX);
             
-            const seriesX = this.xAxis.min + mouseX*(this.xAxis.length)/this.canvasTT.viewport.width;
-            const tipXY = series.getClosestPoint(seriesX);
-            const pointData = tipXY;
-            
-            const tooltipCoord = transformer.getVeiwportCoord(this.xAxis, this.yAxis, tipXY, this.canvasTT.viewport);
+            const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
   
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
@@ -116,7 +114,7 @@ export class Chart {
                 })
             })
     }
-*/
+
 
     setCanvasPaddings(...paddings: number[]) {
         this.canvas.setPaddings(...paddings);

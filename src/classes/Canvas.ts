@@ -1,4 +1,5 @@
 import { Signal } from "signals"
+import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 
 export class Canvas {
@@ -12,12 +13,10 @@ export class Canvas {
     right: number;
     bottom: number;
     left: number;
-    mouseCoords: number[];
+    mouseCoords: Point;
     changed: Signal;
     mouseMoved: Signal;
 
-
-    
     constructor(container: HTMLElement, ...paddings: number[]) {
         this.changed = new Signal();
         this.mouseMoved = new Signal();
@@ -28,7 +27,7 @@ export class Canvas {
         
         this.height = 0;
         this.width = 0;
-        this.mouseCoords = [0,0];
+
         this.container.appendChild(this.canvas);
 
         this.resize();
@@ -43,6 +42,7 @@ export class Canvas {
 
         this.canvas.addEventListener('mousemove', (event) => {
             this.mouseCoords = this.getMouseCoords(event);
+            this.mouseMoved.dispatch();
           });
     }
 
@@ -125,10 +125,9 @@ export class Canvas {
         this.ctx.stroke();
     }
 
-    getMouseCoords(event) {
+    getMouseCoords(event): Point {
         var bcr = this.canvas.getBoundingClientRect();
-        this.mouseMoved.dispatch();
-        return [event.clientX - bcr.left - this.viewport.zeroX, event.clientY - bcr.top];
+        return new Point(event.clientX - bcr.left - this.viewport.zeroX, event.clientY - bcr.top - this.viewport.y1);
     }
 
     clipCanvas() {
