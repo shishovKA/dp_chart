@@ -149,9 +149,10 @@ export class Plot {
     }
 
 
-    addTooltip(id: string, type: string, options: any[], labels?:string[]) {
-        const tooltip = new Tooltip(id, type, options, labels);
+    addTooltip(id: string, type: string, ...options: any): Tooltip {
+        const tooltip = new Tooltip(id, type, ...options);
         this.tooltips.push(tooltip);
+        return tooltip;
     }
 
     findTooltipById(id: string):Tooltip | null {

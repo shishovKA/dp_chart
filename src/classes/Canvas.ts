@@ -103,7 +103,6 @@ export class Canvas {
     }
 
     resize() {
-        console.log('resize');
         this.clear();
         this.width = this.container.getBoundingClientRect().width;
         this.height = this.container.getBoundingClientRect().height;

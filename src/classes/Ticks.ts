@@ -378,17 +378,31 @@ export class Ticks {
 
         let pointXY: number[] = [];
 
-
         let coords = [];
         let values = [];
         let labels = [];
+
+        let yearDel = 1;
+        const partYear = this.customTicksOptions[0][j];
+        switch (partYear) {
+            case 'half year':
+                yearDel = 2;
+            break;
+
+            case 'third year':
+                yearDel = 3;
+            break;
+
+            case 'quarter year':
+                yearDel = 4;
+            break;
+        }
 
         for (let i = min+1; i <= max; i++) {
             let curLabel = this.customLabels[i];
             let preLabel = this.customLabels[i-1];
             let curDate = dateParser(curLabel);
             let preDate = dateParser(preLabel);
-
 
             //начала годов
             if ((curDate.getFullYear() - preDate.getFullYear()) !== 0) {
@@ -410,7 +424,7 @@ export class Ticks {
                 labels.push(curDate.getFullYear());
             } else {
                         //начала месяцев
-                    if ( (this.customTicksOptions[0][j] !== 'half year') || (!(curDate.getMonth() % 2)) ) {
+                    if ( (this.customTicksOptions[0][j] !== partYear) || (!(curDate.getMonth() % yearDel)) ) {
                             if ((curDate.getMonth() - preDate.getMonth()) !== 0) {
 
                                 switch (this.type) {

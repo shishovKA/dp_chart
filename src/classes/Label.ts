@@ -12,7 +12,7 @@ export class Label {
     offset: number = 15;
     onOptionsSetted: Signal;
 
-    constructor(type: string) {
+    constructor(type?: string) {
         
         this.onOptionsSetted = new Signal();
 
@@ -76,7 +76,7 @@ export class Label {
     getlabelRect(ctx: CanvasRenderingContext2D, coord:Point, labeltext:string): Rectangle {
         ctx.font = this.font;
         const text = ctx.measureText(labeltext);
-        return new Rectangle(coord.x, coord.y, coord.x+text.width, coord.y+this.fontSize);
+        return new Rectangle(coord.x - text.width*0.5, coord.y+this.offset, coord.x+text.width*0.5, coord.y+this.offset+this.fontSize);
     }
 
 

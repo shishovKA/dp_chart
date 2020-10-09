@@ -251,7 +251,7 @@ export class ChartPanel {
         const distType_input1 = document.createElement('input');
         distType_input1.type = "radio";
         distType_input1.id = 'distType_input1';
-        distType_input1.name = 'distType_input';
+        distType_input1.name = 'distType_inputX';
         distType_input1.value = 'fixedCount';
         fieldset.append(distType_input1);
 
@@ -289,7 +289,7 @@ export class ChartPanel {
         const distType_input2 = document.createElement('input');
         distType_input2.type = "radio";
         distType_input2.id = 'distType_input2';
-        distType_input2.name = 'distType_input';
+        distType_input2.name = 'distType_inputX';
         distType_input2.value = 'fixedStep';
         
         fieldset.append(distType_input2);
@@ -331,7 +331,7 @@ export class ChartPanel {
         const distType_input3 = document.createElement('input');
         distType_input3.type = "radio";
         distType_input3.id = 'distType_input3';
-        distType_input3.name = 'distType_input';
+        distType_input3.name = 'distType_inputX';
         distType_input3.value = 'customDateTicks';
         
         distType_input3.addEventListener('change', (event) => {
@@ -363,7 +363,7 @@ export class ChartPanel {
         const distType_input1 = document.createElement('input');
         distType_input1.type = "radio";
         distType_input1.id = 'distType_input1';
-        distType_input1.name = 'distType_input';
+        distType_input1.name = 'distType_inputY';
         distType_input1.value = 'fixedCount';
         fieldset.append(distType_input1);
 
@@ -401,7 +401,7 @@ export class ChartPanel {
         const distType_input2 = document.createElement('input');
         distType_input2.type = "radio";
         distType_input2.id = 'distType_input2';
-        distType_input2.name = 'distType_input';
+        distType_input2.name = 'distType_inputY';
         distType_input2.value = 'fixedStep';
         
         fieldset.append(distType_input2);

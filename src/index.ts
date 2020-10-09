@@ -23,7 +23,7 @@ chart.setCanvasPaddings(50, 80, 50, 80); // задаем отступы для �
 //настраиваем параметры осей
 chart.yAxis.ticks.setOptions('fixedStep', 50);
 chart.xAxis.ticks.setCustomLabels(xLabels);
-chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year'], 2);
+chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year'], 2);
 chart.xAxis.display = true;
 
 // ось X
@@ -45,10 +45,24 @@ chart.addPlot('blue_line', 'line', 1, '#0070FF', '#0070FF', 1);
 chart.addPlot('blue_area', 'area', 0.5, '#D9EAFF', '#D9EAFF', 0.5);
 
 // создаем Tooltip
-chart.findPlotById('red_line')?.addTooltip('xLine_tt', 'v_line', [1, '#b3b3b3', '#b3b3b3'], xLabels);
-chart.findPlotById('blue_line')?.addTooltip('blue_tt', 'x', [3, '#ffffff', 'blue', 4]);
-chart.findPlotById('red_line')?.addTooltip('red_tt', 'x', [3, '#ffffff', 'red', 4]);
+  // lines
+chart.findPlotById('red_line')?.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
+chart.findPlotById('red_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+chart.findPlotById('blue_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
 
+  // circles
+chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
+chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
+
+chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
+chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
+
+  // labels
+chart.findPlotById('red_line')?.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 11, ['11', '"Transcript Pro"']);
+
+  // data
+chart.findPlotById('red_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
+chart.findPlotById('blue_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
 
 // создаем Series
 chart.addSeries('cyberHedge5', [cbh5], ['blue_area']);
