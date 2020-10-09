@@ -29,11 +29,9 @@ export class Chart {
 
         this.reDraw = this.reDraw.bind(this);
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
-        
         this.bindChildSignals();
 
         this.canvasTT.mouseMoved.add(this.tooltipsDraw);
-
         window.addEventListener('resize', () => { this.reSize() });
 
         this.reSize();
@@ -65,11 +63,12 @@ export class Chart {
     }
 
     reDraw() {
+        this.canvas.clipCanvas(); 
         this.canvas.clear();
         this.canvasA.clear();
         this.plotsDraw();
         this.axisDraw();
-        this.canvas.clipCanvas();  
+        
     }
 
     axisDraw() {

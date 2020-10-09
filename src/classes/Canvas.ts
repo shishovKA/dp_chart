@@ -2,6 +2,8 @@ import { Signal } from "signals"
 import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 
+const canvasDpiScaler = require('canvas-dpi-scaler');
+
 export class Canvas {
 
     container: HTMLElement;
@@ -23,17 +25,21 @@ export class Canvas {
 
         this.container = container;
         this.canvas = document.createElement('canvas');
+
+        this.width = this.container.getBoundingClientRect().width;
+        this.height = this.container.getBoundingClientRect().height;
+
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        
+        this.container.appendChild(this.canvas);
         this._ctx = this.canvas.getContext('2d');
         
-        this.height = 0;
-        this.width = 0;
-
-        this.container.appendChild(this.canvas);
+        //canvasDpiScaler(this.canvas, this._ctx);
 
         this.resize();
         
-        this.canvas.width = this.height;
-        this.canvas.height = this.width;
+
         this.top = 0;
         this.right = 0;
         this.bottom = 0;
@@ -96,19 +102,12 @@ export class Canvas {
         return this._ctx;
     }
 
-    resize(wh?: number[]) {
-        if (wh) {
-            this.height = wh[1];
-            this.width = wh[0];
-        } else {
-            if (this.container) {
-                this.height = this.container.getBoundingClientRect().height;
-                this.width = this.container.getBoundingClientRect().width;
-            }
-        }
-
-        this.scaleCanvas(this.canvas, this._ctx, this.width, this.height);
-
+    resize() {
+        console.log('resize');
+        this.clear();
+        this.width = this.container.getBoundingClientRect().width;
+        this.height = this.container.getBoundingClientRect().height;
+        canvasDpiScaler(this.canvas, this._ctx, this.width, this.height);
     }
 
     clear() {
@@ -116,7 +115,7 @@ export class Canvas {
     }
 
     get viewport(): Rectangle {
-        return new Rectangle(this.left, this.top, this.canvas.width-this.right, this.canvas.height-this.bottom);
+        return new Rectangle(this.left, this.top, this.width-this.right, this.height-this.bottom);
     }
 
     drawVp() {
@@ -136,42 +135,5 @@ export class Canvas {
         squarePath.rect( rect.x1, rect.y1, rect.width, rect.height );
         this.ctx.clip(squarePath);
     }
-
-    scaleCanvas(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, width:number, height:number) {
-        // assume the device pixel ratio is 1 if the browser doesn't specify it
-        const devicePixelRatio = window.devicePixelRatio || 1;
-      
-        // determine the 'backing store ratio' of the canvas context
-        const backingStoreRatio = (
-          context.webkitBackingStorePixelRatio ||
-          context.mozBackingStorePixelRatio ||
-          context.msBackingStorePixelRatio ||
-          context.oBackingStorePixelRatio ||
-          context.backingStorePixelRatio || 1
-        );
-      
-        // determine the actual ratio we want to draw at
-        const ratio = devicePixelRatio / backingStoreRatio;
-      
-        if (devicePixelRatio !== backingStoreRatio) {
-          // set the 'real' canvas size to the higher width/height
-          canvas.width = width * ratio;
-          canvas.height = height * ratio;
-      
-          // ...then scale it back down with CSS
-          canvas.style.width = width + 'px';
-          canvas.style.height = height + 'px';
-        }
-        else {
-          // this is a normal 1:1 device; just scale it simply
-          canvas.width = width;
-          canvas.height = height;
-          canvas.style.width = '';
-          canvas.style.height = '';
-        }
-      
-        // scale the drawing context so everything will work at the higher ratio
-        context.scale(ratio, ratio);
-      }
 
   }
