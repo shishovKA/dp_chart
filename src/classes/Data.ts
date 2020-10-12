@@ -1,15 +1,21 @@
 import { Series } from "./Series";
+import { Signal } from "signals"
 
 export class Data {
 
     storage: Series[];
+    onSeriesAdded: Signal;
     
     constructor() {
         this.storage = [];
+        this.onSeriesAdded = new Signal();
     }
 
-    addSeries(id: string, seriesData: number[][], plotIds: string[], tooltipsIds?: string[]) {
-        this.storage.push(new Series(id, seriesData, plotIds, tooltipsIds));  
+    addSeries(id: string, ...seriesData: number[][]) {
+        const newSeries = new Series(id, ...seriesData);
+        this.storage.push(newSeries);
+        this.onSeriesAdded.dispatch();
+        return newSeries;
     }
 
     removeSeries(id: string) {

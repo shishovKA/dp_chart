@@ -87,6 +87,13 @@ export class Tooltip {
                 this._options.mainSize = options[3];
             break;
 
+            case 'delta_abs':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.brushColor = options[2];
+                this._options.mainSize = options[3];
+            break;
+
         }
     }
 
@@ -116,6 +123,10 @@ export class Tooltip {
 
             case 'data_y_end': 
                 this.drawDataYEnd(ctx, vp, ttCoord, xyData);
+            break;
+
+            case 'delta_abs': 
+                this.drawDeltaAbs(ctx, vp, ttCoord, xyData);
             break;
             
         }
@@ -227,7 +238,31 @@ export class Tooltip {
         const rectWidth = 45;
         const rectHeight = 22;
 
-        this.roundRect(ctx, labelCenter.x - rectWidth*0.5, labelCenter.y-rectHeight*0.5, rectWidth, rectHeight, cornersRadius)
+        this.roundRect(ctx, labelCoord.x+this.label.offset*0.5, labelCenter.y-rectHeight*0.5, rectWidth, rectHeight, cornersRadius)
+        ctx.fill();
+        ctx.stroke();
+        
+        this.label.draw(ctx, labelCoord, labelText);
+    }
+
+
+    drawDeltaAbs(ctx: CanvasRenderingContext2D, vp:Rectangle, ttCoord: Point, seriesData: Point){
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.fillStyle = this._options.brushColor;
+        ctx.setLineDash(this._options.lineDash);
+
+        const labelCoord = new Point(ttCoord.x, ttCoord.y);
+        const labelText = 'Δ '+(seriesData.y).toFixed(2);
+        const cornersRadius = this._options.mainSize;
+
+        const labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+
+        const labelCenter = new Point(labelCoord.x+this.label.offset+labelRect.width*0.5, labelCoord.y);
+        const rectWidth = 55;
+        const rectHeight = 30;
+
+        this.roundRect(ctx, labelCoord.x+this.label.offset*0.5, labelCenter.y-rectHeight*0.5, rectWidth, rectHeight, cornersRadius)
         ctx.fill();
         ctx.stroke();
         

@@ -9,44 +9,41 @@ export class Series {
     plots: string[];
     changed: Signal;
     
-    constructor(id: string, seriesData: number[][], plotIds: string[], tooltipsIds?: string[]) {
+    constructor(id: string, ...seriesData: number[][]) {
         this.changed = new Signal();
         this.id = id;
         this.seriesData = this.getInitialData(seriesData);
         this.plots = [];
-        this.setPlotsIds(plotIds);
+        return this
     }
 
 
     getInitialData(initialData: number[][]): number[][] {
         let resultData: number[][] = []
-        switch(initialData.length) {
-            case 1:
-                const ind: number[] = [];
-                const val: number[] = [];     
-                initialData[0].forEach((element, index) => {
-                    ind.push(index);
-                    val.push(element);
-                });
-                resultData = [ind, val];
-            break;
+        
+        initialData.forEach((dataRow) => {
+            const ind: number[] = [];
+            const val: number[] = [];
+            dataRow.forEach((element, index) => {
+                ind.push(index);
+                val.push(element);
+            });
+            resultData.push(ind);
+            resultData.push(val);
+        })
 
-            case 2:
-                resultData = initialData;
-            break;
-        }
         return resultData;
     }
 
 
-    setPlotsIds(plotIds: string[] ) {
+    setPlotsIds(...plotIds: string[]) {
         this.plots = plotIds;       
     }
 
 
     findExtremes(data?:number[][]): number[] {
 
-        let seriesData:number[][] = [[],[]];
+        let seriesData:number[][] = [];
 
         if (data) seriesData = data;
         if (!data) seriesData = this.seriesData;
@@ -55,13 +52,22 @@ export class Series {
         let xMax: number = seriesData[0][0];
         let yMin: number = seriesData[1][0];
         let yMax: number = seriesData[1][0];
-    
-        for (let ind = 0; ind < seriesData[0].length; ind++ ) {
-            if (seriesData[0][ind] < xMin) xMin = seriesData[0][ind];
-            if (seriesData[0][ind] > xMax) xMax = seriesData[0][ind];
-            if (seriesData[1][ind] < yMin) yMin = seriesData[1][ind];
-            if (seriesData[1][ind] > yMax) yMax = seriesData[1][ind];
-        }
+
+        seriesData.forEach((dataRow, ind) => {
+            dataRow.forEach((element) => {
+                switch (ind % 2) {
+                    case 0:
+                        if (element < xMin) xMin = element;
+                        if (element > xMax) xMax = element;
+                    break;
+
+                    case 1:
+                        if (element < yMin) yMin = element;
+                        if (element > yMax) yMax = element;
+                    break;
+                }
+            })
+        })
         
         return [xMin,xMax,yMin,yMax];
     }

@@ -74,13 +74,51 @@ export class Plot {
         let kx: number = plotArea.width / Math.abs(extremes[1] - extremes[0]);
         let ky: number = plotArea.height / Math.abs(extremes[3] - extremes[2]);
 
+        if (!ky) ky = 1;
+        if (!kx) kx = 1;
+
         let plotData: Point[] = [];
 
-        for (let i = 0; i < series.seriesData[0].length; i++ ) {
-           const x: number = (series.seriesData[0][i]-extremes[0])*kx + plotArea.x1;
-           const y: number = plotArea.zeroY - (series.seriesData[1][i]-extremes[2])*ky;
-           plotData.push(new Point(x,y));
+        switch (this.type) {
+            case 'dotted': 
+                for (let i = 0; i < series.seriesData.length; i=i+2 ) {
+                    series.seriesData[i].forEach((element, ind) => {
+                        const x: number = (series.seriesData[i][ind]-extremes[0])*kx + plotArea.x1;
+                        const y: number = plotArea.zeroY - (series.seriesData[i+1][ind]-extremes[2])*ky;
+                        plotData.push(new Point(x,y));
+                    });
+                }
+            break;
+
+            case 'line': 
+                for (let i = 0; i < series.seriesData.length; i=i+2 ) {
+                    series.seriesData[i].forEach((element, ind) => {
+                        const x: number = (series.seriesData[i][ind]-extremes[0])*kx + plotArea.x1;
+                        const y: number = plotArea.zeroY - (series.seriesData[i+1][ind]-extremes[2])*ky;
+                        plotData.push(new Point(x,y));
+                    });
+                }
+            break;
+
+            case 'area': 
+                for (let i = 0; i < series.seriesData.length; i=i+2 ) {
+                    let dataRowInd = series.seriesData[i];
+                    let dataRowVal = series.seriesData[i+1];
+                    if (i == 2) {   
+                        dataRowInd = dataRowInd.slice().reverse();
+                        dataRowVal = dataRowVal.slice().reverse();
+                    }
+                    series.seriesData[i].forEach((element, ind) => {
+                        const x: number = (dataRowInd[ind]-extremes[0])*kx + plotArea.x1;
+                        const y: number = plotArea.zeroY - (dataRowVal[ind]-extremes[2])*ky;
+                        plotData.push(new Point(x,y));
+                    });
+                }
+            break;
         }
+
+
+
         this.plotData = plotData;
         return this;
     }
@@ -122,6 +160,7 @@ export class Plot {
     drawLine(ctx: CanvasRenderingContext2D) {        
 
         ctx.beginPath();
+        ctx.setLineDash([]);
         ctx.moveTo(this.plotData[0].x, this.plotData[0].y);
 
         for (let i = 1; i < this.plotData.length; i++ ) {
@@ -134,14 +173,14 @@ export class Plot {
     drawArea(vp:Rectangle, ctx: CanvasRenderingContext2D) {
 
         ctx.beginPath();
-        ctx.moveTo(this.plotData[0].x, vp.zeroY);
+        //ctx.moveTo(this.plotData[0].x, vp.zeroY);
         ctx.lineTo(this.plotData[0].x, this.plotData[0].y);
         
         for (let i = 1; i < this.plotData.length; i++ ) {
             ctx.lineTo(this.plotData[i].x, this.plotData[i].y) 
         }
 
-        ctx.lineTo(this.plotData[this.plotData.length-1].x, vp.zeroY);
+        //ctx.lineTo(this.plotData[this.plotData.length-1].x, vp.zeroY);
         
         ctx.closePath();
         ctx.fill();
@@ -163,11 +202,5 @@ export class Plot {
         return null;
     }
 
-
-    tooltipsDraw(ctx: CanvasRenderingContext2D, vp:Rectangle,  ttCoord: Point, pointData: Point) {
-        this.tooltips.forEach((tooltip) => {
-            if (tooltip) tooltip.drawTooltip(ctx, vp, ttCoord, pointData);   
-            })
-    }
 
   }

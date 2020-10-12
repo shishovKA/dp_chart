@@ -251,7 +251,44 @@ export class Ticks {
             }
 
             curValue = curValue + this.step;
-        } 
+        }
+
+        curValue = startValue;
+        curValue = curValue - this.step;
+
+        while (curValue > min) {
+            if ((curValue >= min) && (curValue <= max)) { 
+                
+
+                let pointXY: number[] = [];
+                let value = curValue;
+
+                if (this.hasCustomLabels) {
+                    value = Math.round(curValue);
+                    this.labels.push(this.customLabels[value]);
+                } else {
+                        this.labels.push(value.toFixed(2).toString());
+                    }
+
+                switch (this.type) {
+                    case 'vertical':
+                        pointXY = [0,value];
+                    break;
+        
+                    case 'horizontal':
+                        pointXY = [value, 0];
+                    break;
+                }
+
+
+                const valuePoint = new Point(pointXY[0], pointXY[1]);
+                const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+                this.coords.push(coordPoint);
+                this.values.push(value);    
+            }
+
+            curValue = curValue - this.step;
+        }
 
         return this;
     }

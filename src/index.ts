@@ -8,6 +8,10 @@ import {cbh1} from "./data/cbh1"
 import {cbh5} from "./data/cbh5"
 import {xLabels} from "./data/xLabels"
 
+const zeroSeries = cbh1.map(() => {
+  return 0;
+})
+
 // импорт элементов управления графиком
 import {Panel} from "./control/Panel"
 import {Btn} from "./control/Btn"
@@ -44,31 +48,44 @@ chart.addPlot('red_area', 'area', 0.5, '#FFE5E5', '#FFE5E5', 0.5);
 chart.addPlot('blue_line', 'line', 1, '#0070FF', '#0070FF', 1);
 chart.addPlot('blue_area', 'area', 0.5, '#D9EAFF', '#D9EAFF', 0.5);
 
+chart.addPlot('black_line', 'line', 1, '#000000', '#000000', 1);
+
 // создаем Tooltip
+
   // lines
-chart.findPlotById('red_line')?.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
-chart.findPlotById('red_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
-chart.findPlotById('blue_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+  chart.findPlotById('blue_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
 
   // circles
-chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
-chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
+  chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
+  chart.findPlotById('black_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', 'black', 4);
 
-chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
-chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
+  chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
 
   // labels
-chart.findPlotById('red_line')?.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 11, ['11', '"Transcript Pro"']);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 11, ['11', '"Transcript Pro"']);
 
   // data
-chart.findPlotById('red_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
-chart.findPlotById('blue_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
+  chart.findPlotById('blue_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
+
+  // delta
+  chart.findPlotById('red_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['11', '"Transcript Pro"']);
+  chart.findPlotById('blue_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['11', '"Transcript Pro"']);
 
 // создаем Series
-chart.addSeries('cyberHedge5', [cbh5], ['blue_area']);
-chart.addSeries('cyberHedge1', [cbh1], ['red_area']);
-chart.addSeries('cyberHedge5', [cbh5], ['blue_line']);
-chart.addSeries('cyberHedge1', [cbh1], ['red_line']);
+chart.data.addSeries('cyberHedge5_area', cbh5, zeroSeries).setPlotsIds('blue_area');
+chart.data.addSeries('cyberHedge1_area', cbh1, zeroSeries).setPlotsIds('red_area');
+chart.data.addSeries('cyberHedge5_line', cbh5).setPlotsIds('blue_line');
+chart.data.addSeries('cyberHedge1_line', cbh1).setPlotsIds('red_line');
+
+chart.data.addSeries('zero_line', zeroSeries).setPlotsIds('black_line');
+
+
+
 
 // настраиваем оси
 chart.xAxis.setMinMax(chart.data.findExtremes('val'));
@@ -78,9 +95,7 @@ chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxi
 //drawRect(chart.canvas.viewport, '#d40da5');
 //элементы управления
 
-
 const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
-
 
 /*
 const panel = new Panel(document.querySelector('.panel'), 'X axis (0 - 974)', 3,'Min', 0, 'Max', 900, 'duration', 1000);

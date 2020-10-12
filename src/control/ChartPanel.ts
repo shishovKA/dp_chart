@@ -138,7 +138,7 @@ export class ChartPanel {
         minY_input.classList.add("panel__input");
         minY_input.type = "range";
         minY_input.name = 'minY_input';
-        minY_input.min = 0;
+        minY_input.min = -this.chart.data.findExtremes('ind')[1].toFixed();
         minY_input.max = this.chart.data.findExtremes('ind')[1].toFixed();
         minY_input.value = this.chart.data.findExtremes('ind')[0].toFixed();
         minY_input.step = "1";
