@@ -50,7 +50,7 @@ chart.addPlot('blue_area', 'area', 0.5, '#D9EAFF', '#D9EAFF', 0.5);
 
 chart.addPlot('black_line', 'line', 1, '#000000', '#000000', 1);
 
-// создаем Tooltip
+// создаем Tooltipы
 
   // lines
   chart.findPlotById('red_line')?.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
@@ -76,6 +76,7 @@ chart.addPlot('black_line', 'line', 1, '#000000', '#000000', 1);
   chart.findPlotById('red_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['11', '"Transcript Pro"']);
   chart.findPlotById('blue_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['11', '"Transcript Pro"']);
 
+
 // создаем Series
 chart.data.addSeries('cyberHedge5_area', cbh5, zeroSeries).setPlotsIds('blue_area');
 chart.data.addSeries('cyberHedge1_area', cbh1, zeroSeries).setPlotsIds('red_area');
@@ -85,16 +86,12 @@ chart.data.addSeries('cyberHedge1_line', cbh1).setPlotsIds('red_line');
 chart.data.addSeries('zero_line', zeroSeries).setPlotsIds('black_line');
 
 
-
-
-// настраиваем оси
+// настраиваем Min Max осей
 chart.xAxis.setMinMax(chart.data.findExtremes('val'));
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
 
 
-//drawRect(chart.canvas.viewport, '#d40da5');
 //элементы управления
-
 const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
 
 /*
