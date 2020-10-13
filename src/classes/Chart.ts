@@ -7,7 +7,7 @@ import { Rectangle } from "./Rectangle";
 import { Point } from "./Point";
 
 export class Chart {
-    
+
     canvas: Canvas;
     canvasA: Canvas;
     canvasTT: Canvas;
@@ -17,7 +17,7 @@ export class Chart {
     yAxis: Axis;
 
     constructor(container: HTMLElement | null, xMinMax: number[], yMinMax: number[]) {
-        
+
         this.canvas = new Canvas(container);
         this.canvasA = new Canvas(container);
         this.canvasTT = new Canvas(container);
@@ -33,6 +33,7 @@ export class Chart {
         this.bindChildSignals();
 
         this.canvasTT.mouseMoved.add(this.tooltipsDraw);
+        
         window.addEventListener('resize', () => { this.reSize() });
 
         this.reSize();
@@ -69,12 +70,12 @@ export class Chart {
     }
 
     reDraw() {
-        this.canvas.clipCanvas(); 
+        this.canvas.clipCanvas();
         this.canvas.clear();
         this.canvasA.clear();
         this.plotsDraw();
         this.axisDraw();
-        
+
     }
 
     axisDraw() {
@@ -91,10 +92,10 @@ export class Chart {
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
-                        plot.convertSeriesToCoord(series, plotRect).drawPlot(this.canvas.viewport, this.canvas.ctx);
-                    };   
-                })
+                    plot.convertSeriesToCoord(series, plotRect).drawPlot(this.canvas.viewport, this.canvas.ctx);
+                };
             })
+        })
     }
 
 
@@ -102,7 +103,7 @@ export class Chart {
         this.canvasTT.clear();
 
         const mouseXY = this.canvasTT.mouseCoords;
-    
+
         const transformer = new Transformer();
 
         let delta_abs_buf: Point[] = [];
@@ -112,71 +113,89 @@ export class Chart {
 
         this.data.storage.forEach((series) => {
 
-            const seriesX = this.xAxis.min + mouseXY.x*(this.xAxis.length)/this.canvasTT.viewport.width;
+            const seriesX = this.xAxis.min + mouseXY.x * (this.xAxis.length) / this.canvasTT.viewport.width;
             const pointData = series.getClosestPoint(seriesX);
-            
+
             const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
-            
+
+            // ограничиваем координаты тултипов по границе viewport
             if (tooltipCoord.y < this.canvasTT.viewport.y1) {
                 tooltipCoord.y = this.canvasTT.viewport.y1
             }
-  
+
+            if (tooltipCoord.y > this.canvasTT.viewport.y2) {
+                tooltipCoord.y = this.canvasTT.viewport.y2
+            }
+
+            if (tooltipCoord.x < this.canvasTT.viewport.x1) {
+                tooltipCoord.x = this.canvasTT.viewport.x1
+            }
+
+            if (tooltipCoord.x > this.canvasTT.viewport.x2) {
+                tooltipCoord.x = this.canvasTT.viewport.x2
+            }
+
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
-                        plot.tooltips.forEach((tooltip) => {
+                    plot.tooltips.forEach((tooltip) => {
 
-                                    switch (tooltip.type) {
+                        switch (tooltip.type) {
 
-                                        case 'delta_abs':
-                                            if (delta_abs_buf.length == 0) { 
-                                                delta_abs_buf.push(pointData);
-                                                delta_abs_buf_coord.push(tooltipCoord);
-                                            } else {
-                                                const ttCoord: Point = (delta_abs_buf_coord[0].y < tooltipCoord.y) ? delta_abs_buf_coord[0] : tooltipCoord;
-                                                const absData = new Point(Math.abs(pointData.x-delta_abs_buf[0].x), Math.abs(pointData.y-delta_abs_buf[0].y));
-                                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttCoord, absData);
-                                                delta_abs_buf.pop();
-                                                delta_abs_buf_coord.pop(); 
-                                            }
-                                        break;
+                            case 'delta_abs':
+                                if (delta_abs_buf.length == 0) {
+                                    delta_abs_buf.push(pointData);
+                                    delta_abs_buf_coord.push(tooltipCoord);
+                                } else {
+                                    const ttCoord: Point = (delta_abs_buf_coord[0].y < tooltipCoord.y) ? delta_abs_buf_coord[0] : tooltipCoord;
+                                    const absData = new Point(Math.abs(pointData.x - delta_abs_buf[0].x), Math.abs(pointData.y - delta_abs_buf[0].y));
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttCoord, absData);
+                                    delta_abs_buf.pop();
+                                    delta_abs_buf_coord.pop();
+                                }
+                                break;
 
-                                        case 'data_y_end':
-                                            data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
-                                        break;
+                            case 'data_y_end':
+                                data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
+                                break;
 
-                                        default:
-                                            tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
-                                        break;
+                            default:
+                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                break;
 
-                                    }  
-                                   
-                            })
-                    };   
-                })
+                        }
+
+                    })
+                };
             })
+        })
 
         // рассталкиваем друг от друга боковые тултипы
         data_y_end_buf.sort((a, b) => a[1].y - b[1].y);
-        
-        for (let i = 0; i<data_y_end_buf.length-1; i++) {
-            const rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], false);
-            const rect2 = data_y_end_buf[i+1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i+1][1], data_y_end_buf[i+1][2], false);
-            
-            if (rect1.y2 > rect2.y1) {
-                
-                const abs = Math.abs(rect1.y2 - rect2.y1);
-                
-                let abs1 = abs*0.5;
-                let abs2 = abs*0.5;
 
-                if (Math.abs(rect1.y1 - this.canvasTT.viewport.y1) < abs1) {
-                    abs1 = Math.abs(rect1.y1 - this.canvasTT.viewport.y1);
-                    abs2 = (abs-abs1);
+        for (let i = 0; i < data_y_end_buf.length - 1; i++) {
+            const rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], false);
+            const rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], false);
+
+            if (rect1.y2 > rect2.y1) {
+
+                const abs = Math.abs(rect1.y2 - rect2.y1);
+
+                let abs1 = -abs * 0.5;
+                let abs2 = abs * 0.5;
+
+                if (Math.abs(rect1.y1 - this.canvasTT.viewport.y1) < Math.abs(abs1)) {
+                    abs1 = -Math.abs(rect1.y1 - this.canvasTT.viewport.y1);
+                    abs2 = (abs + abs1);
                 }
-                
-                data_y_end_buf[i][1].y = data_y_end_buf[i][1].y - abs1;
-                data_y_end_buf[i+1][1].y = data_y_end_buf[i+1][1].y + abs2;
+
+                if (Math.abs(rect2.y2 - this.canvasTT.viewport.y2) < abs2) {
+                    abs2 = -Math.abs(rect1.y2 - this.canvasTT.viewport.y2);
+                    abs1 = -(abs - abs2);
+                }
+
+                data_y_end_buf[i][1].y = data_y_end_buf[i][1].y + abs1;
+                data_y_end_buf[i + 1][1].y = data_y_end_buf[i + 1][1].y + abs2;
             }
         }
 
@@ -198,7 +217,7 @@ export class Chart {
     }
 
 
-    findPlotById(id: string):Plot | null {
+    findPlotById(id: string): Plot | null {
         const plots: Plot[] = this.plots.filter((plot) => {
             return plot.id === id
         });

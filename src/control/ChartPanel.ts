@@ -178,7 +178,7 @@ export class ChartPanel {
         maxY_input.type = "range";
         maxY_input.name = 'maxY_input';
         maxY_input.min = 0;
-        maxY_input.max = this.chart.data.findExtremes('ind')[1].toFixed();
+        maxY_input.max = (1.25*this.chart.data.findExtremes('ind')[1]).toFixed();
         maxY_input.value = this.chart.data.findExtremes('ind')[1].toFixed();
         maxY_input.step = "1";
 

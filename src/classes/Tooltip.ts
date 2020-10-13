@@ -248,6 +248,12 @@ export class Tooltip {
             roundRect.move(0,  vp.y1 - roundRect.y1); 
         }
 
+        if (roundRect.y2 > vp.y2) {
+            labelCoord.y = labelCoord.y - (roundRect.y2 - vp.y2);
+            ttCoord.y = labelCoord.y;
+            roundRect.move(0,  -roundRect.y2 + vp.y2); 
+        }
+
         this.roundRect(ctx, roundRect.x1, roundRect.y1, roundRect.width, roundRect.height, cornersRadius);
 
         if (toDraw) {

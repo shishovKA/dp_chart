@@ -48,8 +48,17 @@ export class Canvas {
 
         this.canvas.addEventListener('mousemove', (event) => {
             this.mouseCoords = this.getMouseCoords(event);
-            this.mouseMoved.dispatch();
+            console.log(this.mouseCoords);
+            if (this.inDrawArea) this.mouseMoved.dispatch();
           });
+    }
+
+    get inDrawArea(): boolean {
+        if (this.mouseCoords.x < 0) return false;
+        if (this.mouseCoords.x > this.viewport.width) return false;
+        if (this.mouseCoords.y < 0) return false;
+        if (this.mouseCoords.y > this.viewport.height) return false;
+        return true;
     }
 
     setPaddings(...paddings: number[]) {
