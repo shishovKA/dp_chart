@@ -50,4 +50,11 @@ export class Rectangle {
         
     }
 
+    move(dx: number, dy: number) {
+        this.x1 = this.x1 + dx;
+        this.y1 = this.y1 + dy;
+        this.x2 = this.x2 + dx;
+        this.y2 = this.y2 + dy;
+    }
+
 }

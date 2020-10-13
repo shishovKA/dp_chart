@@ -71,12 +71,34 @@ export class Label {
         }
         
         ctx.fillText(labeltext, labelCoord.x, labelCoord.y);
+
     }
 
     getlabelRect(ctx: CanvasRenderingContext2D, coord:Point, labeltext:string): Rectangle {
         ctx.font = this.font;
         const text = ctx.measureText(labeltext);
-        return new Rectangle(coord.x - text.width*0.5, coord.y+this.offset, coord.x+text.width*0.5, coord.y+this.offset+this.fontSize);
+
+        const labelCoord = new Point (coord.x - text.width*0.5 ,coord.y);
+
+        switch (this.position) {
+            case 'top':
+                labelCoord.y = labelCoord.y - this.offset - this.fontSize*0.5;
+            break;
+
+            case 'bottom':
+                labelCoord.y = labelCoord.y + this.offset + this.fontSize*0.5;
+            break;
+
+            case 'left':
+                labelCoord.x = labelCoord.x - text.width*0.5 - this.offset;
+            break;
+
+            case 'right':
+                labelCoord.x = labelCoord.x + text.width*0.5 + this.offset;
+            break;
+        }
+
+        return new Rectangle(labelCoord.x, labelCoord.y-this.fontSize*0.5, labelCoord.x+text.width, labelCoord.y+this.fontSize*0.5);
     }
 
 

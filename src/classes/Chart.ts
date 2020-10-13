@@ -125,10 +125,13 @@ export class Chart {
                                         case 'delta_abs':
                                             if (delta_abs_buf.length == 0) { 
                                                 delta_abs_buf.push(pointData);
+                                                delta_abs_buf_coord.push(tooltipCoord);
                                             } else {
+                                                const ttCoord: Point = (delta_abs_buf_coord[0].y < tooltipCoord.y) ? delta_abs_buf_coord[0] : tooltipCoord;
                                                 const absData = new Point(Math.abs(pointData.x-delta_abs_buf[0].x), Math.abs(pointData.y-delta_abs_buf[0].y));
-                                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, tooltipCoord, absData);
-                                                delta_abs_buf.pop();    
+                                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttCoord, absData);
+                                                delta_abs_buf.pop();
+                                                delta_abs_buf_coord.pop(); 
                                             }
                                         break;
 
