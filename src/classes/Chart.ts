@@ -30,13 +30,14 @@ export class Chart {
 
         this.reDraw = this.reDraw.bind(this);
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
-        this.bindChildSignals();
+        
 
-        this.canvasTT.mouseMoved.add(this.tooltipsDraw);
         
         window.addEventListener('resize', () => { this.reSize() });
 
         this.reSize();
+
+        this.bindChildSignals();
     }
 
     bindChildSignals() {
@@ -56,6 +57,9 @@ export class Chart {
         // canvas
         this.canvas.changed.add(this.reDraw);
         this.canvasA.changed.add(this.reDraw);
+
+        this.canvasTT.mouseMoved.add(this.tooltipsDraw);
+        this.canvasTT.mouseOuted.add(this.canvasTT.clear);
     }
 
     get axisRect(): Rectangle {

@@ -18,10 +18,12 @@ export class Canvas {
     mouseCoords: Point;
     changed: Signal;
     mouseMoved: Signal;
+    mouseOuted: Signal;
 
     constructor(container: HTMLElement, ...paddings: number[]) {
         this.changed = new Signal();
         this.mouseMoved = new Signal();
+        this.mouseOuted = new Signal();
 
         this.container = container;
         this.canvas = document.createElement('canvas');
@@ -36,7 +38,7 @@ export class Canvas {
         this._ctx = this.canvas.getContext('2d');
         
         //canvasDpiScaler(this.canvas, this._ctx);
-
+        this.clear = this.clear.bind(this);
         this.resize();
         
 
@@ -48,8 +50,13 @@ export class Canvas {
 
         this.canvas.addEventListener('mousemove', (event) => {
             this.mouseCoords = this.getMouseCoords(event);
-            console.log(this.mouseCoords);
-            if (this.inDrawArea) this.mouseMoved.dispatch();
+            if (this.inDrawArea) {
+                this.mouseMoved.dispatch();
+            } else {
+                this.mouseOuted.dispatch();
+                // this.clear();
+            }
+
           });
     }
 
@@ -141,7 +148,7 @@ export class Canvas {
         const rect = this.viewport;
         let squarePath = new Path2D();
         squarePath.rect( rect.x1, rect.y1, rect.width, rect.height );
-        this.ctx.clip(squarePath);
+        this._ctx.clip(squarePath);
     }
 
   }

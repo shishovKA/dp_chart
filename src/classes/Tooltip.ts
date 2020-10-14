@@ -174,25 +174,56 @@ export class Tooltip {
         ctx.fillStyle = this._options.brushColor;
         ctx.setLineDash(this._options.lineDash);
 
-        const labelCoord = new Point(ttCoord.x, vp.zeroY);
+        // параметры
+        const rectPadding = 4;
+        const rectWidth = 50;
         const labelText = (this.labels[seriesData.x]).toString();
         const cornersRadius = this._options.mainSize;
 
+        const labelCoord = new Point(ttCoord.x, vp.zeroY);
         const labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
 
-        const labelCenter = new Point(labelCoord.x, labelCoord.y + this.label.offset*0.5 - this.label.fontSize);
-        const rectWidth = 50;
-        const rectHeight = 22;
 
-        this.roundRect(ctx, labelCenter.x - rectWidth*0.5, labelCenter.y+rectHeight*0.5, rectWidth, rectHeight, cornersRadius)
+        const labelCenter = new Point(labelCoord.x, labelRect.y1 + labelRect.height*0.5);
+        
+        let roundRect: Rectangle = new Rectangle(
+                labelCenter.x-rectWidth*0.5, 
+                labelCenter.y-rectPadding-labelRect.height*0.5, 
+                labelCenter.x+rectWidth*0.5, 
+                labelCenter.y+rectPadding+labelRect.height*0.5 
+            );
+
+        
+        if (roundRect.x1 < vp.x1) {
+            labelCoord.x = labelCoord.x + vp.x1 - roundRect.x1;
+            roundRect.move(0,  vp.x1 - roundRect.x1); 
+        }
+
+        if (roundRect.x2 > vp.x2) {
+            labelCoord.x = labelCoord.x - (roundRect.x2 - vp.x2);
+            roundRect.move(0,  -roundRect.x2 + vp.x2); 
+        }
+
+        const labelCenter = new Point(labelCoord.x, labelRect.y1 + labelRect.height*0.5);
+        
+        let roundRect: Rectangle = new Rectangle(
+                labelCenter.x-rectWidth*0.5, 
+                labelCenter.y-rectPadding-labelRect.height*0.5, 
+                labelCenter.x+rectWidth*0.5, 
+                labelCenter.y+rectPadding+labelRect.height*0.5 
+            );
+        
+
+        this.roundRect(ctx, roundRect.x1, roundRect.y1, roundRect.width, roundRect.height, cornersRadius);
+
         ctx.fill();
         ctx.stroke();
-        
         this.label.draw(ctx, labelCoord, labelText);
+        
+        return roundRect
     }
 
     roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
-
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
         ctx.lineTo(x + width - radius, y);
