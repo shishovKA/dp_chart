@@ -1,7 +1,8 @@
-
 // импорт стилей
 import "./styles/normalize.css";
 import "./styles/style.css";
+import "./styles/fonts.css";
+
 
 // импорт данных
 import {cbh1} from "./data/cbh1"
@@ -20,15 +21,12 @@ import {ChartPanel} from "./control/ChartPanel"
 // импорт ключевого класса Chart
 import {Chart} from "./classes/Chart"
 
+
 // работа с Chart
 const chart = new Chart(document.querySelector('.chart__container'), [0, 900], [0, 2000]);
 chart.setCanvasPaddings(50, 80, 50, 80); // задаем отступы для области отрисовки
 
-//настраиваем параметры осей
-chart.yAxis.ticks.setOptions('fixedStep', 50);
-chart.xAxis.ticks.setCustomLabels(xLabels);
-chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year'], 2);
-chart.xAxis.display = true;
+
 
 // ось X
 chart.xAxis.setOptions(2, '#7F7F7F');
@@ -86,9 +84,17 @@ chart.data.addSeries('cyberHedge1_line', cbh1).setPlotsIds('red_line');
 chart.data.addSeries('zero_line', zeroSeries).setPlotsIds('black_line');
 
 
+
+
 // настраиваем Min Max осей
 chart.xAxis.setMinMax(chart.data.findExtremes('val'));
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
+
+//настраиваем параметры осей
+chart.yAxis.ticks.setOptions('fixedStep', 50);
+chart.xAxis.ticks.setCustomLabels(xLabels);
+chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+chart.xAxis.display = true;
 
 
 //элементы управления

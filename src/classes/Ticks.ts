@@ -102,7 +102,7 @@ export class Ticks {
 
             case 'customDateTicks':
                 this.distributionType = distributionType;
-                if (options.length !== 0) this.customTicksOptions = options;
+                if (options.length !== 0) this.customTicksOptions = options[0];
             break;
         }
         this.onOptionsSetted.dispatch();
@@ -127,10 +127,6 @@ export class Ticks {
             break;
 
             case 'customDateTicks':
-                if (this.animationOn) {
-                    return this
-                } 
-
                 this.generateCustomDateTicks(min, max, vp, ctx);
                 return this
             break;
@@ -296,7 +292,7 @@ export class Ticks {
 
     generateCustomDateTicks(min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
 
-        for (let j = 0; j < this.customTicksOptions[0].length; j++) {
+        for (let j = 0; j < this.customTicksOptions.length; j++) {
 
             const ticksArr = this.generateCustomDateTicksByOption(j, min, max, vp, ctx);
 
@@ -306,8 +302,6 @@ export class Ticks {
 
 
             if (this.checkLabelsOverlap(ctx, coords, labels)) {
-
-                this.animationOn = true;
 
                 const from = this.makeFromPointArr(this.coords, coords);
 
@@ -321,7 +315,8 @@ export class Ticks {
                     this.coords = coords;
                     return this;
                 }
-                
+
+                this.animationOn = true;
 
                 this.tickCoordAnimation(from, coords, 300);
                 
@@ -338,13 +333,14 @@ export class Ticks {
     tickCoordAnimation(from: Point[], to: Point[], duration: number) {
 
         let start = performance.now();
+        this.animationOn = true;
         
         const animate = (time) => {
             
             let timeFraction = (time - start) / duration;
             if (timeFraction > 1) timeFraction = 1;
 
-            const tek = this.coords.map((el,i)=> {
+            const tek = from.map((el,i)=> {
                 return new Point(from[i].x + (to[i].x - from[i].x)*timeFraction, from[i].y + (to[i].y - from[i].y)*timeFraction);
             });
 
@@ -362,8 +358,6 @@ export class Ticks {
 
         requestAnimationFrame(animate);
 
-
-        
     }
 
 
@@ -420,7 +414,7 @@ export class Ticks {
         let labels = [];
 
         let yearDel = 1;
-        const partYear = this.customTicksOptions[0][j];
+        const partYear = this.customTicksOptions[j];
         switch (partYear) {
             case 'half year':
                 yearDel = 2;
@@ -461,7 +455,7 @@ export class Ticks {
                 labels.push(curDate.getFullYear());
             } else {
                         //начала месяцев
-                    if ( (this.customTicksOptions[0][j] !== partYear) || (!(curDate.getMonth() % yearDel)) ) {
+                    if ( (this.customTicksOptions[j] !== partYear) || (!(curDate.getMonth() % yearDel)) ) {
                             if ((curDate.getMonth() - preDate.getMonth()) !== 0) {
 
                                 switch (this.type) {
@@ -484,10 +478,10 @@ export class Ticks {
                     }
             
             //середины месяцев
-            if (this.customTicksOptions[0][j] == 'half month') { 
+            if (this.customTicksOptions[j] == 'half month') { 
                 if ((curDate.getDay() !== 0) && (curDate.getDay() !== 6)) {
                     if ((curDate.getDate() == 14 || curDate.getDate() == 15 || curDate.getDate() == 16) && 
-                        (curDate.getDay() == 1 || curDate.getDay() == 5)) {
+                        (curDate.getDay() == 1 || curDate.getDay() == 4)) {
                         switch (this.type) {
                             case 'vertical':
                                 pointXY = [0, i];

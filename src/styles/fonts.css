@@ -1,0 +1,25 @@
+@font-face {
+    font-family: 'Transcript Pro';
+    src: url('../fonts/TranscriptPro-Medium.woff2') format('woff2'),
+        url('../fonts/TranscriptPro-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Transcript Pro';
+    src: url('../fonts/TranscriptPro-Regular.woff2') format('woff2'),
+        url('../fonts/TranscriptPro-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Transcript Pro';
+    src: url('../fonts/TranscriptPro-Light.woff2') format('woff2'),
+        url('../fonts/TranscriptPro-Light.woff') format('woff');
+    font-weight: 200;
+    font-style: normal;
+}

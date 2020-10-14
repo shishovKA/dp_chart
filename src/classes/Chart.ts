@@ -45,14 +45,39 @@ export class Chart {
         this.data.onSeriesAdded.add(this.reDraw);
 
         // axis
-        this.xAxis.onOptionsSetted.add(this.reDraw);
-        this.xAxis.onMinMaxSetted.add(this.reDraw);
-        this.xAxis.onCustomLabelsAdded.add(this.reDraw);
+        this.xAxis.onOptionsSetted.add(() => {
+            this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.reDraw();
+        });
+
+        this.xAxis.onMinMaxSetted.add(() => {
+            this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.reDraw();
+        });
+        this.xAxis.onCustomLabelsAdded.add(() => {
+            this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.reDraw();
+        });
+
         this.xAxis.onAnimated.add(this.reDraw);
 
-        this.yAxis.onOptionsSetted.add(this.reDraw);
-        this.yAxis.onMinMaxSetted.add(this.reDraw);
-        this.yAxis.onCustomLabelsAdded.add(this.reDraw);
+
+        this.yAxis.onOptionsSetted.add(() => {
+            this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.reDraw();
+        });
+
+        this.yAxis.onMinMaxSetted.add(() => {
+            this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.reDraw();
+        });
+
+        this.yAxis.onCustomLabelsAdded.add(() => {
+            this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.reDraw();
+        });
+
+        this.yAxis.onAnimated.add(this.reDraw);
 
         // canvas
         this.canvas.changed.add(this.reDraw);
@@ -70,6 +95,7 @@ export class Chart {
         this.canvas.resize();
         this.canvasA.resize();
         this.canvasTT.resize();
+        this.ticksCreate();
         this.reDraw();
     }
 
@@ -79,7 +105,11 @@ export class Chart {
         this.canvasA.clear();
         this.plotsDraw();
         this.axisDraw();
+    }
 
+    ticksCreate() {
+        this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+        this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx); 
     }
 
     axisDraw() {

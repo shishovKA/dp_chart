@@ -65,6 +65,7 @@ export class Axis {
         this.ticks.onAnimated.add(() => {
             this.onAnimated.dispatch();
         });
+
     }
 
     get length():number {
@@ -129,7 +130,7 @@ export class Axis {
     draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
         const axisVp = this.getaxisViewport(viewport);
         if (this.display) this.drawAxis(ctx, axisVp);
-        this.ticks.createTicks(this.min, this.max, axisVp, ctx).draw(ctx, viewport);
+        this.ticks.draw(ctx, viewport);
     }
 
     getaxisViewport(vp: Rectangle): Rectangle {
