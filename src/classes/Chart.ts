@@ -32,12 +32,18 @@ export class Chart {
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
         
 
-        
         window.addEventListener('resize', () => { this.reSize() });
 
         this.reSize();
 
         this.bindChildSignals();
+    }
+
+
+    addOnPage() {
+        this.canvas.addOnPage();
+        this.canvasA.addOnPage();
+        this.canvasTT.addOnPage();
     }
 
     bindChildSignals() {

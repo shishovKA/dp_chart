@@ -34,7 +34,7 @@ export class Canvas {
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         
-        this.container.appendChild(this.canvas);
+        //this.container.appendChild(this.canvas);
         this._ctx = this.canvas.getContext('2d');
         
         //canvasDpiScaler(this.canvas, this._ctx);
@@ -58,6 +58,10 @@ export class Canvas {
             }
 
           });
+    }
+
+    addOnPage() {
+        this.container.appendChild(this.canvas);
     }
 
     get inDrawArea(): boolean {
