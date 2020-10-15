@@ -80,7 +80,7 @@ chart.data.addSeries('cyberHedge1_line', cbh1).setPlotsIds('red_line');
 chart.data.addSeries('zero_line', zeroSeries).setPlotsIds('black_line');
 
 // настраиваем Min Max осей
-chart.xAxis.setMinMax(chart.data.findExtremes('val'));
+chart.xAxis.setMinMax(chart.data.findExtremes('val')); //по экстремумам оси X
 chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max));
 
 //настраиваем параметры осей
@@ -93,7 +93,6 @@ chart.xAxis.display = true;
 const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
 
 console.log('before');
-
 
 WebFont.load({
   custom: {

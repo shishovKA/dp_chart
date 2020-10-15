@@ -481,7 +481,7 @@ export class Ticks {
             if (this.customTicksOptions[j] == 'half month') { 
                 if ((curDate.getDay() !== 0) && (curDate.getDay() !== 6)) {
                     if ((curDate.getDate() == 14 || curDate.getDate() == 15 || curDate.getDate() == 16) && 
-                        (curDate.getDay() == 1 || curDate.getDay() == 4)) {
+                        (curDate.getDay() == 1 || curDate.getDay() == 4) || (curDate.getDate() == 14 && curDate.getDay() == 5))  {
                         switch (this.type) {
                             case 'vertical':
                                 pointXY = [0, i];

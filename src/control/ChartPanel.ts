@@ -99,7 +99,7 @@ export class ChartPanel {
         maxX_input.type = "range";
         maxX_input.name = 'maxX_input';
         maxX_input.min = this.chart.data.findExtremes('val')[0].toString();
-        maxX_input.max = this.chart.data.findExtremes('val')[1].toString();
+        maxX_input.max = (this.chart.data.findExtremes('val')[1]).toString();
         maxX_input.value = this.chart.data.findExtremes('val')[1].toString();
         maxX_input.step = "1";
 
