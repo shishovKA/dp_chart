@@ -89,6 +89,9 @@ chart.xAxis.ticks.setCustomLabels(xLabels);
 chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
 chart.xAxis.display = true;
 
+//включаем анимацию у оси X
+//chart.xAxis.ticks.switchAnimation(true, 300);
+
 //элементы управления
 const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
 

@@ -9,6 +9,9 @@ export class ChartPanel {
     xAxisOptions: HTMLElement;
     yAxisOptions: HTMLElement;
 
+    animationOptions: HTMLElement;
+
+
     chart: Chart;
 
     minX_input: HTMLElement;
@@ -40,6 +43,9 @@ export class ChartPanel {
 
         this.yAxisOptions = this._createYAxisOptions();
         this.container.append(this.yAxisOptions);
+
+        this.animationOptions = this._createAnimationPanel();
+        this.container.append(this.animationOptions);
 
         this._setListeners();
 
@@ -512,6 +518,63 @@ export class ChartPanel {
                     this.maxY_input.disabled = this.scaleToFit;
                 }
         })
+
+    }
+
+
+
+    _createAnimationPanel() {
+
+        const fieldset = document.createElement('fieldset');
+    
+
+        const legend = document.createElement('legend');
+        legend.textContent = 'Animation options';
+
+        fieldset.append(legend);
+
+        // X Axis ticks animation
+        let label = document.createElement('label');
+        label.for = 'xTickAnimationSwitch';
+        fieldset.append(label);
+
+        let input = document.createElement('input');
+        input.type = "checkbox";
+        input.id = 'xTickAnimationSwitch';
+        input.name = 'xTickAnimationSwitch';
+        label.append(input);
+
+        let text = document.createTextNode('X axis ticks animation');
+        label.append(text);
+
+        input.addEventListener('change', (event) => {
+            this.chart.xAxis.ticks.switchAnimation(event.target.checked);
+        });
+        // end
+
+        
+        let br = document.createElement('br');
+        fieldset.append(br);
+
+        // Y Axis ticks animation
+        label = document.createElement('label');
+        label.for = 'yTickAnimationSwitch';
+        fieldset.append(label);
+
+        input = document.createElement('input');
+        input.type = "checkbox";
+        input.id = 'yTickAnimationSwitch';
+        input.name = 'yTickAnimationSwitch';
+        label.append(input);
+
+        text = document.createTextNode('Y axis ticks animation');
+        label.append(text);
+
+        input.addEventListener('change', (event) => {
+            this.chart.yAxis.ticks.switchAnimation(event.target.checked);
+        });
+        
+        return fieldset;
 
     }
 

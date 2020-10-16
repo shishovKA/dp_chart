@@ -48,7 +48,10 @@ export class Chart {
 
     bindChildSignals() {
         // data
-        this.data.onSeriesAdded.add(this.reDraw);
+        this.data.onSeriesAdded.add(() => {
+            this.plotsCountCoords();
+            this.reDraw();
+        });
 
         // axis
         this.xAxis.onOptionsSetted.add(() => {
@@ -58,8 +61,10 @@ export class Chart {
 
         this.xAxis.onMinMaxSetted.add(() => {
             this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.plotsCountCoords();
             this.reDraw();
         });
+
         this.xAxis.onCustomLabelsAdded.add(() => {
             this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.reDraw();
@@ -75,6 +80,7 @@ export class Chart {
 
         this.yAxis.onMinMaxSetted.add(() => {
             this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.plotsCountCoords();
             this.reDraw();
         });
 
@@ -123,16 +129,23 @@ export class Chart {
         this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
     }
 
-    plotsDraw() {
+    plotsCountCoords() {
         this.data.storage.forEach((series) => {
-
-            const transformer = new Transformer();
-            const plotRect = transformer.getPlotRect(this.axisRect, series.dataRect, this.canvas.viewport);
-
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
-                    plot.convertSeriesToCoord(series, plotRect).drawPlot(this.canvas.viewport, this.canvas.ctx);
+                    plot.convertSeriesToCoord(series, this.axisRect, this.canvas.viewport);
+                };
+            })
+        })
+    }
+
+    plotsDraw() {
+        this.data.storage.forEach((series) => {
+            series.plots.forEach((plotId) => {
+                const plot: Plot | null = this.findPlotById(plotId);
+                if (plot) {
+                    plot.drawPlot(this.canvas.ctx);
                 };
             })
         })
@@ -253,6 +266,8 @@ export class Chart {
 
     addPlot(id: string, type: string, ...options: any) {
         const plot = new Plot(id, type, ...options);
+
+        plot.onAnimated.add(this.reDraw);
         this.plots.push(plot);
     }
 

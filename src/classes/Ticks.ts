@@ -10,6 +10,8 @@ export class Ticks {
 
     display: boolean = false;
     hasCustomLabels: boolean = false;
+    hasAnimation: boolean = false;
+    animationDuration: number = 300;
 
 
     label: Label;
@@ -27,8 +29,6 @@ export class Ticks {
     customLabels?: string[];
 
     customTicksOptions?: any[];
-
-    animationOn?: boolean = false;
 
     // параметры отрисовки тика
     linewidth: number = 2;
@@ -58,6 +58,11 @@ export class Ticks {
         this.step = 100;
 
         this.bindChildSignals();
+    }
+
+    switchAnimation(hasAnimation: boolean, duration?: number) {
+        this.hasAnimation = hasAnimation;
+        if (duration) this.animationDuration = duration;
     }
 
     bindChildSignals() {
@@ -110,32 +115,47 @@ export class Ticks {
 
 
     createTicks(min: number, max: number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
+        let coords = [];
+
         switch (this.distributionType) {
             case 'default':
-                this.generateFixedCountTicks(min, max, vp);
-                return this
+                coords = this.generateFixedCountTicks(min, max, vp);
             break;
 
             case 'fixedStep':
-                this.generateFixedStepTicks(min, max, vp);
-                return this
+                coords = this.generateFixedStepTicks(min, max, vp);
             break;
 
             case 'fixedCount':
-                this.generateFixedCountTicks(min, max, vp);
-                return this
+                coords = this.generateFixedCountTicks(min, max, vp);
             break;
 
             case 'customDateTicks':
-                this.generateCustomDateTicks(min, max, vp, ctx);
-                return this
+                coords = this.generateCustomDateTicks(min, max, vp, ctx);
             break;
         }
+
+        //если нужна анимация тиков
+        if (this.hasAnimation) {
+            const from = this.makeFromPointArr(this.coords, coords);
+
+            if (from.length == 0) {
+                this.coords = coords;
+                return this;
+            }
+
+            this.coords = from;
+            this.tickCoordAnimation(from, coords, this.animationDuration);
+
+            return this
+        }
+
+        this.coords = coords;
     }
 
 
     generateFixedCountTicks(min:number, max:number, vp: Rectangle) {
-        this.coords = [];
+        let coords = [];
         this.values = [];
         this.labels = [];
         let stepCoord = 0;
@@ -184,17 +204,17 @@ export class Ticks {
 
             const valuePoint = new Point(pointXY[0], pointXY[1]);
             const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
-            this.coords.push(coordPoint);
+            coords.push(coordPoint);
             this.values.push(value);
  
         }
 
-        return this;
+        return coords;
     }
 
     
     generateFixedStepTicks(min:number, max:number, vp: Rectangle) {
-        this.coords = [];
+        let coords = [];
         this.values = [];
         this.labels = [];
         let rectXY: number[] = [];
@@ -242,7 +262,7 @@ export class Ticks {
 
                 const valuePoint = new Point(pointXY[0], pointXY[1]);
                 const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
-                this.coords.push(coordPoint);
+                coords.push(coordPoint);
                 this.values.push(value);    
             }
 
@@ -279,53 +299,39 @@ export class Ticks {
 
                 const valuePoint = new Point(pointXY[0], pointXY[1]);
                 const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
-                this.coords.push(coordPoint);
+                coords.push(coordPoint);
                 this.values.push(value);    
             }
 
             curValue = curValue - this.step;
         }
 
-        return this;
+        return coords;
     }
 
 
     generateCustomDateTicks(min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
+        let coords = [];
 
         for (let j = 0; j < this.customTicksOptions.length; j++) {
 
             const ticksArr = this.generateCustomDateTicksByOption(j, min, max, vp, ctx);
 
-            let coords = ticksArr[0];
+            coords = ticksArr[0];
             let values = ticksArr[1];
             let labels = ticksArr[2];
 
-
             if (this.checkLabelsOverlap(ctx, coords, labels)) {
 
-                const from = this.makeFromPointArr(this.coords, coords);
-
-                this.coords = from;
                 this.values = values;
                 this.labels = labels;
-
-                
-                if (from.length == 0) {
-                    this.animationOn = false;
-                    this.coords = coords;
-                    return this;
-                }
-
-                this.animationOn = true;
-
-                this.tickCoordAnimation(from, coords, 300);
-                
-                return this;
+ 
+                return coords;
             }
 
         }
 
-        return this;
+        return coords;
     }
 
 
@@ -333,7 +339,6 @@ export class Ticks {
     tickCoordAnimation(from: Point[], to: Point[], duration: number) {
 
         let start = performance.now();
-        this.animationOn = true;
         
         const animate = (time) => {
             
@@ -351,7 +356,7 @@ export class Ticks {
             if (timeFraction < 1) {
                 requestAnimationFrame(animate);
             } else {
-                this.animationOn = false;
+    
             }
 
         }
