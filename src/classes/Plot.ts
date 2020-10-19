@@ -74,7 +74,7 @@ export class Plot {
         return this._id;
     }
 
-    convertSeriesToCoord(series: Series, axisRect: Rectangle, vp: Rectangle) {
+    convertSeriesToCoord(series: Series, axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean) {
 
         let plotData: Point[] = [];
 
@@ -120,6 +120,11 @@ export class Plot {
 
 
         //если нужна анимация графиков
+        if (noAnimation) {
+            this.plotData = plotData;
+            return this;
+        }
+
         if (this.hasAnimation) {
             const from = this.makeFromPointArr(this.plotData, plotData);
 

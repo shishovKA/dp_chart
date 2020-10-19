@@ -259,18 +259,22 @@ export class Tooltip {
         ctx.setLineDash(this._options.lineDash);
 
         // параметры
-        const rectPadding = 5;
-        const labelText = (seriesData.y).toFixed(2);
+        
+        const rectPadding = 6;
+        const labelText = (seriesData.y).toFixed(1)+'%';
         const cornersRadius = this._options.mainSize;
 
+        this.label.position = 'right'
+        this.label.offset = 23;
         const labelCoord = new Point(vp.x2, ttCoord.y);
+
         const labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
 
         let labelStart = new Point(labelRect.x1, labelRect.y1);
         
-        let roundRect: Rectangle = new Rectangle(labelStart.x-rectPadding, 
+        let roundRect: Rectangle = new Rectangle(vp.x2+11-rectPadding, 
                                                     labelStart.y-rectPadding, 
-                                                    labelStart.x-rectPadding + 45, 
+                                                    vp.x2+rectPadding + 35, 
                                                     labelStart.y-rectPadding + labelRect.height+2*rectPadding );
 
         if (roundRect.y1 < vp.y1) {
@@ -286,6 +290,8 @@ export class Tooltip {
         }
 
         this.roundRect(ctx, roundRect.x1, roundRect.y1, roundRect.width, roundRect.height, cornersRadius);
+
+        //labelCoord.x = roundRect.x1+roundRect.width*0.5-labelRect.width*0.5-this.label.offset;
 
         if (toDraw) {
             ctx.fill();
@@ -306,7 +312,8 @@ export class Tooltip {
         const labelCoord = new Point(ttCoord.x, ttCoord.y);
 
         //параметры начальные
-        this.label.position = 'right'; 
+        this.label.position = 'right';
+        this.label.offset = 33; 
         const lineX = ttCoord.x;
         labelCoord.y = labelCoord.y - 25;
         const rectPadding = 10;

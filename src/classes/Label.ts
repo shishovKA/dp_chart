@@ -62,11 +62,11 @@ export class Label {
             break;
 
             case 'left':
-                labelCoord.x = labelCoord.x - text.width*0.5 - this.offset;
+                labelCoord.x = labelCoord.x  - this.offset;
             break;
 
             case 'right':
-                labelCoord.x = labelCoord.x + text.width*0.5 + this.offset;
+                labelCoord.x = labelCoord.x  + this.offset;
             break;
         }
         
@@ -90,11 +90,11 @@ export class Label {
             break;
 
             case 'left':
-                labelCoord.x = labelCoord.x - text.width*0.5 - this.offset;
+                labelCoord.x = labelCoord.x - this.offset;
             break;
 
             case 'right':
-                labelCoord.x = labelCoord.x + text.width*0.5 + this.offset;
+                labelCoord.x = labelCoord.x + this.offset;
             break;
         }
 

@@ -1,5 +1,6 @@
 
 import { Chart } from "../classes/Chart";
+import { cbh1, cbh5, xLabels, zeroSeries, calculateDeviations } from "../chartData"
 
 export class ChartPanel {
 
@@ -246,7 +247,6 @@ export class ChartPanel {
     _createXAxisOptions() {
 
         const fieldset = document.createElement('fieldset');
-    
 
         const legend = document.createElement('legend');
         legend.textContent = 'X Axis Options';
@@ -304,7 +304,6 @@ export class ChartPanel {
         label2.textContent = 'fixed step';
         fieldset.append(label2);
 
-
         const step_input = document.createElement('input');
         step_input.type = "number";
         step_input.id = 'step_input';
@@ -356,10 +355,8 @@ export class ChartPanel {
 
 
     _createYAxisOptions() {
-
         const fieldset = document.createElement('fieldset');
     
-
         const legend = document.createElement('legend');
         legend.textContent = 'Y Axis Options';
 
@@ -416,7 +413,6 @@ export class ChartPanel {
         label2.textContent = 'fixed step';
         fieldset.append(label2);
 
-
         const step_input = document.createElement('input');
         step_input.type = "number";
         step_input.id = 'step_input';
@@ -451,14 +447,41 @@ export class ChartPanel {
     _setListeners() {
         this.minX_input.addEventListener('input', (event) => {
             if (+event.target.value >= this.chart.xAxis.max - 1) {
-                event.target.value =  this.chart.xAxis.max - 1;   
+                event.target.value = this.chart.xAxis.max - 1;   
             }
             const max = this.chart.xAxis.max;
             const min = +event.target.value;
             this.minX_label.textContent = event.target.value;
-            this.chart.xAxis.setMinMax([min,max], 0);
+
+            // подготавливаем данные как на сайте CyberHedge
+            let serie5star = calculateDeviations(cbh5, min),
+                serie1star = calculateDeviations(cbh1, min),
+                area5starTop = [],
+                area5starBottom = [],
+                area1starTop = [],
+                area1starBottom = [];
+
+            for (let i = 0, l = serie5star.length; i < l; i++) {
+                let item5star = serie5star[i],
+                    item1star = serie1star[i];
+
+                area5starTop.push(item5star > 0 ? Math.max(item5star, item1star, 0) : Math.max(item5star, 0));
+                area5starBottom.push(item5star > 0 ? (item1star > 0 ? item1star : 0) : item5star);
+
+                area1starTop.push(item1star > 0 ? item1star : item5star > 0 ? 0 : item5star);
+                area1starBottom.push(Math.min(item5star, item1star, 0));
+            }
+
+            this.chart.xAxis.setMinMax([min, max]);
+
+            this.chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([area5starTop, area5starBottom]);
+            this.chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
+            this.chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
+            this.chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
+
             if (this.scaleToFit) {
                 this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
+                this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.1*this.chart.yAxis.length, this.chart.yAxis.max+0.1*this.chart.yAxis.length]); //добавляем по отступам как на сайте
             }
             
         })
@@ -475,6 +498,7 @@ export class ChartPanel {
             this.chart.xAxis.setMinMax([min,max], 0);
             if (this.scaleToFit) {
                 this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
+                this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
             }
         })
 
@@ -507,13 +531,15 @@ export class ChartPanel {
             const max = this.chart.xAxis.max;
             this.scaleToFit = event.target.checked;
             if (this.scaleToFit) {
-                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max), 300);
+                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
+                this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
                 this.minY_input.disabled = this.scaleToFit;
                 this.maxY_input.disabled = this.scaleToFit;
             } else {
                     const min = +this.minY_input.value;
                     const max = +this.maxY_input.value;
-                    this.chart.yAxis.setMinMax([min,max], 300);
+                    this.chart.yAxis.setMinMax([min,max]);
+                    this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
                     this.minY_input.disabled = this.scaleToFit;
                     this.maxY_input.disabled = this.scaleToFit;
                 }
@@ -527,7 +553,6 @@ export class ChartPanel {
 
         const fieldset = document.createElement('fieldset');
     
-
         const legend = document.createElement('legend');
         legend.textContent = 'Animation options';
 
@@ -552,7 +577,6 @@ export class ChartPanel {
         });
         // end
 
-        
         let br = document.createElement('br');
         fieldset.append(br);
 
@@ -572,6 +596,29 @@ export class ChartPanel {
 
         input.addEventListener('change', (event) => {
             this.chart.yAxis.ticks.switchAnimation(event.target.checked);
+        });
+
+        // end
+
+        br = document.createElement('br');
+        fieldset.append(br);
+
+        // PlotsData animation
+        label = document.createElement('label');
+        label.for = 'plotDataAnimation';
+        fieldset.append(label);
+
+        input = document.createElement('input');
+        input.type = "checkbox";
+        input.id = 'plotDataAnimation';
+        input.name = 'plotDataAnimation';
+        label.append(input);
+
+        text = document.createTextNode('Plot data animation');
+        label.append(text);
+
+        input.addEventListener('change', (event) => {
+            this.chart.switchPlotsAnimation(event.target.checked);
         });
         
         return fieldset;

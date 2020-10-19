@@ -109,6 +109,11 @@ export class Ticks {
                 this.distributionType = distributionType;
                 if (options.length !== 0) this.customTicksOptions = options[0];
             break;
+
+            case 'niceCbhStep':
+                this.distributionType = distributionType;
+                if (options.length !== 0) this.customTicksOptions = options[0];
+            break;
         }
         this.onOptionsSetted.dispatch();
     }
@@ -132,6 +137,10 @@ export class Ticks {
 
             case 'customDateTicks':
                 coords = this.generateCustomDateTicks(min, max, vp, ctx);
+            break;
+
+            case 'niceCbhStep':
+                coords = this.generateNiceCbhTicks(min, max, vp);
             break;
         }
 
@@ -213,11 +222,20 @@ export class Ticks {
     }
 
     
-    generateFixedStepTicks(min:number, max:number, vp: Rectangle) {
+    generateFixedStepTicks(min:number, max:number, vp: Rectangle, step?: number) {
         let coords = [];
         this.values = [];
         this.labels = [];
         let rectXY: number[] = [];
+
+        let tickStep = this.step;
+
+        if (step) {
+            tickStep = step;
+        }
+
+
+
         const transformer = new Transformer();
        
         switch (this.type) {
@@ -266,11 +284,11 @@ export class Ticks {
                 this.values.push(value);    
             }
 
-            curValue = curValue + this.step;
+            curValue = curValue + tickStep;
         }
 
         curValue = startValue;
-        curValue = curValue - this.step;
+        curValue = curValue - tickStep;
 
         while (curValue > min) {
             if ((curValue >= min) && (curValue <= max)) { 
@@ -303,8 +321,35 @@ export class Ticks {
                 this.values.push(value);    
             }
 
-            curValue = curValue - this.step;
+            curValue = curValue - tickStep;
         }
+
+        return coords;
+    }
+
+    generateNiceCbhTicks(min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
+        let coords = [];
+
+        let deviation = Math.abs(max - min);
+        let devInd = 0;
+
+
+        for (let j = 0; j < this.customTicksOptions.length; j++) {
+
+            coords = this.generateFixedStepTicks(min, max, vp, this.customTicksOptions[j]);
+            const maxValue = this.values.reduce((prev, element) => {
+                return (element > prev) ? element : prev;
+            }, this.values[0]) 
+            
+            if (Math.abs(maxValue-max) < deviation) {
+                devInd = j;
+                deviation = Math.abs(maxValue-max);
+            }
+
+        }
+
+        coords = this.generateFixedStepTicks(min, max, vp, this.customTicksOptions[devInd]);
+
 
         return coords;
     }

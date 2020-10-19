@@ -54,10 +54,17 @@ export class Canvas {
                 this.mouseMoved.dispatch();
             } else {
                 this.mouseOuted.dispatch();
-                // this.clear();
             }
-
           });
+
+        this.canvas.addEventListener('touchmove', (event) => {
+            this.mouseCoords = this.getTouchCoords(event);
+            if (this.inDrawArea) {
+                this.mouseMoved.dispatch();
+            } else {
+                this.mouseOuted.dispatch();
+            }
+        });
     }
 
     addOnPage() {
@@ -146,6 +153,13 @@ export class Canvas {
     getMouseCoords(event): Point {
         var bcr = this.canvas.getBoundingClientRect();
         return new Point(event.clientX - bcr.left - this.viewport.zeroX, event.clientY - bcr.top - this.viewport.y1);
+    }
+
+    getTouchCoords(event): Point {
+        const clientX = event.touches[0].clientX;
+        const clientY = event.touches[0].clientY;
+        var bcr = this.canvas.getBoundingClientRect();
+        return new Point(clientX - bcr.left - this.viewport.zeroX, clientY - bcr.top - this.viewport.y1);
     }
 
     clipCanvas() {

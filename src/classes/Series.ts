@@ -8,9 +8,11 @@ export class Series {
     seriesData: number[][];
     plots: string[];
     changed: Signal;
+    onDataReplaced: Signal;
     
     constructor(id: string, ...seriesData: number[][]) {
         this.changed = new Signal();
+        this.onDataReplaced = new Signal();
         this.id = id;
         this.seriesData = this.getInitialData(seriesData);
         this.plots = [];
@@ -114,7 +116,7 @@ export class Series {
             this.seriesAnimation(this.seriesData, this.getInitialData(seriesData_to), duration)
         } else {
             this.seriesData = this.getInitialData(seriesData_to);
-            this.changed.dispatch();
+            this.onDataReplaced.dispatch();
         }
  
     }

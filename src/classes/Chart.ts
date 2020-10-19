@@ -49,13 +49,19 @@ export class Chart {
     bindChildSignals() {
         // data
         this.data.onSeriesAdded.add(() => {
-            this.plotsCountCoords();
+            this.plotsCountCoords(true);
             this.reDraw();
         });
+
+        this.data.onDataReplaced.add(() => {
+            this.plotsCountCoords(true);
+            this.reDraw();
+        })
 
         // axis
         this.xAxis.onOptionsSetted.add(() => {
             this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.plotsCountCoords(true);
             this.reDraw();
         });
 
@@ -75,6 +81,7 @@ export class Chart {
 
         this.yAxis.onOptionsSetted.add(() => {
             this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.plotsCountCoords(true);
             this.reDraw();
         });
 
@@ -129,12 +136,12 @@ export class Chart {
         this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
     }
 
-    plotsCountCoords() {
+    plotsCountCoords(noAnimation?: boolean) {
         this.data.storage.forEach((series) => {
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
-                    plot.convertSeriesToCoord(series, this.axisRect, this.canvas.viewport);
+                    plot.convertSeriesToCoord(series, this.axisRect, this.canvas.viewport, noAnimation);
                 };
             })
         })
@@ -171,6 +178,7 @@ export class Chart {
 
             const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
 
+            /*
             // ограничиваем координаты тултипов по границе viewport
             if (tooltipCoord.y < this.canvasTT.viewport.y1) {
                 tooltipCoord.y = this.canvasTT.viewport.y1
@@ -187,6 +195,7 @@ export class Chart {
             if (tooltipCoord.x > this.canvasTT.viewport.x2) {
                 tooltipCoord.x = this.canvasTT.viewport.x2
             }
+            */
 
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
@@ -206,15 +215,23 @@ export class Chart {
                                     delta_abs_buf.pop();
                                     delta_abs_buf_coord.pop();
                                 }
-                                break;
+                            break;
 
                             case 'data_y_end':
                                 data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
-                                break;
+                            break;
+
+                            case 'label_x_start':
+                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                            break;
+
+                            case 'line_vertical_full':
+                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                            break;
 
                             default:
                                 tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
-                                break;
+                            break;
 
                         }
 
@@ -278,6 +295,18 @@ export class Chart {
         });
         if (plots.length !== 0) return plots[0];
         return null;
+    }
+
+    switchPlotsAnimation(hasAnimation: boolean, duration?: number) {
+        this.data.storage.forEach((series) => {
+            series.plots.forEach((plotId) => {
+                const plot: Plot | null = this.findPlotById(plotId);
+                if (plot) {
+                    plot.hasAnimation = hasAnimation;
+                    if (duration) plot.animationDuration = duration;
+                };
+            })
+        })
     }
 
 }
