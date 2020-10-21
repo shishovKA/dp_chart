@@ -95,7 +95,7 @@ export class Axis {
     }
 
 
-    setMinMax(MinMax: number[], duration?:number) {
+    setMinMax(MinMax: number[], hasPlotAnimation?:boolean) {
         let to:number[];
         let from:number[];
 
@@ -115,15 +115,17 @@ export class Axis {
             break;
         }
 
+        /*
         if (duration) {
             this.axisRangeAnimation(from, to, duration);
             return;
         }
+        */
 
         this.min = to[0];
         this.max = to[1];
         
-        this.onMinMaxSetted.dispatch();
+        this.onMinMaxSetted.dispatch(hasPlotAnimation);
 
     }
 

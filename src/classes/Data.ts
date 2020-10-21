@@ -1,48 +1,11 @@
 import { Series } from "./Series";
-import { Signal } from "signals"
-import { throws } from "assert";
 
 export class Data {
 
-    storage: Series[];
-    reDrawCounter: number = 0;
-    onSeriesAdded: Signal;
-    onDataReplaced: Signal;
-    onPlotDataAnimated: Signal;
+    seriesStorage: Series[];
     
     constructor() {
-        this.storage = [];
-        this.onSeriesAdded = new Signal();
-        this.onDataReplaced = new Signal();
-        this.onPlotDataAnimated = new Signal();
-        this.callChartRedraw = this.callChartRedraw.bind(this);
-    }
-
-    /*
-    addSeries(id: string, ...seriesData: number[][]) {
-        const newSeries = new Series(id, ...seriesData);
-        this.storage.push(newSeries);
-        this.onSeriesAdded.dispatch();
-        newSeries.onDataReplaced.add(this.onDataReplaced.dispatch);
-        newSeries.onPlotDataChanged.add( this.onPlotDataAnimated.dispatch );
-        return newSeries;
-    }
-    */
-
-    callChartRedraw() {
-        this.reDrawCounter = this.reDrawCounter + 1;
-
-        if (this.reDrawCounter >= this.storage.length) {
-            this.onPlotDataAnimated.dispatch();
-            this.reDrawCounter = 0;
-        } 
-    }
-
-    removeSeries(id: string) {
-        const series: Series[] = this.storage.filter((series) => {
-            return series.id !== id
-        });
-        this.storage = series.slice();   
+        this.seriesStorage = [];
     }
 
     findExtremes(type: string, from?: number, to?: number): number[] {
@@ -50,7 +13,7 @@ export class Data {
         let minArr: number[] = [];
 
         
-        this.storage.forEach((series) => {
+        this.seriesStorage.forEach((series) => {
             let dataRange:  number[][];
             if ((from !== undefined) && (to !== undefined)) { 
                     dataRange = series.getDataRange(type, from, to) 
@@ -74,11 +37,31 @@ export class Data {
     }
 
     findSeriesById(id: string):Series | null {
-        const series: Series[] = this.storage.filter((series) => {
+        const series: Series[] = this.seriesStorage.filter((series) => {
             return series.id === id
         });
         if (series.length !== 0) return series[0];
         return null;
     }
+
+
+/*
+    addSeries(id: string, ...seriesData: number[][]) {
+        const newSeries = new Series(id, ...seriesData);
+        this.storage.push(newSeries);
+        this.onSeriesAdded.dispatch();
+        newSeries.onDataReplaced.add(this.onDataReplaced.dispatch);
+        newSeries.onPlotDataChanged.add( this.onPlotDataAnimated.dispatch );
+        return newSeries;
+    }
+
+    removeSeries(id: string) {
+        const series: Series[] = this.storage.filter((series) => {
+            return series.id !== id
+        });
+        this.storage = series.slice();   
+    }
+
+*/
 
   }

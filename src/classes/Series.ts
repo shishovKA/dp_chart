@@ -8,23 +8,21 @@ export class Series {
 
     id: string;
     seriesData: number[][];
-    plotData: Point[];
+    plotData: Point[][];
     plots: string[];
-    hasAnimation: boolean = true;
+    hasAnimation: boolean = false;
     animationDuration: number = 300;
-    //extremes: number[];
     canvas: Canvas;
+    extremes: number[];
 
-    changed: Signal;
-    onDataReplaced: Signal;
     onPlotDataChanged: Signal;
     
     constructor(id: string, container: HTMLElement, ...seriesData: number[][]) {
-        this.changed = new Signal();
-        this.onDataReplaced = new Signal();
         this.onPlotDataChanged = new Signal();
         this.id = id;
         this.seriesData = this.getInitialData(seriesData);
+        this.extremes = this.findExtremes();
+
         this.plots = [];
         this.plotData = [];
         this.canvas = new Canvas(container);
@@ -60,7 +58,7 @@ export class Series {
         let seriesData:number[][] = [];
 
         if (data) seriesData = data;
-        if (!data) seriesData = this.seriesData;
+        if (!data) seriesData = this.seriesData.slice();
 
         let xMin: number = seriesData[0][0];
         let xMax: number = seriesData[0][0];
@@ -88,7 +86,7 @@ export class Series {
 
 
     get dataRect(): Rectangle {
-        const extremes = this.findExtremes();
+        const extremes = this.extremes;
         return new Rectangle(extremes[0], extremes[2], extremes[1], extremes[3]);
     }
 
@@ -118,11 +116,11 @@ export class Series {
             const ind: number[] = [];
             const val: number[] = [];
 
-            let dataRowInd = this.seriesData[i];
-            let dataRowVal = this.seriesData[i + 1];
+            let dataRowInd = this.seriesData[i].slice();
+            let dataRowVal = this.seriesData[i + 1].slice();
             if (i == 2) {
-                dataRowInd = dataRowInd.slice().reverse();
-                dataRowVal = dataRowVal.slice().reverse();
+                dataRowInd = dataRowInd.slice();
+                dataRowVal = dataRowVal.slice();
             }
 
             dataRowInd.forEach((el,i) => {
@@ -140,9 +138,9 @@ export class Series {
     }
 
 
-    replaceSeriesData(seriesData_to: number[][], duration?: number, transFunc?: any) {
+    replaceSeriesData(seriesData_to: number[][]) {
         this.seriesData = this.getInitialData(seriesData_to);
-        this.onDataReplaced.dispatch();
+        this.extremes = this.findExtremes();
     }
 
     
@@ -156,101 +154,89 @@ export class Series {
         return new Point(ind, this.seriesData[1][ind])
     }
 
-    transpose() {
-        let buf = this.seriesData[0].slice();
-        this.seriesData[0]= this.seriesData[1].slice();
-        this.seriesData[1]=buf.slice();
+    get plotDataArr(): Point[] {
+
+        const lineArr: Point[] = [];
+
+        for (let i = 0; i < this.plotData.length; i++) {
+            let plotRow = this.plotData[i];
+            if (i == 1) {
+                plotRow = plotRow.slice().reverse();
+            }
+            plotRow.forEach((element) => {
+                lineArr.push(element);
+            });
+        }
+
+        return lineArr;
     }
 
     updatePlotData(axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean) {
-        let plotData = this.generatePlotData(axisRect, vp);
+        const plotData = this.generatePlotData(axisRect, vp);
         //если нужна анимация графиков
-        
+     
         if (noAnimation) {
             this.plotData = plotData;
+            this.onPlotDataChanged.dispatch(this);
             return this;
         }
+        
 
         if (this.hasAnimation) {
-            
-            const fromTo = this.makeFromPointArr(this.plotData, plotData);
-        
-            if (fromTo.length == 0) {
-                this.plotData = plotData;
-                return this;
+
+            const fromData: Point[][] = []
+            const toData: Point[][] = []
+
+            for (let i = 0; i < this.plotData.length; i++) {
+                let plotRow = this.plotData[i];
+                let fromTo = this.makeFromPointArr(plotRow.slice(), plotData[i].slice());
+                fromData.push(fromTo[0]);
+                toData.push(fromTo[1]);
             }
         
-            //this.plotData = from;
-            this.сoordAnimation(fromTo[0], fromTo[1], this.animationDuration);
+            this.сoordAnimation(fromData, toData, this.animationDuration);
 
-            return this
         }
 
         this.plotData = plotData;
+        this.onPlotDataChanged.dispatch(this);
+        return this;
     }
 
 
-    generatePlotData(axisRect: Rectangle, vp: Rectangle): Point[] {
-        let seriesData = this.seriesData;
-        //let seriesData = this.getDataRange('ind', axisRect.x1, axisRect.x2);
-        let plotData: Point[] = [];
+    generatePlotData(axisRect: Rectangle, vp: Rectangle): Point[][] {
+
+        const seriesData = this.getDataRange('ind', axisRect.x1, axisRect.x2)
+       // const seriesData = this.seriesData.slice();
+
+        let plotData: Point[][] = [];
 
         const transformer = new Transformer();
 
-/*
-        for (let i = 0; i < this.seriesData.length; i = i + 2) {
-            this.seriesData[i].forEach((element, ind) => {
-                const seriesPoint = new Point(this.seriesData[i][ind], this.seriesData[i + 1][ind]);
-                const plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
-                plotData.push(plotPoint);
-            });
-        }
-*/
-
         for (let i = 0; i < seriesData.length; i = i + 2) {
+
+            let plotDataRow: Point[] = []
+
             let dataRowInd = seriesData[i];
             let dataRowVal = seriesData[i + 1];
-            if (i == 2) {
-                dataRowInd = dataRowInd.slice().reverse();
-                dataRowVal = dataRowVal.slice().reverse();
-            }
+
             dataRowInd.forEach((element, ind) => {
                 const seriesPoint = new Point(dataRowInd[ind], dataRowVal[ind]);
                 const plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
-                plotData.push(new Point(Math.round(plotPoint.x), Math.round(plotPoint.y)));
+                plotDataRow.push(new Point(Math.round(plotPoint.x), Math.round(plotPoint.y)));
             });
+
+            plotData.push(plotDataRow);
+
         }
-
-/*
-        //если нужна анимация графиков
-        if (noAnimation) {
-            this.plotData = plotData;
-            return this;
-        }
-
-        if (this.hasAnimation) {
-            const from = this.makeFromPointArr(this.plotData, plotData);
-
-            if (from.length == 0) {
-                this.plotData = plotData;
-                return this;
-            }
-
-            this.plotData = from;
-            this.сoordAnimation(from, plotData, this.animationDuration);
-
-            return this
-        }
-
-        this.plotData = plotData;
-*/
 
         return plotData;
+ 
     }
 
 
     // Метод анимации изменение набора координат
-    сoordAnimation(from: Point[], to: Point[], duration: number) {
+    сoordAnimation(fromData: Point[][], toData:Point[][], duration: number) {
 
         let start = performance.now();
 
@@ -259,18 +245,25 @@ export class Series {
             let timeFraction = (time - start) / duration;
             if (timeFraction > 1) timeFraction = 1;
 
-            const tek = from.map((el, i) => {
-                return new Point(Math.round(from[i].x + (to[i].x - from[i].x) * timeFraction), Math.round(from[i].y + (to[i].y - from[i].y) * timeFraction) );
-            });
+            let tekData: Point[][] = [];
 
-            this.plotData = tek;
+            fromData.forEach((fromRow, ind)=> {
+                const tekRow = fromRow.map((el, i) => {
+                    return new Point(Math.round(fromRow[i].x + (toData[ind][i].x - fromRow[i].x) * timeFraction), Math.round(fromRow[i].y + (toData[ind][i].y - fromRow[i].y) * timeFraction) );
+                });
+                tekData.push(tekRow);
+            })
 
-            this.onPlotDataChanged.dispatch(this.canvas, this);
+            
+            this.plotData = tekData;
+
+            this.onPlotDataChanged.dispatch(this);
 
             if (timeFraction < 1) {
                 requestAnimationFrame(animate);
             } else {
-                this.plotData = to;
+                this.plotData = toData;
+                this.onPlotDataChanged.dispatch(this);
             }
 
         }
@@ -349,25 +342,127 @@ export class Series {
 
         }
 
-    
-    /*
-
-to.forEach((toPoint) => {
-                if (from.length !== 0) {
-                    const minP = from.reduce((fromPoint, cur) => {
-                        if (fromPoint.findDistX(toPoint) < cur.findDistX(toPoint)) return fromPoint
-                        else {
-                            return cur
-                        }
-                    }, from[0])
-                    resultArr.push(minP);
-                }
-            });
-
-    */
-
 
     }
+
+    
+
+/*
+
+    transpose() {
+        let buf = this.seriesData[0].slice();
+        this.seriesData[0]= this.seriesData[1].slice();
+        this.seriesData[1]=buf.slice();
+    }
+
+
+    makeFromPointArr1(from: Point[], to: Point[]): Point[][] {
+        const resultArr: Point[][] = [];
+
+        if (from.length == 0) return resultArr;
+        if (to.length == 0) return resultArr;
+
+        const fromResult: Point[] = [];
+        const toResult: Point[] = [];
+
+        const toArr = to.slice();
+        const fromArr = from.slice();
+
+    // если from < to
+        if (fromArr.length < toArr.length) {
+     
+            toArr.forEach((toPoint) => {
+                const minP = fromArr.reduce((cur, fromPoint) => {
+                    if (fromPoint.findDistX(toPoint) < cur.findDistX(toPoint)) return fromPoint
+                    else {
+                        return cur
+                    }
+                }, fromArr[0]);
+                fromResult.push(minP);
+            });
+        
+            resultArr.push(fromResult.slice());
+            resultArr.push(toArr.slice());
+            
+            return resultArr;
+        }
+    
+    // если from > to
+        else {
+
+            fromArr.forEach((fromPoint) => {
+
+                const minP = toArr.reduce((cur, toPoint) => {
+                    if (toPoint.findDistX(fromPoint) < cur.findDistX(fromPoint)) return toPoint
+                    else {
+                        return cur
+                    }
+                }, toArr[0]);
+
+
+                toResult.push(minP);
+
+            });
+        
+            resultArr.push(fromArr.slice());
+            resultArr.push(toResult.slice());
+            
+            return resultArr;
+
+        }
+
+    }
+
+
+    makeFromPointArr2(from: Point[], to: Point[]): Point[][] {
+        const resultArr: Point[][] = [];
+
+        if (from.length == 0) return resultArr;
+        if (to.length == 0) return resultArr;
+
+        const fromResult: Point[] = [];
+        const toResult: Point[] = [];
+
+        const toArr = to.slice();
+        const fromArr = from.slice();
+
+    // если from < to
+        if (fromArr.length < toArr.length) {
+
+            for (let i = 0; i < fromArr.length-1; i++) {
+                //const xLim = 
+
+            }
+
+
+        }
+    
+    // если from > to
+        else {
+
+            fromArr.forEach((fromPoint) => {
+
+                const minP = toArr.reduce((cur, toPoint) => {
+                    if (toPoint.findDistX(fromPoint) < cur.findDistX(fromPoint)) return toPoint
+                    else {
+                        return cur
+                    }
+                }, toArr[0]);
+
+
+                toResult.push(minP);
+
+            });
+        
+            resultArr.push(fromArr.slice());
+            resultArr.push(toResult.slice());
+            
+            return resultArr;
+
+        }
+
+    }
+*/
 
 
 }

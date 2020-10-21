@@ -19,11 +19,13 @@ export class Canvas {
     changed: Signal;
     mouseMoved: Signal;
     mouseOuted: Signal;
+    touchEnded: Signal;
 
     constructor(container: HTMLElement, ...paddings: number[]) {
         this.changed = new Signal();
         this.mouseMoved = new Signal();
         this.mouseOuted = new Signal();
+        this.touchEnded = new Signal();
 
         this.container = container;
         this.canvas = document.createElement('canvas');
@@ -62,12 +64,17 @@ export class Canvas {
             if (this.inDrawArea) {
                 this.mouseMoved.dispatch();
             } else {
-                this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
+                this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
                 this.mouseOuted.dispatch();
             }
         });
 
-        this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
+        this.canvas.addEventListener('touchend', (event) => {
+            this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+            this.touchEnded.dispatch();
+        });
+
+        this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
     }
 
     addOnPage() {
@@ -123,6 +130,7 @@ export class Canvas {
             break;
           }
         
+        this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
         this.changed.dispatch();
         return 
     }

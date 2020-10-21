@@ -1,6 +1,7 @@
 
 import { Chart } from "../classes/Chart";
 import { cbh1, cbh5, xLabels, zeroSeries, prepareDataforCbh } from "../chartData"
+import { chart } from "../chartConfig";
 
 export class ChartPanel {
 
@@ -445,7 +446,7 @@ export class ChartPanel {
     }
 
     _setListeners() {
-        this.minX_input.addEventListener('input', (event) => {
+        this.minX_input.addEventListener('change', (event) => {
             if (+event.target.value >= this.chart.xAxis.max - 1) {
                 event.target.value = this.chart.xAxis.max - 1;   
             }
@@ -464,21 +465,25 @@ export class ChartPanel {
                 area1starBottom 
                 } = data;
 
-            this.chart.xAxis.setMinMax([min, max]);
+            
 
             this.chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([area5starTop, area5starBottom]);
             this.chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
             this.chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
             this.chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
 
+
             if (this.scaleToFit) {
-                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
+                this.chart.xAxis.setMinMax([min,max], false);
+                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max), true);
                 //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.1*this.chart.yAxis.length, this.chart.yAxis.max+0.1*this.chart.yAxis.length]); //добавляем по отступам как на сайте
+            } else {
+                this.chart.xAxis.setMinMax([min,max], true);
             }
             
         })
 
-        this.maxX_input.addEventListener('input', (event) => {
+        this.maxX_input.addEventListener('change', (event) => {
 
             if (+event.target.value <= this.chart.xAxis.min +1) {
                 event.target.value =  this.chart.xAxis.min + 1;  
@@ -487,14 +492,21 @@ export class ChartPanel {
             const min = this.chart.xAxis.min;
             const max = +event.target.value;
             this.maxX_label.textContent = event.target.value;
-            this.chart.xAxis.setMinMax([min,max], 0);
+            
+            
+
             if (this.scaleToFit) {
-                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
+                this.chart.xAxis.setMinMax([min,max], false);
+                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max), true);
                 //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
+            } else {
+                this.chart.xAxis.setMinMax([min,max], true);
             }
+
+
         })
 
-        this.minY_input.addEventListener('input', (event) => {
+        this.minY_input.addEventListener('change', (event) => {
 
             if (+event.target.value >= this.chart.yAxis.max - 1) {
                 event.target.value =  this.chart.yAxis.max - 1;   
@@ -503,10 +515,10 @@ export class ChartPanel {
             const max = this.chart.yAxis.max;
             const min = +event.target.value;
             this.minY_label.textContent = event.target.value;
-            this.chart.yAxis.setMinMax([min,max], 0);
+            this.chart.yAxis.setMinMax([min,max], true);
         })
 
-        this.maxY_input.addEventListener('input', (event) => {
+        this.maxY_input.addEventListener('change', (event) => {
 
             if (+event.target.value <= this.chart.yAxis.min + 1) {
                 event.target.value =  this.chart.yAxis.min + 1;  
@@ -515,22 +527,23 @@ export class ChartPanel {
             const min = this.chart.yAxis.min;
             const max = +event.target.value;
             this.maxY_label.textContent = event.target.value;
-            this.chart.yAxis.setMinMax([min,max], 0);
+            this.chart.yAxis.setMinMax([min,max], true);
         })
+
 
         this.scaleToFit_input.addEventListener('change', (event) => {
             const min = this.chart.xAxis.min;
             const max = this.chart.xAxis.max;
             this.scaleToFit = event.target.checked;
             if (this.scaleToFit) {
-                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
+                this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max), true);
                 //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
                 this.minY_input.disabled = this.scaleToFit;
                 this.maxY_input.disabled = this.scaleToFit;
             } else {
                     const min = +this.minY_input.value;
                     const max = +this.maxY_input.value;
-                    this.chart.yAxis.setMinMax([min,max]);
+                    this.chart.yAxis.setMinMax([min,max], true);
                     //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
                     this.minY_input.disabled = this.scaleToFit;
                     this.maxY_input.disabled = this.scaleToFit;
@@ -606,11 +619,11 @@ export class ChartPanel {
         input.name = 'plotDataAnimation';
         label.append(input);
 
-        text = document.createTextNode('Plot data animation');
+        text = document.createTextNode('Data animation');
         label.append(text);
 
         input.addEventListener('change', (event) => {
-            this.chart.switchPlotsAnimation(event.target.checked);
+            this.chart.switchDataAnimation(event.target.checked);
         });
         
         return fieldset;

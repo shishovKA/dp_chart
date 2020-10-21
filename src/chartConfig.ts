@@ -88,9 +88,9 @@ chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half yea
 chart.xAxis.display = true;
 
 // настраиваем Min Max осей
-chart.xAxis.setMinMax(chart.data.findExtremes('val')); //по экстремумам оси X
-chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max)); //scale to fit по Y
-chart.yAxis.setMinMax([chart.yAxis.min-0.05*chart.yAxis.length, chart.yAxis.max+0.05*chart.yAxis.length]); //добавляем по отступам как на сайте
+chart.xAxis.setMinMax(chart.data.findExtremes('val'), true); //по экстремумам оси X
+chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), true); //scale to fit по Y
+//chart.yAxis.setMinMax([chart.yAxis.min-0.05*chart.yAxis.length, chart.yAxis.max+0.05*chart.yAxis.length]); //добавляем по отступам как на сайте
 
 
 export {chart}
