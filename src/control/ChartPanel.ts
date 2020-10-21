@@ -1,6 +1,6 @@
 
 import { Chart } from "../classes/Chart";
-import { cbh1, cbh5, xLabels, zeroSeries, calculateDeviations } from "../chartData"
+import { cbh1, cbh5, xLabels, zeroSeries, prepareDataforCbh } from "../chartData"
 
 export class ChartPanel {
 
@@ -454,23 +454,15 @@ export class ChartPanel {
             this.minX_label.textContent = event.target.value;
 
             // подготавливаем данные как на сайте CyberHedge
-            let serie5star = calculateDeviations(cbh5, min),
-                serie1star = calculateDeviations(cbh1, min),
-                area5starTop = [],
-                area5starBottom = [],
-                area1starTop = [],
-                area1starBottom = [];
-
-            for (let i = 0, l = serie5star.length; i < l; i++) {
-                let item5star = serie5star[i],
-                    item1star = serie1star[i];
-
-                area5starTop.push(item5star > 0 ? Math.max(item5star, item1star, 0) : Math.max(item5star, 0));
-                area5starBottom.push(item5star > 0 ? (item1star > 0 ? item1star : 0) : item5star);
-
-                area1starTop.push(item1star > 0 ? item1star : item5star > 0 ? 0 : item5star);
-                area1starBottom.push(Math.min(item5star, item1star, 0));
-            }
+            let data = prepareDataforCbh(cbh5, cbh1, min);
+            let { 
+                serie5star,
+                area5starTop, 
+                area5starBottom, 
+                serie1star, 
+                area1starTop, 
+                area1starBottom 
+                } = data;
 
             this.chart.xAxis.setMinMax([min, max]);
 
@@ -481,7 +473,7 @@ export class ChartPanel {
 
             if (this.scaleToFit) {
                 this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
-                this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.1*this.chart.yAxis.length, this.chart.yAxis.max+0.1*this.chart.yAxis.length]); //добавляем по отступам как на сайте
+                //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.1*this.chart.yAxis.length, this.chart.yAxis.max+0.1*this.chart.yAxis.length]); //добавляем по отступам как на сайте
             }
             
         })
@@ -498,7 +490,7 @@ export class ChartPanel {
             this.chart.xAxis.setMinMax([min,max], 0);
             if (this.scaleToFit) {
                 this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
-                this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
+                //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
             }
         })
 
@@ -532,14 +524,14 @@ export class ChartPanel {
             this.scaleToFit = event.target.checked;
             if (this.scaleToFit) {
                 this.chart.yAxis.setMinMax(this.chart.data.findExtremes('ind', min, max));
-                this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
+                //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
                 this.minY_input.disabled = this.scaleToFit;
                 this.maxY_input.disabled = this.scaleToFit;
             } else {
                     const min = +this.minY_input.value;
                     const max = +this.maxY_input.value;
                     this.chart.yAxis.setMinMax([min,max]);
-                    this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
+                    //this.chart.yAxis.setMinMax([this.chart.yAxis.min-0.05*this.chart.yAxis.length, this.chart.yAxis.max+0.05*this.chart.yAxis.length]);
                     this.minY_input.disabled = this.scaleToFit;
                     this.maxY_input.disabled = this.scaleToFit;
                 }

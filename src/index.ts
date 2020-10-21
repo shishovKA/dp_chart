@@ -25,7 +25,9 @@ WebFont.load({
   },
 
   active: function () {
-    chart.addOnPage();
+  //  chart.addOnPage();
+  //  chart.reDraw();
+  //  chart.tooltipsDraw(true);
   },
 
 });

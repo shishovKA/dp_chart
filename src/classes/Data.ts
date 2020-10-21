@@ -5,21 +5,37 @@ import { throws } from "assert";
 export class Data {
 
     storage: Series[];
+    reDrawCounter: number = 0;
     onSeriesAdded: Signal;
     onDataReplaced: Signal;
+    onPlotDataAnimated: Signal;
     
     constructor() {
         this.storage = [];
         this.onSeriesAdded = new Signal();
         this.onDataReplaced = new Signal();
+        this.onPlotDataAnimated = new Signal();
+        this.callChartRedraw = this.callChartRedraw.bind(this);
     }
 
+    /*
     addSeries(id: string, ...seriesData: number[][]) {
         const newSeries = new Series(id, ...seriesData);
         this.storage.push(newSeries);
         this.onSeriesAdded.dispatch();
         newSeries.onDataReplaced.add(this.onDataReplaced.dispatch);
+        newSeries.onPlotDataChanged.add( this.onPlotDataAnimated.dispatch );
         return newSeries;
+    }
+    */
+
+    callChartRedraw() {
+        this.reDrawCounter = this.reDrawCounter + 1;
+
+        if (this.reDrawCounter >= this.storage.length) {
+            this.onPlotDataAnimated.dispatch();
+            this.reDrawCounter = 0;
+        } 
     }
 
     removeSeries(id: string) {

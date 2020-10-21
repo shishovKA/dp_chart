@@ -25,23 +25,48 @@ function calculateDeviations(rowData: number[], fromIndex: number) {
 }
 
 
-let serie5star = cbh5,
-	serie1star = cbh1,
-    area5starTop = [],
-    area5starBottom = [],
-    area1starTop = [],
-    area1starBottom = [];
+function prepareDataforCbh(star5: number[], star1: number[], fromIndex:number) {
+    const arrLength = star5.length;
+    let serie5star = calculateDeviations(star5, fromIndex),
+        serie1star = calculateDeviations(star1, fromIndex),
+        area5starTop = [],
+        area5starBottom = [],
+        area1starTop = [],
+        area1starBottom = [];
 
-for (let i = 0, l = cbh5.length; i < l; i++) {
-    let item5star = serie5star[i],
-        item1star = serie1star[i];
+    for (let i = 0, l = arrLength; i < l; i++) {
+        let item5star = serie5star[i],
+            item1star = serie1star[i];
 
-    area5starTop.push(item5star > 0 ? Math.max(item5star, item1star, 0) : Math.max(item5star, 0));
-    area5starBottom.push(item5star > 0 ? (item1star > 0 ? item1star : 0) : item5star);
+        //если красный график больше 0
+        /*
+        if (item1star > 0) {
+            area1starTop.push(item1star);
+            area1starBottom.push(0);
 
-    area1starTop.push(item1star > 0 ? item1star : item5star > 0 ? 0 : item5star);
-    area1starBottom.push(Math.min(item5star, item1star, 0));
+            area5starTop.push(0);
+            area5starBottom.push(0);
+        }
+
+        if (item1star <= 0) {
+            area1starTop.push(item1star);
+            area1starBottom.push(item1star);
+
+            area5starTop.push(0);
+            area5starBottom.push(0);
+        }
+        */
+
+        area5starTop.push(item5star > 0 ? Math.max(item5star, item1star, 0) : Math.max(item5star, 0));
+        area5starBottom.push(item5star > 0 ? (item1star > 0 ? item1star : 0) : item5star);
+
+        let elTop1 = item1star > 0 ? item1star : item5star > 0 ? 0 : item5star;
+        //if (elTop1 !== 0)  
+        area1starTop.push(elTop1);
+
+        area1starBottom.push(Math.min(item5star, item1star, 0));
+    }
+    return {serie5star, area5starTop, area5starBottom, serie1star, area1starTop, area1starBottom};
 }
 
-
-export { cbh1, cbh5, xLabels, zeroSeries, calculateDeviations}
+export { cbh1, cbh5, xLabels, zeroSeries, prepareDataforCbh}

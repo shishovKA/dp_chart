@@ -1,6 +1,3 @@
-import { Transformer } from "./Transformer";
-import { Rectangle } from "./Rectangle";
-import { Series } from "./Series";
 import { Point } from "./Point";
 import { Tooltip } from "./Tooltip";
 import { Signal } from "signals"
@@ -21,12 +18,10 @@ export class Plot {
     _id: string;
     type: string;
     _options: plotOptions;
-    plotData: Point[];
     tooltips: Tooltip[];
-    onAnimated: Signal;
 
     constructor(id: string, type: string, ...options: any) {
-        this.onAnimated = new Signal();
+
         this._id = id;
         this.type = type;
 
@@ -38,8 +33,6 @@ export class Plot {
         };
 
         this.setOptions(options);
-
-        this.plotData = [];
         this.tooltips = [];
     }
 
@@ -74,77 +67,9 @@ export class Plot {
         return this._id;
     }
 
-    convertSeriesToCoord(series: Series, axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean) {
-
-        let plotData: Point[] = [];
-
-        const transformer = new Transformer();
-
-        switch (this.type) {
-            case 'dotted':
-                for (let i = 0; i < series.seriesData.length; i = i + 2) {
-                    series.seriesData[i].forEach((element, ind) => {
-                        const seriesPoint = new Point(series.seriesData[i][ind], series.seriesData[i + 1][ind]);
-                        const plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
-                        plotData.push(plotPoint);
-                    });
-                }
-                break;
-
-            case 'line':
-                for (let i = 0; i < series.seriesData.length; i = i + 2) {
-                    series.seriesData[i].forEach((element, ind) => {
-                        const seriesPoint = new Point(series.seriesData[i][ind], series.seriesData[i + 1][ind]);
-                        const plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
-                        plotData.push(plotPoint);
-                    });
-                }
-                break;
-
-            case 'area':
-                for (let i = 0; i < series.seriesData.length; i = i + 2) {
-                    let dataRowInd = series.seriesData[i];
-                    let dataRowVal = series.seriesData[i + 1];
-                    if (i == 2) {
-                        dataRowInd = dataRowInd.slice().reverse();
-                        dataRowVal = dataRowVal.slice().reverse();
-                    }
-                    series.seriesData[i].forEach((element, ind) => {
-                        const seriesPoint = new Point(dataRowInd[ind], dataRowVal[ind]);
-                        const plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
-                        plotData.push(plotPoint);
-                    });
-                }
-                break;
-        }
 
 
-        //если нужна анимация графиков
-        if (noAnimation) {
-            this.plotData = plotData;
-            return this;
-        }
-
-        if (this.hasAnimation) {
-            const from = this.makeFromPointArr(this.plotData, plotData);
-
-            if (from.length == 0) {
-                this.plotData = plotData;
-                return this;
-            }
-
-            this.plotData = from;
-            this.сoordAnimation(from, plotData, this.animationDuration);
-
-            return this
-        }
-
-        this.plotData = plotData;
-
-        return this;
-    }
-
-    drawPlot(ctx: CanvasRenderingContext2D) {
+    drawPlot(ctx: CanvasRenderingContext2D, plotData: Point[]) {
 
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
@@ -153,51 +78,51 @@ export class Plot {
 
         switch (this.type) {
             case 'dotted':
-                this.drawDotted(ctx);
+                this.drawDotted(ctx, plotData);
                 break;
 
             case 'line':
-                this.drawLine(ctx);
+                this.drawLine(ctx, plotData);
                 break;
 
             case 'area':
-                this.drawArea(ctx);
+                this.drawArea(ctx, plotData);
                 break;
         }
 
     }
 
-    drawDotted(ctx: CanvasRenderingContext2D) {
+    drawDotted(ctx: CanvasRenderingContext2D, plotData: Point[]) {
 
-        for (let i = 1; i < this.plotData.length; i++) {
+        for (let i = 1; i < plotData.length; i++) {
             ctx.beginPath();
-            ctx.arc(this.plotData[i].x, this.plotData[i].y, this._options.mainSize, 0, Math.PI * 2, true);
+            ctx.arc(plotData[i].x, plotData[i].y, this._options.mainSize, 0, Math.PI * 2, true);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
         }
     }
 
-    drawLine(ctx: CanvasRenderingContext2D) {
+    drawLine(ctx: CanvasRenderingContext2D, plotData: Point[]) {
 
         ctx.beginPath();
         ctx.setLineDash([]);
-        ctx.moveTo(this.plotData[0].x, this.plotData[0].y);
+        ctx.moveTo(plotData[0].x, plotData[0].y);
 
-        for (let i = 1; i < this.plotData.length; i++) {
-            ctx.lineTo(this.plotData[i].x, this.plotData[i].y)
+        for (let i = 1; i < plotData.length; i++) {
+            ctx.lineTo(plotData[i].x, plotData[i].y)
         }
 
         ctx.stroke();
     }
 
-    drawArea(ctx: CanvasRenderingContext2D) {
+    drawArea(ctx: CanvasRenderingContext2D, plotData: Point[]) {
 
         ctx.beginPath();
-        ctx.lineTo(this.plotData[0].x, this.plotData[0].y);
+        ctx.lineTo(plotData[0].x, plotData[0].y);
 
-        for (let i = 1; i < this.plotData.length; i++) {
-            ctx.lineTo(this.plotData[i].x, this.plotData[i].y)
+        for (let i = 1; i < plotData.length; i++) {
+            ctx.lineTo(plotData[i].x, plotData[i].y)
         }
 
         ctx.closePath();
@@ -220,53 +145,6 @@ export class Plot {
         return null;
     }
 
-
-    // Метод анимации изменение набора координат
-    сoordAnimation(from: Point[], to: Point[], duration: number) {
-
-        let start = performance.now();
-
-        const animate = (time) => {
-
-            let timeFraction = (time - start) / duration;
-            if (timeFraction > 1) timeFraction = 1;
-
-            const tek = from.map((el, i) => {
-                return new Point(from[i].x + (to[i].x - from[i].x) * timeFraction, from[i].y + (to[i].y - from[i].y) * timeFraction);
-            });
-
-            this.plotData = tek;
-
-            this.onAnimated.dispatch();
-
-            if (timeFraction < 1) {
-                requestAnimationFrame(animate);
-            } else {
-
-            }
-
-        }
-
-        requestAnimationFrame(animate);
-
-    }
-
-
-    makeFromPointArr(from: Point[], to: Point[]): Point[] {
-        const resultArr: Point[] = [];
-
-        to.forEach((toPoint) => {
-            if (from.length !== 0) {
-                const minP = from.reduce((fromPoint, cur) => {
-                    if (fromPoint.findDist(toPoint) < cur.findDist(toPoint)) return fromPoint
-                    return cur;
-                }, from[0])
-                resultArr.push(minP);
-            }
-        });
-
-        return resultArr;
-    }
 
 
 }

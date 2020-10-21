@@ -5,9 +5,11 @@ import { Axis } from "./Axis";
 import { Transformer } from "./Transformer";
 import { Rectangle } from "./Rectangle";
 import { Point } from "./Point";
+import { Series } from "./Series";
 
 export class Chart {
 
+    container: HTMLElement
     canvas: Canvas;
     canvasA: Canvas;
     canvasTT: Canvas;
@@ -17,10 +19,12 @@ export class Chart {
     yAxis: Axis;
 
     constructor(container: HTMLElement | null, xMinMax: number[], yMinMax: number[]) {
-
+        this.container = container;
         this.canvas = new Canvas(container);
         this.canvasA = new Canvas(container);
         this.canvasTT = new Canvas(container);
+
+        this.canvasTT.canvas.style.zIndex = "10";
 
         this.data = new Data();
         this.plots = [];
@@ -30,7 +34,7 @@ export class Chart {
 
         this.reDraw = this.reDraw.bind(this);
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
-        
+        this.seriesReDraw = this.seriesReDraw.bind(this);    
 
         window.addEventListener('resize', () => { this.reSize() });
 
@@ -44,31 +48,40 @@ export class Chart {
         this.canvas.addOnPage();
         this.canvasA.addOnPage();
         this.canvasTT.addOnPage();
+        this.reDraw();
+        this.tooltipsDraw(true);
     }
 
     bindChildSignals() {
         // data
         this.data.onSeriesAdded.add(() => {
-            this.plotsCountCoords(true);
+            this.seriesUpdatePlotData();
             this.reDraw();
         });
 
         this.data.onDataReplaced.add(() => {
-            this.plotsCountCoords(true);
-            this.reDraw();
+            this.seriesUpdatePlotData();
+            this.tooltipsDraw(true);
+        })
+
+        this.data.onPlotDataAnimated.add(() => {
+            this.canvas.clipCanvas();
+            this.canvas.clear();
+            this.plotsDraw();
+            this.tooltipsDraw(true);
         })
 
         // axis
         this.xAxis.onOptionsSetted.add(() => {
             this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.plotsCountCoords(true);
+            this.seriesUpdatePlotData();
             this.reDraw();
         });
 
         this.xAxis.onMinMaxSetted.add(() => {
             this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.plotsCountCoords();
-            this.reDraw();
+            this.seriesUpdatePlotData();
+            this.tooltipsDraw(true);
         });
 
         this.xAxis.onCustomLabelsAdded.add(() => {
@@ -81,14 +94,15 @@ export class Chart {
 
         this.yAxis.onOptionsSetted.add(() => {
             this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.plotsCountCoords(true);
+            this.seriesUpdatePlotData();
             this.reDraw();
         });
 
         this.yAxis.onMinMaxSetted.add(() => {
             this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.plotsCountCoords();
+            this.seriesUpdatePlotData();
             this.reDraw();
+            this.tooltipsDraw(true);
         });
 
         this.yAxis.onCustomLabelsAdded.add(() => {
@@ -103,7 +117,9 @@ export class Chart {
         this.canvasA.changed.add(this.reDraw);
 
         this.canvasTT.mouseMoved.add(this.tooltipsDraw);
-        this.canvasTT.mouseOuted.add(this.canvasTT.clear);
+        this.canvasTT.mouseOuted.add(() => {
+            this.tooltipsDraw(true);
+        });
     }
 
     get axisRect(): Rectangle {
@@ -114,52 +130,66 @@ export class Chart {
         this.canvas.resize();
         this.canvasA.resize();
         this.canvasTT.resize();
+        this.seriesUpdatePlotData();
         this.ticksCreate();
         this.reDraw();
     }
 
+    // перерсовка Графиков и Осей
     reDraw() {
         this.canvas.clipCanvas();
         this.canvas.clear();
         this.canvasA.clear();
-        this.plotsDraw();
+        //this.plotsDraw();
         this.axisDraw();
     }
 
+    // генерируем PlotData у series
+    seriesUpdatePlotData() {
+        this.data.storage.forEach((series) => {
+            series.updatePlotData(this.axisRect, this.canvas.viewport)
+        })
+    }
+
+    // генерируем тики у Осей
     ticksCreate() {
         this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
         this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx); 
     }
-
+    
+    // отрисовываем Оси
     axisDraw() {
         this.xAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
         this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
     }
 
-    plotsCountCoords(noAnimation?: boolean) {
-        this.data.storage.forEach((series) => {
-            series.plots.forEach((plotId) => {
-                const plot: Plot | null = this.findPlotById(plotId);
-                if (plot) {
-                    plot.convertSeriesToCoord(series, this.axisRect, this.canvas.viewport, noAnimation);
-                };
-            })
-        })
-    }
-
+    // отрисовываем графики
+    /*
     plotsDraw() {
         this.data.storage.forEach((series) => {
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
-                    plot.drawPlot(this.canvas.ctx);
+                    plot.drawPlot(this.canvas.ctx, series.plotData);
                 };
             })
         })
     }
+    */
 
+    seriesReDraw(canvas: Canvas, series: Series) {
+            canvas.clipCanvas();
+            canvas.clear();
+            series.plots.forEach((plotId) => {
+                const plot: Plot | null = this.findPlotById(plotId);
+                if (plot) {
+                    plot.drawPlot(canvas.ctx, series.plotData);
+                };
+            })
+    }
 
-    tooltipsDraw() {
+    // отрисовываем тултипы
+    tooltipsDraw(drawLast?: boolean) {
         this.canvasTT.clear();
 
         const mouseXY = this.canvasTT.mouseCoords;
@@ -178,60 +208,60 @@ export class Chart {
 
             const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
 
-            /*
-            // ограничиваем координаты тултипов по границе viewport
-            if (tooltipCoord.y < this.canvasTT.viewport.y1) {
-                tooltipCoord.y = this.canvasTT.viewport.y1
-            }
-
-            if (tooltipCoord.y > this.canvasTT.viewport.y2) {
-                tooltipCoord.y = this.canvasTT.viewport.y2
-            }
-
-            if (tooltipCoord.x < this.canvasTT.viewport.x1) {
-                tooltipCoord.x = this.canvasTT.viewport.x1
-            }
-
-            if (tooltipCoord.x > this.canvasTT.viewport.x2) {
-                tooltipCoord.x = this.canvasTT.viewport.x2
-            }
-            */
 
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
                     plot.tooltips.forEach((tooltip) => {
 
-                        switch (tooltip.type) {
+                        if (drawLast) {
 
-                            case 'delta_abs':
-                                if (delta_abs_buf.length == 0) {
-                                    delta_abs_buf.push(pointData);
-                                    delta_abs_buf_coord.push(tooltipCoord);
-                                } else {
-                                    const ttCoord: Point = (delta_abs_buf_coord[0].y < tooltipCoord.y) ? delta_abs_buf_coord[0] : tooltipCoord;
-                                    const absData = new Point(Math.abs(pointData.x - delta_abs_buf[0].x), Math.abs(pointData.y - delta_abs_buf[0].y));
-                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttCoord, absData);
-                                    delta_abs_buf.pop();
-                                    delta_abs_buf_coord.pop();
-                                }
-                            break;
+                            switch (tooltip.type) {
 
-                            case 'data_y_end':
-                                data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
-                            break;
+                                case 'data_y_end':
+                                    data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
+                                break;
 
-                            case 'label_x_start':
-                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
-                            break;
+                                case 'circle_series':
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                break;
+    
+                            }
 
-                            case 'line_vertical_full':
-                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
-                            break;
+                        } else {
 
-                            default:
-                                tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
-                            break;
+                            switch (tooltip.type) {
+
+                                case 'delta_abs':
+                                    if (delta_abs_buf.length == 0) {
+                                        delta_abs_buf.push(pointData);
+                                        delta_abs_buf_coord.push(tooltipCoord);
+                                    } else {
+                                        const ttCoord: Point = (delta_abs_buf_coord[0].y < tooltipCoord.y) ? delta_abs_buf_coord[0] : tooltipCoord;
+                                        const absData = new Point(Math.abs(pointData.x - delta_abs_buf[0].x), Math.abs(pointData.y - delta_abs_buf[0].y));
+                                        tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttCoord, absData);
+                                        delta_abs_buf.pop();
+                                        delta_abs_buf_coord.pop();
+                                    }
+                                break;
+    
+                                case 'data_y_end':
+                                    data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
+                                break;
+    
+                                case 'label_x_start':
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                break;
+    
+                                case 'line_vertical_full':
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                break;
+    
+                                default:
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                break;
+    
+                            }
 
                         }
 
@@ -283,8 +313,6 @@ export class Chart {
 
     addPlot(id: string, type: string, ...options: any) {
         const plot = new Plot(id, type, ...options);
-
-        plot.onAnimated.add(this.reDraw);
         this.plots.push(plot);
     }
 
@@ -297,6 +325,18 @@ export class Chart {
         return null;
     }
 
+
+    addSeries(id: string, ...seriesData: number[][]) {
+        const newSeries = new Series(id, this.container, ...seriesData);
+        this.data.storage.push(newSeries);
+        this.data.onSeriesAdded.dispatch();
+        //newSeries.onDataReplaced.add(this.data.onDataReplaced.dispatch);
+        newSeries.canvas.setPaddings(this.canvas.top, this.canvas.right, this.canvas.bottom, this.canvas.left);
+        newSeries.onPlotDataChanged.add( this.seriesReDraw );
+        return newSeries;
+    }
+
+    /*
     switchPlotsAnimation(hasAnimation: boolean, duration?: number) {
         this.data.storage.forEach((series) => {
             series.plots.forEach((plotId) => {
@@ -308,5 +348,7 @@ export class Chart {
             })
         })
     }
+
+    */
 
 }

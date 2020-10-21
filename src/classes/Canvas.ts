@@ -34,13 +34,12 @@ export class Canvas {
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         
-        //this.container.appendChild(this.canvas);
+        this.container.appendChild(this.canvas);
         this._ctx = this.canvas.getContext('2d');
         
         //canvasDpiScaler(this.canvas, this._ctx);
         this.clear = this.clear.bind(this);
         this.resize();
-        
 
         this.top = 0;
         this.right = 0;
@@ -53,6 +52,7 @@ export class Canvas {
             if (this.inDrawArea) {
                 this.mouseMoved.dispatch();
             } else {
+                this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
                 this.mouseOuted.dispatch();
             }
           });
@@ -62,9 +62,12 @@ export class Canvas {
             if (this.inDrawArea) {
                 this.mouseMoved.dispatch();
             } else {
+                this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
                 this.mouseOuted.dispatch();
             }
         });
+
+        this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
     }
 
     addOnPage() {

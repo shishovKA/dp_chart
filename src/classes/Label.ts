@@ -10,6 +10,8 @@ export class Label {
     fontSize: number = 16;
     position: string = 'bottom';
     offset: number = 15;
+    units?: string;
+
     onOptionsSetted: Signal;
 
     constructor(type?: string) {
@@ -70,7 +72,9 @@ export class Label {
             break;
         }
         
-        ctx.fillText(labeltext, labelCoord.x, labelCoord.y);
+        let printText = labeltext;
+        if (this.units) printText = labeltext+this.units;
+        ctx.fillText(printText, labelCoord.x, labelCoord.y);
 
     }
 
