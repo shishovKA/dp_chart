@@ -1,0 +1,177 @@
+main {
+    font-size: 62.5%;
+    text-rendering: optimizeSpeed;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, [col-start] 1fr);
+    grid-column-gap: 4rem;
+    grid-row-gap: 2rem;
+    max-width: 1024px;
+    width: 100%;
+    margin: 0;
+}
+
+.tabs_caps {
+    font-size: 62.5%;
+    text-rendering: optimizeSpeed;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    grid-column: 1/7;
+}
+
+.zones {
+    font-size: 62.5%;
+    text-rendering: optimizeSpeed;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 0;
+}
+
+.zones__li {
+    text-rendering: optimizeSpeed;
+    list-style: none;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    margin: 0;
+    margin-right: 1rem;
+    font: normal 1.6rem/200% Transcript Pro, sans-serif;
+    text-transform: uppercase;
+    padding-top: .3rem;
+    display: block;
+}
+
+.controls_overline {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    font-family: 'Transcript Pro', sans-serif;
+    font-weight: 400;
+    line-height: 130%;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    grid-column: 1/7;
+    background: #F8F8F8;
+    border-radius: .4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+}
+
+.ranges {
+    text-rendering: optimizeSpeed;
+    font-family: 'Transcript Pro', sans-serif;
+    font-weight: 400;
+    line-height: 130%;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-radius: .4rem;
+}
+
+.legend {
+    text-rendering: optimizeSpeed;
+    font-family: 'Transcript Pro', sans-serif;
+    font-weight: 400;
+    line-height: 130%;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0 10px;
+}
+
+.ranges__li {
+    text-rendering: optimizeSpeed;
+    font-family: 'Transcript Pro', sans-serif;
+    font-weight: 400;
+    line-height: 130%;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    list-style: none;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 10px 15px;
+    border-radius: .4rem;
+    cursor: pointer;
+}
+
+.legend__li {
+    text-rendering: optimizeSpeed;
+    font-family: 'Transcript Pro', sans-serif;
+    font-weight: 400;
+    line-height: 130%;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    list-style: none;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1rem;
+}
+
+.bul {
+    text-rendering: optimizeSpeed;
+    font-family: 'Transcript Pro', sans-serif;
+    font-weight: 400;
+    line-height: 130%;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    list-style: none;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    display: inline-block;
+    height: 12px;
+    width: 12px;
+    border-radius: 6px;
+    margin-right: 10px;
+    vertical-align: -2px;
+    background: #0070ff;
+}
+
+.cbhChart {
+    font-size: 62.5%;
+    text-rendering: optimizeSpeed;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+    box-sizing: border-box;
+    grid-column: 1/7;
+    position: relative;
+    height: 450px;
+}

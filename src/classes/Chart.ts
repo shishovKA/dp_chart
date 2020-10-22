@@ -162,6 +162,7 @@ export class Chart {
                     plot.drawPlot(canvas.ctx, series.plotDataArr);
                 };
             })
+            
         this.tooltipsDraw(true);
     }
 

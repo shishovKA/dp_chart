@@ -5,16 +5,18 @@ import "./styles/normalize.css";
 import "./styles/style.css";
 import "./styles/fonts.css";
 
+import "./styles/cbhStyles.css";
+
 
 // импорт элементов управления графиком
 //import { Panel } from "./control/Panel"
 //import { Btn } from "./control/Btn"
 import { ChartPanel } from "./control/ChartPanel"
-import { chart } from "./chartConfig"
+import { CbhChart } from "./chartConfig"
 
 
 //элементы управления
-const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
+;
 
 console.log('before');
 
@@ -25,9 +27,7 @@ WebFont.load({
   },
 
   active: function () {
-  //  chart.addOnPage();
-  //  chart.reDraw();
-  //  chart.tooltipsDraw(true);
+    const chartPanel = new ChartPanel(document.querySelector('.panel'), CbhChart());
   },
 
 });

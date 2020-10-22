@@ -30,24 +30,21 @@ export class Canvas {
         this.container = container;
         this.canvas = document.createElement('canvas');
 
-        this.width = this.container.getBoundingClientRect().width;
-        this.height = this.container.getBoundingClientRect().height;
 
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-        
-        this.container.appendChild(this.canvas);
-        this._ctx = this.canvas.getContext('2d');
-        
-        //canvasDpiScaler(this.canvas, this._ctx);
-        this.clear = this.clear.bind(this);
-        this.resize();
+        this.canvas.style.position = 'absolute';
 
         this.top = 0;
         this.right = 0;
         this.bottom = 0;
         this.left = 0;
         this.setPaddings(...paddings);
+        
+        this.container.appendChild(this.canvas);
+        this._ctx = this.canvas.getContext('2d');
+        
+        this.clear = this.clear.bind(this);
+
+
 
         this.canvas.addEventListener('mousemove', (event) => {
             this.mouseCoords = this.getMouseCoords(event);
@@ -75,6 +72,7 @@ export class Canvas {
         });
 
         this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+        this.resize();
     }
 
     addOnPage() {
@@ -142,8 +140,13 @@ export class Canvas {
 
     resize() {
         this.clear();
+        this.drawVp();
         this.width = this.container.getBoundingClientRect().width;
         this.height = this.container.getBoundingClientRect().height;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        this.canvas.style.width = this.width.toString()+'px';
+        this.canvas.style.height = this.height.toString()+'px';
         canvasDpiScaler(this.canvas, this._ctx, this.width, this.height);
     }
 
