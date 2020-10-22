@@ -44,8 +44,11 @@ export class Canvas {
         
         this.clear = this.clear.bind(this);
 
+        this.resize();
+    }
 
 
+    turnOnListenres() {
         this.canvas.addEventListener('mousemove', (event) => {
             this.mouseCoords = this.getMouseCoords(event);
             if (this.inDrawArea) {
@@ -55,6 +58,11 @@ export class Canvas {
                 this.mouseOuted.dispatch();
             }
           });
+
+        this.canvas.addEventListener('mouseleave', (event) => {
+            this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+            this.mouseOuted.dispatch();
+        });
 
         this.canvas.addEventListener('touchmove', (event) => {
             this.mouseCoords = this.getTouchCoords(event);
@@ -71,8 +79,7 @@ export class Canvas {
             this.touchEnded.dispatch();
         });
 
-        this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
-        this.resize();
+        this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY); 
     }
 
     addOnPage() {

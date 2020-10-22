@@ -155,13 +155,13 @@ export class Series {
     }
 
     getClosestPlotPoint(x: number): Point {
-        const coord =  this.plotData[0].reduce((prev, curr, i) => {
+        const coord =  this.plotDataArr.reduce((prev, curr, i) => {
             const curDif = Math.abs(curr.x - x);
             const prevDif = Math.abs(prev.x - x);
             if (curDif < prevDif) return curr
             return prev
-              }, this.plotData[0][0]);
-        return coord;
+              }, this.plotDataArr[0]);
+        return new Point(coord.x, coord.y);
     }
 
     get plotDataArr(): Point[] {

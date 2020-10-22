@@ -56,15 +56,17 @@ function prepareDataforCbh(star5: number[], star1: number[], fromIndex:number) {
             area5starBottom.push(0);
         }
         */
+        let elTop5 = (item5star > 0) ? ((item5star > item1star) ? item5star : item5star) : 0
+        area5starTop.push(elTop5);
 
-        area5starTop.push(item5star > 0 ? Math.max(item5star, item1star, 0) : Math.max(item5star, 0));
-        area5starBottom.push(item5star > 0 ? (item1star > 0 ? item1star : 0) : item5star);
+        let elBot5 = (item5star > 0) ? ((item1star > 0) ? ((item1star > item5star) ? item5star : item1star) : 0) : item5star
+        area5starBottom.push(elBot5);
 
-        let elTop1 = item1star > 0 ? item1star : item5star > 0 ? 0 : item5star;
-        //if (elTop1 !== 0)  
+        let elTop1 = (item1star > 0) ? item1star : ((item5star > 0) ? 0 : ((item5star < item1star) ? item1star : item5star));
         area1starTop.push(elTop1);
 
-        area1starBottom.push(Math.min(item5star, item1star, 0));
+        let elBot1 = (item1star > 0) ? 0 : ((item5star < item1star) ? item1star : item1star);
+        area1starBottom.push(elBot1);
     }
     return {serie5star, area5starTop, area5starBottom, serie1star, area1starTop, area1starBottom};
 }

@@ -184,7 +184,7 @@ export class Tooltip {
         const labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
 
 
-        const labelCenter = new Point(labelCoord.x, labelRect.y1 + labelRect.height*0.5);
+        let labelCenter = new Point(labelCoord.x, labelRect.y1 + labelRect.height*0.5);
         
         let roundRect: Rectangle = new Rectangle(
                 labelCenter.x-rectWidth*0.5, 
@@ -204,9 +204,9 @@ export class Tooltip {
             roundRect.move(0,  -roundRect.x2 + vp.x2); 
         }
 
-        const labelCenter = new Point(labelCoord.x, labelRect.y1 + labelRect.height*0.5);
+        labelCenter = new Point(labelCoord.x, labelRect.y1 + labelRect.height*0.5);
         
-        let roundRect: Rectangle = new Rectangle(
+        roundRect = new Rectangle(
                 labelCenter.x-rectWidth*0.5, 
                 labelCenter.y-rectPadding-labelRect.height*0.5, 
                 labelCenter.x+rectWidth*0.5, 
@@ -252,7 +252,9 @@ export class Tooltip {
     }
 
 
-    drawDataYEnd(ctx: CanvasRenderingContext2D, vp:Rectangle, ttCoord: Point, seriesData: Point, toDraw?: boolean): Rectangle{
+    drawDataYEnd(ctx: CanvasRenderingContext2D, vp:Rectangle, start_ttCoord: Point, seriesData: Point, toDraw?: boolean): Rectangle{
+        const ttCoord = new Point(start_ttCoord.x, start_ttCoord.y);
+        
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;

@@ -23,9 +23,9 @@ export class Chart {
         this.canvas = new Canvas(container);
         this.canvasA = new Canvas(container);
         this.canvasTT = new Canvas(container);
+        this.canvasTT.turnOnListenres();
 
         this.canvasTT.canvas.style.zIndex = "10";
-
         this.data = new Data();
         this.plots = [];
 
