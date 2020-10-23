@@ -1,6 +1,6 @@
 {
   "name": "dp-chart-lib",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Data Prime Chart Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
