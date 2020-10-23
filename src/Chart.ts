@@ -6,6 +6,7 @@ import { Transformer } from "./Transformer";
 import { Rectangle } from "./Rectangle";
 import { Point } from "./Point";
 import { Series } from "./Series";
+import { Signal } from "signals";
 
 export class Chart {
 
@@ -17,6 +18,7 @@ export class Chart {
     plots: Plot[];
     xAxis: Axis;
     yAxis: Axis;
+    tooltipsDataIndexUpdated: Signal;
 
     constructor(container: HTMLElement, xMinMax: number[], yMinMax: number[]) {
         this.container = container;
@@ -42,6 +44,8 @@ export class Chart {
         this.bindChildSignals();
 
         this.tooltipsDraw(true);
+
+        this.tooltipsDataIndexUpdated = new Signal();
     }
 
 
@@ -227,6 +231,8 @@ export class Chart {
 
             const seriesX = this.xAxis.min + mouseXY.x * (this.xAxis.length) / this.canvasTT.viewport.width;
             const pointData = series.getClosestPoint(seriesX);
+
+            this.tooltipsDataIndexUpdated.dispatch(pointData.x);
 
             const tooltipCoord = series.getClosestPlotPoint(mouseXY.x);
             //const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
