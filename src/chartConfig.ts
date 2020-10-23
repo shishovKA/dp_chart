@@ -8,7 +8,7 @@ import {Chart}  from "dp-chart-lib"
 function CbhChart(): Chart {
 
     const chart = new Chart(document.getElementById('indexChart'), [0, 900], [0, 2000]);
-    chart.setCanvasPaddings(25, 50, 35, 10); // задаем отступы для области отрисовки
+    chart.setCanvasPaddings(25, 50, 35, 20); // задаем отступы для области отрисовки
 
     // ось X
     chart.xAxis.setOptions(2, '#7F7F7F');

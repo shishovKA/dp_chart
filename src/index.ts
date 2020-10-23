@@ -18,11 +18,28 @@ import { cbh1 } from "./data/cbh1"
 import { cbh5 } from "./data/cbh5"
 import { xLabels } from "./data/xLabels"
 
+//работа с виджетом для отображения индекса данных
 const indexWidget = document.getElementById('chart_w_ind');
 
 function conncetIndexWidget(index: number) {
   indexWidget?.textContent = index.toString();
 }
+
+//работа с виджетом для отображения данных красного графика
+const redWidget = document.getElementById('chart_w_data_red');
+
+function conncetRedWidget(index: number) {
+  redWidget?.textContent = cbh1[index].toFixed(1);
+}
+
+//работа с виджетом для отображения данных синего графика
+const blueWidget = document.getElementById('chart_w_data_blue');
+
+function conncetBlueWidget(index: number) {
+  blueWidget?.textContent = cbh5[index].toFixed(1);
+}
+
+
 
 let chart: Chart;
 
@@ -35,6 +52,8 @@ WebFont.load({
   active: function () {
     chart = CbhChart();
     chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
+    chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
+    chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
   },
 
 });
