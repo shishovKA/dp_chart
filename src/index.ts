@@ -13,12 +13,16 @@ import "./styles/cbhStyles.css";
 //import { Btn } from "./control/Btn"
 import { ChartPanel } from "./control/ChartPanel"
 import { CbhChart } from "./chartConfig"
-
+import { Chart } from "./classes/Chart"
 
 //элементы управления
-;
+let chart: Chart;
+const blueVal = document.getElementById("cbhIdx5-val");
 
-console.log('before');
+function updateBlueText(index:number){
+  blueVal?.textContent = index.toString();
+}
+
 
 WebFont.load({
   custom: {
@@ -27,7 +31,11 @@ WebFont.load({
   },
 
   active: function () {
-    const chartPanel = new ChartPanel(document.querySelector('.panel'), CbhChart());
+
+    chart = CbhChart();
+    chart.dataIndUpdated.add(updateBlueText);
+    const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
+
   },
 
 });
