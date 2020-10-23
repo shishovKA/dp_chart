@@ -54,13 +54,13 @@ export class Canvas {
             if (this.inDrawArea) {
                 this.mouseMoved.dispatch();
             } else {
-                this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+                this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
                 this.mouseOuted.dispatch();
             }
           });
 
         this.canvas.addEventListener('mouseleave', (event) => {
-            this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+            this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
             this.mouseOuted.dispatch();
         });
 
@@ -69,17 +69,17 @@ export class Canvas {
             if (this.inDrawArea) {
                 this.mouseMoved.dispatch();
             } else {
-                this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+                this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
                 this.mouseOuted.dispatch();
             }
         });
 
         this.canvas.addEventListener('touchend', (event) => {
-            this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+            this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
             this.touchEnded.dispatch();
         });
 
-        this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY); 
+        this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY); 
     }
 
     addOnPage() {
@@ -135,7 +135,7 @@ export class Canvas {
             break;
           }
         
-        this.mouseCoords = new Point(this.viewport.width, this.viewport.zeroY);
+        this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
         this.changed.dispatch();
         return 
     }
@@ -173,14 +173,14 @@ export class Canvas {
 
     getMouseCoords(event): Point {
         var bcr = this.canvas.getBoundingClientRect();
-        return new Point(event.clientX - bcr.left - this.viewport.zeroX, event.clientY - bcr.top - this.viewport.y1);
+        return new Point(event.clientX - bcr.left  - this.viewport.x1, event.clientY - bcr.top - this.viewport.y1);
     }
 
     getTouchCoords(event): Point {
         const clientX = event.touches[0].clientX;
         const clientY = event.touches[0].clientY;
         var bcr = this.canvas.getBoundingClientRect();
-        return new Point(clientX - bcr.left - this.viewport.zeroX, clientY - bcr.top - this.viewport.y1);
+        return new Point(clientX - bcr.left - this.viewport.x1, clientY - bcr.top - this.viewport.y1);
     }
 
     clipCanvas() {

@@ -232,9 +232,9 @@ export class Chart {
             const seriesX = this.xAxis.min + mouseXY.x * (this.xAxis.length) / this.canvasTT.viewport.width;
             const pointData = series.getClosestPoint(seriesX);
 
-            this.dataIndUpdated.dispatch(pointData.x);
+            const tooltipCoord = series.getClosestPlotPoint(mouseXY.x+this.canvasTT.left);
 
-            const tooltipCoord = series.getClosestPlotPoint(mouseXY.x);
+            this.dataIndUpdated.dispatch(pointData.x);
             //const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
 
             series.plots.forEach((plotId) => {
