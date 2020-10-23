@@ -335,7 +335,7 @@ export class Ticks {
         return coords;
     }
 
-    generateNiceCbhTicks(min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
+    generateNiceCbhTicks(min:number, max:number, vp: Rectangle) {
         let coords = [];
 
         let deviation = Math.abs(max - min);
@@ -608,6 +608,7 @@ export class Ticks {
     }
 
     // Метод анимации изменение параметра step
+    /*
     tickStepAnimation(from: number, to: number, duration: number) {
         let start = performance.now();
         
@@ -622,5 +623,6 @@ export class Ticks {
         }
         requestAnimationFrame(animate);
     }
+    */
 
   }
