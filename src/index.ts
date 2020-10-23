@@ -13,8 +13,17 @@ import "./styles/fonts.css";
 import { CbhChart } from "./chartConfig"
 import { Chart } from 'dp-chart-lib';
 
+//импорт данных
+import { cbh1 } from "./data/cbh1"
+import { cbh5 } from "./data/cbh5"
+import { xLabels } from "./data/xLabels"
 
-//элементы управления
+const indexWidget = document.getElementById('chart_w_ind');
+
+function conncetIndexWidget(index: number) {
+  indexWidget?.textContent = index.toString();
+}
+
 let chart: Chart;
 
 WebFont.load({
@@ -25,6 +34,7 @@ WebFont.load({
 
   active: function () {
     chart = CbhChart();
+    chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
   },
 
 });

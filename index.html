@@ -6,15 +6,32 @@
 </head>
 
 <body>
-    <section class="chart__section">
-        <p class='chart__title'>div to insert your Chart</p>
+    
+    <section class="section section_chart">
+        <p class='chart__title'>div to insert your Chart:</p>
         <!-- div to insert your Chart-->
         <div id="indexChart" class="chart__container"></div>
     </section>
 
-    <section class="panel">
 
+    <section class="section section_widget">
+        <p class='chart__title'>add widgets to show tooltip data:</p>
+        <!-- div to insert your Chart-->
+        <div class="datawidget" style="border: solid black 2px">
+            <p class="datawidget__label">index: <strong id='chart_w_ind'>1983</strong></p>
+        </div>
+
+        <div class="datawidget" style="border: solid red 2px">
+            <p class="datawidget__label">data: <strong id='chart_w_data_red'>1983</strong></p>
+        </div>
+
+        <div class="datawidget" style="border: solid blue 2px">
+            <p class="datawidget__label">data: <strong id='chart_w_data_red'>1983</strong></p>
+        </div>
     </section>
+
+
+
 
     <script src="./src/index.ts"></script>
 
