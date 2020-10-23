@@ -2,7 +2,7 @@
 import { cbh1, cbh5, xLabels, zeroSeries, prepareDataforCbh } from "./chartData"
 
 // импорт ключевого класса Chart
-import { Chart } from "./classes/Chart"
+import Chart  from "dp-chart-lib"
 
 // работа с Chart
 function CbhChart(): Chart {
