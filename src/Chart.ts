@@ -234,7 +234,8 @@ export class Chart {
 
             this.tooltipsDataIndexUpdated.dispatch(pointData.x);
 
-            const tooltipCoord = series.getClosestPlotPoint(mouseXY.x);
+            const tooltipCoord = series.getClosestPlotPoint(mouseXY.x+this.canvasTT.left);
+
             //const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
 
             series.plots.forEach((plotId) => {
