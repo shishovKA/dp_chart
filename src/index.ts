@@ -5,20 +5,17 @@ import "./styles/normalize.css";
 import "./styles/style.css";
 import "./styles/fonts.css";
 
-import "./styles/cbhStyles.css";
-
 
 // импорт элементов управления графиком
 //import { Panel } from "./control/Panel"
 //import { Btn } from "./control/Btn"
-import { ChartPanel } from "./control/ChartPanel"
+
 import { CbhChart } from "./chartConfig"
+import { Chart } from 'dp-chart-lib';
 
 
 //элементы управления
-;
-
-console.log('before');
+let chart: Chart;
 
 WebFont.load({
   custom: {
@@ -27,7 +24,7 @@ WebFont.load({
   },
 
   active: function () {
-    const chartPanel = new ChartPanel(document.querySelector('.panel'), CbhChart());
+    chart = CbhChart();
   },
 
 });
