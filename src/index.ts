@@ -5,12 +5,7 @@ import "./styles/normalize.css";
 import "./styles/style.css";
 import "./styles/fonts.css";
 
-
-// импорт элементов управления графиком
-//import { Panel } from "./control/Panel"
-//import { Btn } from "./control/Btn"
-
-import { CbhChart } from "./chartConfig"
+//импорт класса Chart
 import { Chart } from 'dp-chart-lib';
 
 //импорт данных
@@ -21,6 +16,7 @@ import { xLabels } from "./data/xLabels"
 const zeroSeries = cbh1.map(() => {
   return 0;
 })
+
 
 let chart: Chart;
 
@@ -62,46 +58,6 @@ function conncetBlueWidget(index: number) {
 
 
 //настройка кнопок для управлением диапазоном оси дат
-
-//вспомогательные функции для работы с датами для определения области построения графика
-function dateParser(myDate: string) {
-  const arr = myDate.split('.');
-  arr[2] = '20'+arr[2];
-  const date = new Date(+arr[2], +arr[1], +arr[0]);
-  return date;
-}
-
-function findDateInd(date: Date) {
-  const ind =  xLabels.reduce((prev, curr, i) => {
-    const curDif = Math.abs(dateParser(curr)-date);
-    const prevDif = Math.abs(dateParser(xLabels[prev])-date);
-    if (curDif < prevDif) return i
-    return prev
-      }, 0);
-  return ind;
-}
-
-
-// подготавливаем данные как на сайте CyberHedge
-function reorganizeChart(cbh5, cbh1, min, max) {
-  let data = prepareDataforCbh(cbh5, cbh1, min);
-  let {
-    serie5star,
-    area5starTop,
-    area5starBottom,
-    serie1star,
-    area1starTop,
-    area1starBottom
-  } = data;
-
-  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([area5starTop, area5starBottom]);
-  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
-  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
-  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
-
-  chart.xAxis.setMinMax([min,max], false);
-  chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), true);
-}
 
 //последняя дата
 const lastLb = xLabels[xLabels.length-1];
@@ -150,16 +106,55 @@ MaxBtn.addEventListener("click", (event) => {
 
 
 
+
+// подготавливаем данные как на сайте CyberHedge
+function reorganizeChart(cbh5, cbh1, min, max) {
+  let data = prepareDataforCbh(cbh5, cbh1, min);
+  let {
+    serie5star,
+    area5starTop,
+    area5starBottom,
+    serie1star,
+    area1starTop,
+    area1starBottom
+  } = data;
+
+  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([area5starTop, area5starBottom]);
+  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
+  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
+  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
+
+  chart.xAxis.setMinMax([min,max], false);
+  chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), true);
+}
+
+
+//вспомогательные функции для работы
+function dateParser(myDate: string) {
+  const arr = myDate.split('.');
+  arr[2] = '20'+arr[2];
+  const date = new Date(+arr[2], +arr[1], +arr[0]);
+  return date;
+}
+
+function findDateInd(date: Date) {
+  const ind =  xLabels.reduce((prev, curr, i) => {
+    const curDif = Math.abs(dateParser(curr)-date);
+    const prevDif = Math.abs(dateParser(xLabels[prev])-date);
+    if (curDif < prevDif) return i
+    return prev
+      }, 0);
+  return ind;
+}
+
+
 function calculateDeviations(rowData: number[], fromIndex: number) {
   let chartDataVariation = [];
   let zeroPoint = rowData[fromIndex];
-
   chartDataVariation = [];
-
   for (let j = 0, m = rowData.length; j < m; j++) {
     chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
   }
-
   return chartDataVariation;
 }
 
