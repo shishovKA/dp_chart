@@ -23,7 +23,6 @@
     "@types/webfontloader": "^1.6.32",
     "d3-fetch": "^2.0.0",
     "dp-chart-lib": "^1.0.4",
-    "parcel-plugin-asset-csv": "^0.1.5",
     "webfontloader": "^1.6.28"
   }
 }

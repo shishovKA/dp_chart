@@ -4,6 +4,11 @@ const path = require('path');
 const usCsv = require('./data/cbhPlotData_US.csv');
 const euCsv = require('./data/cbhPlotData_EU.csv');
 
+console.log(usCsv);
+console.log(euCsv);
+
+
+
 // импорт стилей
 import "./styles/normalize.css";
 import "./styles/style.css";
@@ -23,8 +28,8 @@ let zeroSeries: number[] = [];
 // загрузка из CSV
 function loadDataFromCsv(filePath: string) {
   return new Promise(function (resolve, reject) {
-
-    csv(path.resolve(filePath))
+    //console.log(path.resolve('https://raw.githubusercontent.com/shishovKA/dp_chart/gh-pages/', filePath))
+    csv(filePath)
       .then((data) => {
         let cbh1: number[] = [];
         let cbh5: number[] = [];
