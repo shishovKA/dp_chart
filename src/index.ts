@@ -1,4 +1,8 @@
 import WebFont from 'webfontloader';
+import { csv } from "d3-fetch"
+const path = require('path');
+const usCsv = require('./data/cbhPlotData_US.csv');
+const euCsv = require('./data/cbhPlotData_EU.csv');
 
 // импорт стилей
 import "./styles/normalize.css";
@@ -8,18 +12,49 @@ import "./styles/fonts.css";
 //импорт класса Chart
 import { Chart } from 'dp-chart-lib';
 
-//импорт данных
-import { cbh1 } from "./data/cbh1"
-import { cbh5 } from "./data/cbh5"
-import { xLabels } from "./data/xLabels"
-
-const zeroSeries = cbh1.map(() => {
-  return 0;
-})
-
-
+//объявляем данные
 let chart: Chart;
 
+let cbh1: number[] = [];
+let cbh5: number[] = [];
+let xLabels: string[] = [];
+let zeroSeries: number[] = [];
+
+// загрузка из CSV
+function loadDataFromCsv(filePath: string) {
+  return new Promise(function (resolve, reject) {
+
+    csv(path.resolve(filePath))
+      .then((data) => {
+        let cbh1: number[] = [];
+        let cbh5: number[] = [];
+        let xLabels: string[] = [];
+        let zeroSeries: number[] = [];
+
+        data.forEach((element, index) => {
+          if (element.cbhIdx1) cbh1.push(+element.cbhIdx1);
+          if (element.cbhIdx5) cbh5.push(+element.cbhIdx5);
+          if (element.t) xLabels.push(dateLoadParser(element.t));
+        });
+
+        zeroSeries = cbh1.map(() => {
+          return 0;
+        })
+
+        resolve({cbh1, cbh5, xLabels, zeroSeries});
+
+      })
+      .catch((error) => {
+        reject(new Error("Can't Load CSV"));
+      })
+
+  });
+
+}
+
+
+
+// проверка подгрузки шрифта
 WebFont.load({
   custom: {
     families: ['Transcript Pro'],
@@ -27,11 +62,23 @@ WebFont.load({
   },
 
   active: function () {
-    chart = CbhChart();
-    chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
-    chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
-    chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
-    chart.tooltipsDraw(true);
+    loadDataFromCsv(usCsv)
+      .then((dataObj)=>{
+
+        cbh1 = dataObj.cbh1;
+        cbh5 = dataObj.cbh5;
+        xLabels = dataObj.xLabels;
+        zeroSeries = dataObj.zeroSeries;
+
+        chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
+        chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
+        chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
+        chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
+        chart.tooltipsDraw(true);
+      })
+      .catch((err)=> {
+        console.log(err);
+      })
   },
 
 });
@@ -41,31 +88,32 @@ WebFont.load({
 const indexWidget = document.getElementById('chart_w_ind');
 
 function conncetIndexWidget(index: number) {
-  indexWidget?.textContent = index.toString();
+  if (indexWidget) indexWidget.textContent = index.toString();
 }
 
 const redWidget = document.getElementById('chart_w_data_red');
 
 function conncetRedWidget(index: number) {
-  redWidget?.textContent = cbh1[index].toFixed(1);
+  if (redWidget) redWidget.textContent = cbh1[index].toFixed(1);
 }
 
 const blueWidget = document.getElementById('chart_w_data_blue');
 
 function conncetBlueWidget(index: number) {
-  blueWidget?.textContent = cbh5[index].toFixed(1);
+  if (blueWidget) blueWidget.textContent = cbh5[index].toFixed(1);
 }
 
 
 //настройка кнопок для управлением диапазоном оси дат
 
 //последняя дата
-const lastLb = xLabels[xLabels.length-1];
+
 
 //кнопка 6M
 const SixMBtn = document.getElementById('6M');
 
 SixMBtn.addEventListener("click", (event) => {
+    const lastLb = xLabels[xLabels.length-1];
     const maxDate = dateParser(lastLb);
     const minDate = maxDate.setMonth(maxDate.getMonth() - 6);
     const max = xLabels.length-1;
@@ -77,6 +125,7 @@ SixMBtn.addEventListener("click", (event) => {
 const OneYBtn = document.getElementById('1Y');
 
 OneYBtn.addEventListener("click", (event) => {
+    const lastLb = xLabels[xLabels.length-1];
     const maxDate = dateParser(lastLb);
     const minDate = maxDate.setFullYear(maxDate.getFullYear() - 1);
     const max = xLabels.length-1;
@@ -88,6 +137,7 @@ OneYBtn.addEventListener("click", (event) => {
 const TwoYBtn = document.getElementById('2Y');
 
 TwoYBtn.addEventListener("click", (event) => {
+  const lastLb = xLabels[xLabels.length-1];
   const maxDate = dateParser(lastLb);
   const minDate = maxDate.setFullYear(maxDate.getFullYear() - 2);
   const max = xLabels.length - 1;
@@ -102,10 +152,49 @@ MaxBtn.addEventListener("click", (event) => {
   const max = xLabels.length - 1;
   const min = 0;
   reorganizeChart(cbh5, cbh1, min, max);
-})
+});
 
 
+//Кнока EU
+const euBtn = document.getElementById('EU');
 
+if (euBtn) {
+  euBtn.addEventListener("click", (event) => {
+    loadDataFromCsv(euCsv)
+      .then((dataObj) => {
+        cbh1 = dataObj.cbh1;
+        cbh5 = dataObj.cbh5;
+        xLabels = dataObj.xLabels;
+        zeroSeries = dataObj.zeroSeries;
+
+        const max = xLabels.length - 1;
+        const min = 0;
+
+        reorganizeChart(cbh5, cbh1, min, max);
+      })
+  });
+}
+
+//Кнока US
+const usBtn = document.getElementById('US');
+
+if (usBtn) {
+  usBtn.addEventListener("click", (event) => {
+    loadDataFromCsv(usCsv)
+      .then((dataObj) => {
+        cbh1 = dataObj.cbh1;
+        cbh5 = dataObj.cbh5;
+        xLabels = dataObj.xLabels;
+        zeroSeries = dataObj.zeroSeries;
+
+        const max = xLabels.length - 1;
+        const min = 0;
+
+        reorganizeChart(cbh5, cbh1, min, max);
+
+      })
+  });
+}
 
 // подготавливаем данные как на сайте CyberHedge
 function reorganizeChart(cbh5, cbh1, min, max) {
@@ -123,6 +212,8 @@ function reorganizeChart(cbh5, cbh1, min, max) {
   chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
   chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
   chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
+  chart.xAxis.ticks.setCustomLabels(xLabels);
+  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
 
   chart.xAxis.setMinMax([min,max], false);
   chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), true);
@@ -134,6 +225,13 @@ function dateParser(myDate: string) {
   const arr = myDate.split('.');
   arr[2] = '20'+arr[2];
   const date = new Date(+arr[2], +arr[1], +arr[0]);
+  return date;
+}
+
+function dateLoadParser(myDate: string) {
+  const arr = myDate.split('-');
+  arr[0] = arr[0].slice(2);
+  const date = (arr[2] + '.' + arr[1] + '.' + arr[0]);
   return date;
 }
 
@@ -189,7 +287,7 @@ function prepareDataforCbh(star5: number[], star1: number[], fromIndex: number) 
 }
 
 //функция создает и настраивает Chart как на сайте
-function CbhChart(): Chart {
+function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
 
   const chart = new Chart(document.getElementById('indexChart'), [0, 900], [0, 2000]);
   chart.setCanvasPaddings(25, 50, 35, 20); // задаем отступы для области отрисовки
