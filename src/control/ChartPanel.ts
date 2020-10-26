@@ -623,7 +623,7 @@ export class ChartPanel {
         label.append(text);
 
         input.addEventListener('change', (event) => {
-            this.chart.switchDataAnimation(event.target.checked);
+            this.chart.data.switchAllSeriesAnimation(event.target.checked);
         });
         
         return fieldset;

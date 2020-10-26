@@ -23,6 +23,8 @@ function updateBlueText(index:number){
   blueVal?.textContent = index.toString();
 }
 
+import  bezier  from "bezier-easing"
+const easing = bezier(0.65, 0, 0.35, 1);
 
 WebFont.load({
   custom: {
@@ -35,10 +37,12 @@ WebFont.load({
     chart = CbhChart();
     chart.dataIndUpdated.add(updateBlueText);
     const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
-
+    chart.data.changeAllSeriesAnimationTimeFunction(easing);
   },
 
 });
+
+
 
 
 

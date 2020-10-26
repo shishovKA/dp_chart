@@ -44,6 +44,18 @@ export class Data {
         return null;
     }
 
+    switchAllSeriesAnimation(hasAnimation: boolean, duration?: number) {
+        this.seriesStorage.forEach((series, ind) => {
+            series.hasAnimation = hasAnimation;
+            if (duration) series.animationDuration = duration;
+        })
+    }
+
+    changeAllSeriesAnimationTimeFunction(newTimeFunc:(time: number) => number) {
+        this.seriesStorage.forEach((series, ind) => {
+            series.timeFunc = newTimeFunc;
+        })
+    }
 
 /*
     addSeries(id: string, ...seriesData: number[][]) {

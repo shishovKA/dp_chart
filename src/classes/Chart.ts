@@ -213,6 +213,8 @@ export class Chart {
         })
     }
 
+    
+
 
     // отрисовываем тултипы
     tooltipsDraw(drawLast?: boolean) {

@@ -4,6 +4,7 @@ import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 import { Transformer } from "./Transformer";
 
+
 export class Series {
 
     id: string;
@@ -14,6 +15,9 @@ export class Series {
     animationDuration: number = 300;
     canvas: Canvas;
     extremes: number[];
+    timeFunc: (time: number) => number = function (time) {
+        return time;
+      };
 
     onPlotDataChanged: Signal;
     
@@ -250,10 +254,14 @@ export class Series {
 
         let start = performance.now();
 
-        const animate = (time) => {
+        
+        
+        const animate = (time: number) => {
 
-            let timeFraction = (time - start) / duration;
-            if (timeFraction > 1) timeFraction = 1;
+            let tekTime = (time - start) / duration
+            let timeFraction = this.timeFunc(tekTime);
+
+            if (tekTime > 1) tekTime = 1;
 
             let tekData: Point[][] = [];
 
@@ -269,7 +277,7 @@ export class Series {
 
             this.onPlotDataChanged.dispatch(this);
 
-            if (timeFraction < 1) {
+            if (tekTime < 1) {
                 requestAnimationFrame(animate);
             } else {
                 this.plotData = toData;
