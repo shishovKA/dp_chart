@@ -12,7 +12,8 @@ import "./styles/fonts.css";
 import  bezier  from "bezier-easing"
 const easing = bezier(0.65, 0, 0.35, 1);
 
-import { csv } from "d3-fetch"
+import {Chart} from "dp-chart-lib"
+
 const path = require('path');
 const usCsv = require('./data/cbhPlotData_US.csv');
 const euCsv = require('./data/cbhPlotData_EU.csv');
@@ -108,6 +109,8 @@ WebFont.load({
   },
 
   active: function () {
+
+    /*
     loadDataFromCsv(usCsv)
       .then((dataObj)=>{
 
@@ -123,9 +126,32 @@ WebFont.load({
         chart.tooltipsDraw(true);
 
       })
-      .catch((err)=> {
+*/
+    customLoadDataFromCsv(euCsv).then((data) => {
+      let chartData = csvToCols(data);
+      //console.log('chartData',chartData);
+
+      cbh1 = chartData[2].slice(1).map((el) => { return +el });
+      cbh5 = chartData[1].slice(1).map((el) => { return +el });
+      xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
+      zeroSeries = cbh1.map(() => 0);
+      console.log('cbh1', cbh1);
+
+      chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
+      chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
+      chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
+      chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
+      chart.tooltipsDraw(true);
+
+      //const max = zeroSeries.length - 1;
+      //const min = 0;
+      //reorganizeChart(cbh5, cbh1, min, max);
+    })
+      .catch((err) => {
         console.log(err);
       })
+
+      
   },
 
 });

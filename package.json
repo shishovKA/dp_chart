@@ -19,12 +19,10 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {
+    "@types/webfontloader": "^1.6.32",
     "bezier-easing": "^2.1.0",
     "canvas-dpi-scaler": "0.0.3",
-    "d3-fetch": "^2.0.0",
-    "signals": "^1.0.0",
-    "webfontloader": "^1.6.28",
-    "@types/d3-fetch": "^2.0.0",
-    "@types/webfontloader": "^1.6.32"
+    "dp-chart-lib": "^1.0.5",
+    "webfontloader": "^1.6.28"
   }
 }
