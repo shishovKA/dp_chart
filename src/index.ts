@@ -51,7 +51,8 @@ function loadDataFromCsv(filePath: string) {
         data.forEach((element, index) => {
           if (element.cbhIdx1) cbh1.push(+element.cbhIdx1);
           if (element.cbhIdx5) cbh5.push(+element.cbhIdx5);
-          if (element.t) xLabels.push(dateLoadParser(element.t));
+          if (element.t) xLabels.push(new Date(element.t));
+
         });
 
         zeroSeries = cbh1.map(() => {
@@ -86,6 +87,7 @@ WebFont.load({
         cbh5 = dataObj.cbh5;
         xLabels = dataObj.xLabels;
         zeroSeries = dataObj.zeroSeries;
+        console.log(dataObj);
 
         chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
         chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
@@ -131,8 +133,8 @@ const SixMBtn = document.getElementById('6M');
 
 SixMBtn.addEventListener("click", (event) => {
     const lastLb = xLabels[xLabels.length-1];
-    const maxDate = dateParser(lastLb);
-    const minDate = maxDate.setMonth(maxDate.getMonth() - 6);
+    const maxDate = lastLb;
+    const minDate = new Date (new Date (maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
     const max = xLabels.length-1;
     const min = findDateInd(minDate);
     reorganizeChart(cbh5, cbh1, min, max);
@@ -142,9 +144,9 @@ SixMBtn.addEventListener("click", (event) => {
 const OneYBtn = document.getElementById('1Y');
 
 OneYBtn.addEventListener("click", (event) => {
-    const lastLb = xLabels[xLabels.length-1];
-    const maxDate = dateParser(lastLb);
-    const minDate = maxDate.setFullYear(maxDate.getFullYear() - 1);
+    const lastLb: Date = xLabels[xLabels.length-1];
+    const maxDate: Date = lastLb;
+    const minDate = new Date (new Date (maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
     const max = xLabels.length-1;
     const min = findDateInd(minDate);
     reorganizeChart(cbh5, cbh1, min, max);
@@ -155,8 +157,8 @@ const TwoYBtn = document.getElementById('2Y');
 
 TwoYBtn.addEventListener("click", (event) => {
   const lastLb = xLabels[xLabels.length-1];
-  const maxDate = dateParser(lastLb);
-  const minDate = maxDate.setFullYear(maxDate.getFullYear() - 2);
+  const maxDate = lastLb;
+  const minDate = new Date (new Date (maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
   const max = xLabels.length - 1;
   const min = findDateInd(minDate);
   reorganizeChart(cbh5, cbh1, min, max);
@@ -238,27 +240,15 @@ function reorganizeChart(cbh5, cbh1, min, max) {
 
 
 //вспомогательные функции для работы
-function dateParser(myDate: string) {
-  const arr = myDate.split('.');
-  arr[2] = '20'+arr[2];
-  const date = new Date(+arr[2], +arr[1], +arr[0]);
-  return date;
-}
-
-function dateLoadParser(myDate: string) {
-  const arr = myDate.split('-');
-  arr[0] = arr[0].slice(2);
-  const date = (arr[2] + '.' + arr[1] + '.' + arr[0]);
-  return date;
-}
 
 function findDateInd(date: Date) {
   const ind =  xLabels.reduce((prev, curr, i) => {
-    const curDif = Math.abs(dateParser(curr)-date);
-    const prevDif = Math.abs(dateParser(xLabels[prev])-date);
+    const curDif = Math.abs(curr-date);
+    const prevDif = Math.abs(xLabels[prev]-date);
     if (curDif < prevDif) return i
     return prev
       }, 0);
+  console.log(ind);
   return ind;
 }
 

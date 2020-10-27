@@ -176,8 +176,8 @@ export class Tooltip {
 
         // параметры
         const rectPadding = 4;
-        const rectWidth = 50;
-        const labelText = (this.labels[seriesData.x]).toString();
+        const rectWidth = 55;
+        const labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
         const cornersRadius = this._options.mainSize;
 
         const labelCoord = new Point(ttCoord.x, vp.zeroY);

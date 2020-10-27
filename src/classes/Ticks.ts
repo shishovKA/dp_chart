@@ -488,10 +488,12 @@ export class Ticks {
         }
 
         for (let i = min+1; i <= max; i++) {
-            let curLabel = this.customLabels[i];
-            let preLabel = this.customLabels[i-1];
-            let curDate = dateParser(curLabel);
-            let preDate = dateParser(preLabel);
+            //let curLabel = this.customLabels[i];
+            //let preLabel = this.customLabels[i-1];
+            //let curDate = dateParser(curLabel);
+            //let preDate = dateParser(preLabel);
+            let curDate: Date = this.customLabels[i];
+            let preDate: Date = this.customLabels[i-1];
 
             //начала годов
             if ((curDate.getFullYear() - preDate.getFullYear()) !== 0) {
