@@ -12,7 +12,7 @@ import "./styles/fonts.css";
 import  bezier  from "bezier-easing"
 const easing = bezier(0.65, 0, 0.35, 1);
 
-import {Chart} from "dp-chart-lib"
+import { Chart } from "dp-chart-lib"
 
 const path = require('path');
 const usCsv = require('./data/cbhPlotData_US.csv');

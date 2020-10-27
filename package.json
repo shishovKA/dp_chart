@@ -22,7 +22,7 @@
     "@types/webfontloader": "^1.6.32",
     "bezier-easing": "^2.1.0",
     "canvas-dpi-scaler": "0.0.3",
-    "dp-chart-lib": "^1.0.5",
+    "dp-chart-lib": "^1.0.6",
     "webfontloader": "^1.6.28"
   }
 }
