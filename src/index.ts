@@ -21,7 +21,7 @@ const euCsv = require('./data/cbhPlotData_EU.csv');
 console.log(usCsv);
 console.log(euCsv);
 
-
+const gapY: number = 0.08;
 
 // импорт стилей
 import "./styles/normalize.css";
@@ -94,6 +94,7 @@ WebFont.load({
         chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
         chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
         chart.tooltipsDraw(true);
+
       })
       .catch((err)=> {
         console.log(err);
@@ -235,7 +236,10 @@ function reorganizeChart(cbh5, cbh1, min, max) {
   chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
 
   chart.xAxis.setMinMax([min,max], false);
-  chart.yAxis.setMinMax(chart.data.findExtremes('ind', min, max), true);
+
+  const MinMaxY = chart.data.findExtremes('ind', min, max);
+  const lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
+  chart.yAxis.setMinMax([MinMaxY[0]-gapY*lengthY, MinMaxY[1]+gapY*lengthY], true);
 }
 
 
@@ -373,7 +377,7 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
   // настраиваем Min Max осей
   chart.xAxis.setMinMax(chart.data.findExtremes('val'), true); //по экстремумам оси X
   chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), true); //scale to fit по Y
-  //chart.yAxis.setMinMax([chart.yAxis.min-0.05*chart.yAxis.length, chart.yAxis.max+0.05*chart.yAxis.length]); //добавляем по отступам как на сайте
+  chart.yAxis.setMinMax([chart.yAxis.min-gapY*chart.yAxis.length, chart.yAxis.max+gapY*chart.yAxis.length], true); //добавляем по отступам как на сайте
 
   //включаем анимацию
   chart.xAxis.ticks.switchAnimation(true, 300);
