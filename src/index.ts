@@ -34,7 +34,7 @@ let chart: Chart;
 
 let cbh1: number[] = [];
 let cbh5: number[] = [];
-let xLabels: string[] = [];
+let xLabels: Date[] = [];
 let zeroSeries: number[] = [];
 
 // загрузка из CSV
@@ -72,6 +72,35 @@ function loadDataFromCsv(filePath: string) {
 
 
 
+// рукописная загрузка из CSV
+function customLoadDataFromCsv(filePath: string) {
+
+return fetch(filePath).then((response) => {
+    var contentType = response.headers.get("content-type");
+    if(contentType && (contentType.includes("text/csv") || contentType.includes("application/octet-stream"))) {
+      return response.ok ? response.text() : Promise.reject(response.status);
+    }
+    throw new TypeError("Oops, we haven't got CSV!");
+  })
+}
+
+// csv to array
+function csvToCols(strData, strDelimiter) {
+	strDelimiter = strDelimiter || ",";
+	let rowData = strData.split("\n");
+
+	let colResult = [];
+	for (let i = rowData[0].split(strDelimiter).length - 1; i >= 0; i--) colResult.push([]);
+	for (let i = 0, l = rowData.length; i < l; i++) {
+		if (rowData[i].length) {
+			let row = rowData[i].split(strDelimiter);
+			for (let j = row.length - 1; j >= 0; j--) colResult[j].push(row[j]);
+		}
+  }
+	return colResult;
+}
+
+
 // проверка подгрузки шрифта
 WebFont.load({
   custom: {
@@ -87,7 +116,6 @@ WebFont.load({
         cbh5 = dataObj.cbh5;
         xLabels = dataObj.xLabels;
         zeroSeries = dataObj.zeroSeries;
-        console.log(dataObj);
 
         chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
         chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
@@ -180,6 +208,8 @@ const euBtn = document.getElementById('EU');
 
 if (euBtn) {
   euBtn.addEventListener("click", (event) => {
+    
+    /*
     loadDataFromCsv(euCsv)
       .then((dataObj) => {
         cbh1 = dataObj.cbh1;
@@ -192,6 +222,24 @@ if (euBtn) {
 
         reorganizeChart(cbh5, cbh1, min, max);
       })
+    */
+
+     customLoadDataFromCsv(euCsv).then((data) => {
+      let chartData = csvToCols(data);
+      //console.log('chartData',chartData);
+    
+      cbh1 = chartData[2].slice(1).map((el) => {return +el});
+      cbh5 = chartData[1].slice(1).map((el) => {return +el});
+      xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
+      zeroSeries = cbh1.map(() => 0 );
+    
+      console.log('cbh1',cbh1);
+    
+      const max = zeroSeries.length - 1;
+      const min = 0;
+      reorganizeChart(cbh5, cbh1, min, max);
+    })
+
   });
 }
 
@@ -200,19 +248,21 @@ const usBtn = document.getElementById('US');
 
 if (usBtn) {
   usBtn.addEventListener("click", (event) => {
-    loadDataFromCsv(usCsv)
-      .then((dataObj) => {
-        cbh1 = dataObj.cbh1;
-        cbh5 = dataObj.cbh5;
-        xLabels = dataObj.xLabels;
-        zeroSeries = dataObj.zeroSeries;
-
-        const max = xLabels.length - 1;
-        const min = 0;
-
-        reorganizeChart(cbh5, cbh1, min, max);
-
-      })
+    customLoadDataFromCsv(usCsv).then((data) => {
+      let chartData = csvToCols(data);
+      //console.log('chartData',chartData);
+    
+      cbh1 = chartData[2].slice(1).map((el) => {return +el});
+      cbh5 = chartData[1].slice(1).map((el) => {return +el});
+      xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
+      zeroSeries = cbh1.map(() => 0 );
+    
+      console.log('cbh1',cbh1);
+    
+      const max = zeroSeries.length - 1;
+      const min = 0;
+      reorganizeChart(cbh5, cbh1, min, max);
+    })
   });
 }
 
@@ -252,7 +302,6 @@ function findDateInd(date: Date) {
     if (curDif < prevDif) return i
     return prev
       }, 0);
-  console.log(ind);
   return ind;
 }
 
@@ -386,4 +435,34 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   return chart;
+
+}
+
+// подключение слушателей к разметке как на cbh
+prepareCsvLoadMenu();
+
+//функция вешает слушатели на панель nav - USA / EU
+function prepareCsvLoadMenu() {
+  let zoneItems = document.querySelectorAll('.index .zones li');
+  zoneItems.forEach( (item) => {
+    item.addEventListener('click',  () => {
+      let link = item.querySelector('a');
+      document.querySelector('.index .zones li.selected').classList.remove('selected');
+      //document.querySelector('.index .ranges li.selected').classList.remove('selected');
+      //document.querySelector('.index .ranges li:last-child').classList.add('selected');
+      item.classList.add('selected');
+      
+      loadDataFromCsv(link.href)
+      .then((dataObj) => {
+        cbh1 = dataObj.cbh1;
+        cbh5 = dataObj.cbh5;
+        xLabels = dataObj.xLabels;
+        zeroSeries = dataObj.zeroSeries;
+        const max = xLabels.length - 1;
+        const min = 0;
+        reorganizeChart(cbh5, cbh1, min, max);
+      })
+
+    });
+  });
 }

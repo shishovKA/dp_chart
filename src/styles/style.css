@@ -47,6 +47,13 @@ body {
     border: solid 2px black;
 }
 
+.section_cbh {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    border: solid 2px black;
+}
+
 .chart__title {
     margin: 0px 0px 5px 0px;
     width: 100%;
