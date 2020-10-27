@@ -1,6 +1,5 @@
 import { Point } from "./Point";
 import { Tooltip } from "./Tooltip";
-import { Signal } from "signals"
 
 interface plotOptions {
     lineWidth: number;
