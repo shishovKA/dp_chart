@@ -6,7 +6,6 @@ import "./styles/style.css";
 import "./styles/fonts.css";
 
 //импорт класса Chart
-import { Chart } from "./classes/Chart"
 
 //элементы управления
 
