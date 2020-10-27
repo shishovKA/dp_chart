@@ -18,7 +18,7 @@ export class Chart {
     plots: Plot[];
     xAxis: Axis;
     yAxis: Axis;
-    dataIndUpdated: Signal;
+    tooltipsDataIndexUpdated: Signal;
 
     constructor(container: HTMLElement, xMinMax: number[], yMinMax: number[]) {
         this.container = container;
@@ -45,7 +45,7 @@ export class Chart {
 
         this.tooltipsDraw(true);
 
-        this.dataIndUpdated = new Signal();
+        this.tooltipsDataIndexUpdated = new Signal();
     }
 
 
@@ -236,7 +236,7 @@ export class Chart {
 
             const tooltipCoord = series.getClosestPlotPoint(mouseXY.x+this.canvasTT.left);
 
-            this.dataIndUpdated.dispatch(pointData.x);
+            this.tooltipsDataIndexUpdated.dispatch(pointData.x);
             //const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
 
             series.plots.forEach((plotId) => {
