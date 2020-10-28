@@ -59,22 +59,46 @@
 
         <nav class="tabs caps">
             <ul class="zones">
-    
+
                 <li class="selected">
                     <a href="src/data/cbhPlotData_US.csv" onclick="return false;">USA</a>
                 </li>
-    
-                <li >
+
+                <li>
                     <a href="src/data/cbhPlotData_EU.csv" onclick="return false;">EU <span class="light">/</span> UK</a>
                 </li>
-    
+
             </ul>
         </nav>
+
+
+        <div class="controls overline">
+            <ul class="ranges">
+                <li>6M</li>
+                <li>YTD</li>
+                <li>1Y</li>
+                <li>2Y</li>
+                <li class="selected">Max</li>
+            </ul>
+            <ul class="legend">
+
+                <li>
+                    <span class="bul" style="background:#0070ff"></span>5-star (Best)<strong> 
+                    <span id="cbhIdx5-val">1681.0</span></strong>
+                </li>
+
+                <li>
+                    <span class="bul" style="background:red"></span>1-star (Worst)<strong> 
+                    <span id="cbhIdx1-val">1263.1</span></strong>
+                </li>
+                
+            </ul>
+        </div>
 
     </section>
 
     <script type="text/javascript" src="chartBlib.js"></script>
-    
+
 </body>
 
 </html>

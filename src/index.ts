@@ -21,7 +21,6 @@ let zeroSeries: number[] = [];
 
 // рукописная загрузка из CSV
 function customLoadDataFromCsv(filePath: string) {
-
   return fetch(filePath).then((response) => {
     var contentType = response.headers.get("content-type");
     if (contentType && (contentType.includes("text/csv") || contentType.includes("application/octet-stream"))) {
@@ -49,7 +48,6 @@ function csvToCols(strData, strDelimiter) {
   return colResult;
 }
 
-
 // проверка подгрузки шрифта
 WebFont.load({
   custom: {
@@ -58,11 +56,10 @@ WebFont.load({
   },
 
   active: function () {
-
+    //загружает стартовый файл
     customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then((data) => {
       // @ts-ignore
       let chartData = csvToCols(data);
-
       cbh1 = chartData[2].slice(1).map((el) => { return +el });
       cbh5 = chartData[1].slice(1).map((el) => { return +el });
       xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
@@ -73,16 +70,103 @@ WebFont.load({
       chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
       chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
       chart.tooltipsDraw(true);
-
     })
       .catch((err) => {
         console.log(err);
       })
-
-
   },
-
 });
+
+
+// подключение слушателей к разметке как на cbh
+//prepareCsvLoadMenu();
+
+//функция вешает слушатели на панель nav - USA / EU
+(function prepareCsvLoadMenu() {
+  let zoneItems = document.querySelectorAll('.index .zones li');
+  zoneItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      let link = item.querySelector('a');
+      // @ts-ignore
+      document.querySelector('.index .zones li.selected').classList.remove('selected');
+      //document.querySelector('.index .ranges li.selected').classList.remove('selected');
+      //document.querySelector('.index .ranges li:last-child').classList.add('selected');
+      item.classList.add('selected');
+      // @ts-ignore
+      customLoadDataFromCsv(link.href).then((data) => {
+        // @ts-ignore
+        let chartData = csvToCols(data);
+
+        cbh1 = chartData[2].slice(1).map((el) => { return +el });
+        cbh5 = chartData[1].slice(1).map((el) => { return +el });
+        xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
+        zeroSeries = cbh1.map(() => 0);
+
+        const max = zeroSeries.length - 1;
+        const min = 0;
+        reorganizeChart(cbh5, cbh1, min, max);
+      })
+
+    });
+  });
+
+}());
+
+//функция вешает слушатели на панель ranges
+
+(function prepareRangesMenu() {
+  let ranges = document.querySelectorAll('.ranges li');
+  ranges.forEach((item) => {
+    item.addEventListener('click', () => {
+      // @ts-ignore
+      document.querySelector('.ranges li.selected').classList.remove('selected');
+      item.classList.add('selected');
+      const lastLb = xLabels[xLabels.length - 1];
+      let maxDate,
+          minDate,
+          max,
+          min;  
+
+      switch (item.innerHTML) {
+        case '6M' :
+          maxDate = lastLb;
+          minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
+          max = xLabels.length - 1;
+          min = findDateInd(minDate);
+        break;
+
+        case '1Y' :
+          maxDate = lastLb;
+          minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
+          max = xLabels.length - 1;
+          min = findDateInd(minDate);
+        break;
+
+        case '2Y' :
+          maxDate = lastLb;
+          minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
+          max = xLabels.length - 1;
+          min = findDateInd(minDate);
+        break;
+
+        case 'YTD' :
+
+        break;
+
+        case 'MAX' :
+          max = xLabels.length - 1;
+          min = 0;
+        break;
+
+      }
+
+      reorganizeChart(cbh5, cbh1, min, max);
+
+    });
+  })
+
+}())
+
 
 
 //настройка виджетов для отображения данных Тултипов
@@ -230,42 +314,6 @@ function prepareDataforCbh(star5: number[], star1: number[], fromIndex: number) 
   }
   return { serie5star, area5starTop, area5starBottom, serie1star, area1starTop, area1starBottom };
 }
-
-
-// подключение слушателей к разметке как на cbh
-//prepareCsvLoadMenu();
-
-//функция вешает слушатели на панель nav - USA / EU
-(function prepareCsvLoadMenu() {
-  let zoneItems = document.querySelectorAll('.index .zones li');
-  zoneItems.forEach((item) => {
-    item.addEventListener('click', () => {
-      let link = item.querySelector('a');
-      // @ts-ignore
-      document.querySelector('.index .zones li.selected').classList.remove('selected');
-      //document.querySelector('.index .ranges li.selected').classList.remove('selected');
-      //document.querySelector('.index .ranges li:last-child').classList.add('selected');
-      item.classList.add('selected');
-      // @ts-ignore
-      customLoadDataFromCsv(link.href).then((data) => {
-        // @ts-ignore
-        let chartData = csvToCols(data);
-
-        cbh1 = chartData[2].slice(1).map((el) => { return +el });
-        cbh5 = chartData[1].slice(1).map((el) => { return +el });
-        xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
-        zeroSeries = cbh1.map(() => 0);
-
-        const max = zeroSeries.length - 1;
-        const min = 0;
-        reorganizeChart(cbh5, cbh1, min, max);
-      })
-
-    });
-  });
-
-}());
-
 
 
 //функция-config создает и настраивает Chart как на сайте

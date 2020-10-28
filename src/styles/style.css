@@ -118,6 +118,10 @@ body {
     text-align: center;
 }
 
+.selected {
+    background-color: gray;
+}
+
 
 
 @media screen and (max-width: 780px) {

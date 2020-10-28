@@ -2808,6 +2808,7 @@ WebFont.load({
         urls: ['./styles/fonts.css']
     },
     active: function () {
+        //загружает стартовый файл
         customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then(function (data) {
             // @ts-ignore
             var chartData = csvToCols(data);
@@ -2826,6 +2827,74 @@ WebFont.load({
         });
     },
 });
+// подключение слушателей к разметке как на cbh
+//prepareCsvLoadMenu();
+//функция вешает слушатели на панель nav - USA / EU
+(function prepareCsvLoadMenu() {
+    var zoneItems = document.querySelectorAll('.index .zones li');
+    zoneItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            var link = item.querySelector('a');
+            // @ts-ignore
+            document.querySelector('.index .zones li.selected').classList.remove('selected');
+            //document.querySelector('.index .ranges li.selected').classList.remove('selected');
+            //document.querySelector('.index .ranges li:last-child').classList.add('selected');
+            item.classList.add('selected');
+            // @ts-ignore
+            customLoadDataFromCsv(link.href).then(function (data) {
+                // @ts-ignore
+                var chartData = csvToCols(data);
+                cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
+                cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
+                xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
+                zeroSeries = cbh1.map(function () { return 0; });
+                var max = zeroSeries.length - 1;
+                var min = 0;
+                reorganizeChart(cbh5, cbh1, min, max);
+            });
+        });
+    });
+}());
+//функция вешает слушатели на панель ranges
+(function prepareRangesMenu() {
+    var ranges = document.querySelectorAll('.ranges li');
+    ranges.forEach(function (item) {
+        item.addEventListener('click', function () {
+            // @ts-ignore
+            document.querySelector('.ranges li.selected').classList.remove('selected');
+            item.classList.add('selected');
+            var lastLb = xLabels[xLabels.length - 1];
+            var maxDate, minDate, max, min;
+            switch (item.innerHTML) {
+                case '6M':
+                    maxDate = lastLb;
+                    minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
+                    max = xLabels.length - 1;
+                    min = findDateInd(minDate);
+                    break;
+                case '1Y':
+                    maxDate = lastLb;
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
+                    max = xLabels.length - 1;
+                    min = findDateInd(minDate);
+                    break;
+                case '2Y':
+                    maxDate = lastLb;
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
+                    max = xLabels.length - 1;
+                    min = findDateInd(minDate);
+                    break;
+                case 'YTD':
+                    break;
+                case 'MAX':
+                    max = xLabels.length - 1;
+                    min = 0;
+                    break;
+            }
+            reorganizeChart(cbh5, cbh1, min, max);
+        });
+    });
+}());
 //настройка виджетов для отображения данных Тултипов
 var indexWidget = document.getElementById('chart_w_ind');
 var redWidget = document.getElementById('chart_w_data_red');
@@ -2942,34 +3011,6 @@ function prepareDataforCbh(star5, star1, fromIndex) {
     }
     return { serie5star: serie5star, area5starTop: area5starTop, area5starBottom: area5starBottom, serie1star: serie1star, area1starTop: area1starTop, area1starBottom: area1starBottom };
 }
-// подключение слушателей к разметке как на cbh
-//prepareCsvLoadMenu();
-//функция вешает слушатели на панель nav - USA / EU
-(function prepareCsvLoadMenu() {
-    var zoneItems = document.querySelectorAll('.index .zones li');
-    zoneItems.forEach(function (item) {
-        item.addEventListener('click', function () {
-            var link = item.querySelector('a');
-            // @ts-ignore
-            document.querySelector('.index .zones li.selected').classList.remove('selected');
-            //document.querySelector('.index .ranges li.selected').classList.remove('selected');
-            //document.querySelector('.index .ranges li:last-child').classList.add('selected');
-            item.classList.add('selected');
-            // @ts-ignore
-            customLoadDataFromCsv(link.href).then(function (data) {
-                // @ts-ignore
-                var chartData = csvToCols(data);
-                cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
-                cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
-                xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
-                zeroSeries = cbh1.map(function () { return 0; });
-                var max = zeroSeries.length - 1;
-                var min = 0;
-                reorganizeChart(cbh5, cbh1, min, max);
-            });
-        });
-    });
-}());
 //функция-config создает и настраивает Chart как на сайте
 // @ts-ignore
 function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
