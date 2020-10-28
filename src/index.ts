@@ -62,13 +62,11 @@ WebFont.load({
     customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then((data) => {
       // @ts-ignore
       let chartData = csvToCols(data);
-      //console.log('chartData',chartData);
 
       cbh1 = chartData[2].slice(1).map((el) => { return +el });
       cbh5 = chartData[1].slice(1).map((el) => { return +el });
       xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
       zeroSeries = cbh1.map(() => 0);
-      console.log('cbh1', cbh1);
 
       chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
       chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
@@ -175,12 +173,10 @@ function reorganizeChart(cbh5, cbh1, min, max) {
   chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
   chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
   chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
+  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
   // @ts-ignore
   chart.xAxis.ticks.setCustomLabels(xLabels);
-  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
-
   chart.xAxis.setMinMax([min, max], false);
-
   const MinMaxY = chart.data.findExtremes('ind', min, max);
   const lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
   chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
@@ -237,10 +233,10 @@ function prepareDataforCbh(star5: number[], star1: number[], fromIndex: number) 
 
 
 // подключение слушателей к разметке как на cbh
-prepareCsvLoadMenu();
+//prepareCsvLoadMenu();
 
 //функция вешает слушатели на панель nav - USA / EU
-function prepareCsvLoadMenu() {
+(function prepareCsvLoadMenu() {
   let zoneItems = document.querySelectorAll('.index .zones li');
   zoneItems.forEach((item) => {
     item.addEventListener('click', () => {
@@ -269,7 +265,7 @@ function prepareCsvLoadMenu() {
     });
   });
 
-}
+}());
 
 
 

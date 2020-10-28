@@ -2811,12 +2811,10 @@ WebFont.load({
         customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then(function (data) {
             // @ts-ignore
             var chartData = csvToCols(data);
-            //console.log('chartData',chartData);
             cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
             cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
             xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
             zeroSeries = cbh1.map(function () { return 0; });
-            console.log('cbh1', cbh1);
             chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
             chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
             chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
@@ -2896,9 +2894,9 @@ function reorganizeChart(cbh5, cbh1, min, max) {
     (_b = chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([area1starTop, area1starBottom]);
     (_c = chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star]);
     (_d = chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star]);
+    (_e = chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
     // @ts-ignore
     chart.xAxis.ticks.setCustomLabels(xLabels);
-    (_e = chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
     chart.xAxis.setMinMax([min, max], false);
     var MinMaxY = chart.data.findExtremes('ind', min, max);
     var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
@@ -2945,9 +2943,9 @@ function prepareDataforCbh(star5, star1, fromIndex) {
     return { serie5star: serie5star, area5starTop: area5starTop, area5starBottom: area5starBottom, serie1star: serie1star, area1starTop: area1starTop, area1starBottom: area1starBottom };
 }
 // подключение слушателей к разметке как на cbh
-prepareCsvLoadMenu();
+//prepareCsvLoadMenu();
 //функция вешает слушатели на панель nav - USA / EU
-function prepareCsvLoadMenu() {
+(function prepareCsvLoadMenu() {
     var zoneItems = document.querySelectorAll('.index .zones li');
     zoneItems.forEach(function (item) {
         item.addEventListener('click', function () {
@@ -2972,7 +2970,7 @@ function prepareCsvLoadMenu() {
             });
         });
     });
-}
+}());
 //функция-config создает и настраивает Chart как на сайте
 // @ts-ignore
 function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
