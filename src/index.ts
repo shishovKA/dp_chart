@@ -122,51 +122,30 @@ WebFont.load({
       document.querySelector('.ranges li.selected').classList.remove('selected');
       item.classList.add('selected');
       const lastLb = xLabels[xLabels.length - 1];
-      let maxDate,
+      let maxDate = lastLb,
           minDate,
-          max,
-          min;  
+          max = xLabels.length - 1,
+          min = 0;  
 
       switch (item.innerHTML) {
         case '6M' :
-          maxDate = lastLb;
           minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
-          max = xLabels.length - 1;
           min = findDateInd(minDate);
         break;
 
         case '1Y' :
-          maxDate = lastLb;
           minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
-          max = xLabels.length - 1;
           min = findDateInd(minDate);
         break;
 
         case '2Y' :
-          maxDate = lastLb;
           minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
-          max = xLabels.length - 1;
           min = findDateInd(minDate);
         break;
 
         case 'YTD' :
-          max = xLabels.length - 1;
-          min = 0;
-        break;
-
-        case 'Max' :
-          max = xLabels.length - 1;
-          min = 0;
-        break;
-
-        case 'MAX' :
-          max = xLabels.length - 1;
-          min = 0;
-        break;
-
-        default:
-          max = xLabels.length - 1;
-          min = 0;
+          minDate = new Date(new Date(maxDate.getFullYear(), 0, 1).getTime()),
+          min = findDateInd(minDate);
         break;
 
       }
