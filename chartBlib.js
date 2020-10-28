@@ -2851,13 +2851,11 @@ WebFont.load({
                 reorganizeChart(cbh5, cbh1, min, max);
             });
             console.log(rangeSelected);
-            /*
             // @ts-ignore
             if (typeof rangeSelected.onclick == "function") {
-            // @ts-ignore
+                // @ts-ignore
                 rangeSelected.onclick.apply(rangeSelected);
             }
-            */
         });
     });
 }());

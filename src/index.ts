@@ -107,13 +107,13 @@ WebFont.load({
       })
 
       console.log(rangeSelected);
-      /*
+      
       // @ts-ignore
       if (typeof rangeSelected.onclick == "function") {
       // @ts-ignore
           rangeSelected.onclick.apply(rangeSelected);
       }
-      */
+      
     });
   });
 
