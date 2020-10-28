@@ -108,7 +108,10 @@ WebFont.load({
         //reorganizeChart(cbh5, cbh1, min, max);
       })
       // @ts-ignore
-      rangeSelected.click();
+      if (typeof rangeSelected.onclick == "function") {
+      // @ts-ignore
+          rangeSelected.onclick.apply(rangeSelected);
+      }
     });
   });
 
