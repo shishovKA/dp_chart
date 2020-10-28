@@ -2888,7 +2888,15 @@ WebFont.load({
                     max = xLabels.length - 1;
                     min = 0;
                     break;
+                case 'Max':
+                    max = xLabels.length - 1;
+                    min = 0;
+                    break;
                 case 'MAX':
+                    max = xLabels.length - 1;
+                    min = 0;
+                    break;
+                default:
                     max = xLabels.length - 1;
                     min = 0;
                     break;
