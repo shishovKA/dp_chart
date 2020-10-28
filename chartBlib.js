@@ -2767,6 +2767,7 @@ var Chart_1 = require("./classes/Chart");
 //назначаем константы
 var easing = bezier(0.65, 0, 0.35, 1);
 var gapY = 0.08;
+var startCSVurl = "src/data/cbhPlotData_US.csv";
 //объявляем используемые переменные
 var chart;
 var cbh1 = [];
@@ -2809,7 +2810,7 @@ WebFont.load({
     },
     active: function () {
         //загружает стартовый файл
-        customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then(function (data) {
+        customLoadDataFromCsv(startCSVurl).then(function (data) {
             // @ts-ignore
             var chartData = csvToCols(data);
             cbh1 = chartData[2].slice(1).map(function (el) { return +el; });

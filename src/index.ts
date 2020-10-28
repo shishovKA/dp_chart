@@ -10,6 +10,7 @@ import { Chart } from "./classes/Chart"
 //назначаем константы
 const easing = bezier(0.65, 0, 0.35, 1);
 const gapY: number = 0.08;
+const startCSVurl = "src/data/cbhPlotData_US.csv";
 
 //объявляем используемые переменные
 let chart: Chart;
@@ -57,7 +58,7 @@ WebFont.load({
 
   active: function () {
     //загружает стартовый файл
-    customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then((data) => {
+    customLoadDataFromCsv(startCSVurl).then((data) => {
       // @ts-ignore
       let chartData = csvToCols(data);
       cbh1 = chartData[2].slice(1).map((el) => { return +el });
