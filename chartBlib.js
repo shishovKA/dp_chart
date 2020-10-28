@@ -2817,7 +2817,6 @@ WebFont.load({
             xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
             zeroSeries = cbh1.map(function () { return 0; });
             chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
-            chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
             chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
             chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
             chart.tooltipsDraw(true);
@@ -2887,41 +2886,16 @@ WebFont.load({
         });
     });
 }());
-//функция вешает слушатели на панель legends
-/*
-function setGraphLegendPercentages(cbhIdx5, cbhIdx1) {
-    // 5-Star
-    var f5 = parseFloat(cbhIdx5[0]),
-        l5 = parseFloat(cbhIdx5[cbhIdx5.length - 1]),
-        // res5 = ((l5-f5)/(f5+l5))*100,
-        res5 = ((l5-f5)/(f5))*100,
-        strSign5 = ((res5 > 0) ? '+' : '');
-    document.getElementById("cbhIdx5-val").innerHTML = strSign5 + res5.toFixed(2);
-
-    // 1-Star
-    var f1 = parseFloat(cbhIdx1[0]),
-        l1 = parseFloat(cbhIdx1[cbhIdx1.length - 1]),
-        // res1 = ((l1-f1)/(f1+l1))*100,
-        res1 = ((l1-f1)/(f1))*100,
-        strSign1 = ((res1 > 0) ? '+' : '');
-    document.getElementById("cbhIdx1-val").innerHTML = strSign1 + res1.toFixed(2);
-}
-*/
 //настройка виджетов для отображения данных Тултипов
-var indexWidget = document.getElementById('chart_w_ind');
-var redWidget = document.getElementById('chart_w_data_red');
-var blueWidget = document.getElementById('chart_w_data_blue');
-function conncetIndexWidget(index) {
-    if (indexWidget)
-        indexWidget.textContent = index.toString();
-}
+var redWidget = document.getElementById('cbhIdx1-val');
+var blueWidget = document.getElementById('cbhIdx5-val');
 function conncetRedWidget(index) {
     if (redWidget)
-        redWidget.textContent = cbh1[index].toFixed(1);
+        redWidget.innerHTML = cbh1[index].toFixed(1);
 }
 function conncetBlueWidget(index) {
     if (blueWidget)
-        blueWidget.textContent = cbh5[index].toFixed(1);
+        blueWidget.innerHTML = cbh5[index].toFixed(1);
 }
 // настройка Chart
 // @ts-ignore
