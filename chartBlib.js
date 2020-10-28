@@ -2848,7 +2848,7 @@ WebFont.load({
                 zeroSeries = cbh1.map(function () { return 0; });
                 var max = xLabels.length - 1;
                 var min = 0;
-                reorganizeChart(cbh5, cbh1, min, max);
+                reorganizeChart(cbh5, cbh1, min, max, false);
                 // @ts-ignore
                 rangeSelected.click(rangeSelected);
             });
@@ -2883,7 +2883,7 @@ WebFont.load({
                         min = findDateInd(minDate);
                     break;
             }
-            reorganizeChart(cbh5, cbh1, min, max);
+            reorganizeChart(cbh5, cbh1, min, max, true);
         });
     });
 }());
@@ -2934,12 +2934,14 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
     (_c = chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star]);
     (_d = chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star]);
     (_e = chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
-    // @ts-ignore
-    chart.xAxis.ticks.setCustomLabels(xLabels);
-    chart.xAxis.setMinMax([min, max], false);
-    var MinMaxY = chart.data.findExtremes('ind', min, max);
-    var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
-    chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+    if (onlyData) {
+        // @ts-ignore
+        chart.xAxis.ticks.setCustomLabels(xLabels);
+        chart.xAxis.setMinMax([min, max], false);
+        var MinMaxY = chart.data.findExtremes('ind', min, max);
+        var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
+        chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+    }
 }
 //поиск индекса ближайщей даты
 function findDateInd(date) {

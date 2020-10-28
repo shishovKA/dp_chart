@@ -102,7 +102,7 @@ WebFont.load({
         zeroSeries = cbh1.map(() => 0);
         const max = xLabels.length - 1;
         const min = 0;
-        reorganizeChart(cbh5, cbh1, min, max);
+        reorganizeChart(cbh5, cbh1, min, max, false);
         // @ts-ignore
         rangeSelected.click(rangeSelected);
       })
@@ -149,7 +149,7 @@ WebFont.load({
 
       }
 
-      reorganizeChart(cbh5, cbh1, min, max);
+      reorganizeChart(cbh5, cbh1, min, max, true);
 
     });
   })
@@ -217,12 +217,15 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?:boolean) {
   chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
   chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
   chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
-  // @ts-ignore
-  chart.xAxis.ticks.setCustomLabels(xLabels);
-  chart.xAxis.setMinMax([min, max], false);
-  const MinMaxY = chart.data.findExtremes('ind', min, max);
-  const lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
-  chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+  
+  if (onlyData) {
+    // @ts-ignore
+    chart.xAxis.ticks.setCustomLabels(xLabels);
+    chart.xAxis.setMinMax([min, max], false);
+    const MinMaxY = chart.data.findExtremes('ind', min, max);
+    const lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
+    chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+  }
 }
 
 
