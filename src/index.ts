@@ -100,7 +100,9 @@ WebFont.load({
         cbh5 = chartData[1].slice(1).map((el) => { return +el });
         xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
         zeroSeries = cbh1.map(() => 0);
-
+        const max = xLabels.length - 1;
+        const min = 0;
+        reorganizeChart(cbh5, cbh1, min, max);
         // @ts-ignore
         rangeSelected.click(rangeSelected);
       })
@@ -195,62 +197,11 @@ function conncetBlueWidget(index: number) {
 }
 
 
-//настройка кнопок для управлением диапазоном оси дат
-
-
-//кнопка 6M
-const SixMBtn = document.getElementById('6M');
-//кнопка 1Y
-const OneYBtn = document.getElementById('1Y');
-//кнопка 2Y
-const TwoYBtn = document.getElementById('2Y');
-//кнопка Max
-const MaxBtn = document.getElementById('MAX');
-
-// @ts-ignore
-SixMBtn.addEventListener("click", (event) => {
-  const lastLb = xLabels[xLabels.length - 1];
-  const maxDate = lastLb;
-  const minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
-  const max = xLabels.length - 1;
-  const min = findDateInd(minDate);
-  reorganizeChart(cbh5, cbh1, min, max);
-})
-
-
-// @ts-ignore
-OneYBtn.addEventListener("click", (event) => {
-  const lastLb: Date = xLabels[xLabels.length - 1];
-  const maxDate: Date = lastLb;
-  const minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
-  const max = xLabels.length - 1;
-  const min = findDateInd(minDate);
-  reorganizeChart(cbh5, cbh1, min, max);
-})
-
-
-// @ts-ignore
-TwoYBtn.addEventListener("click", (event) => {
-  const lastLb = xLabels[xLabels.length - 1];
-  const maxDate = lastLb;
-  const minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
-  const max = xLabels.length - 1;
-  const min = findDateInd(minDate);
-  reorganizeChart(cbh5, cbh1, min, max);
-})
-
-
-// @ts-ignore
-MaxBtn.addEventListener("click", (event) => {
-  const max = xLabels.length - 1;
-  const min = 0;
-  reorganizeChart(cbh5, cbh1, min, max);
-});
 
 
 // настройка Chart
 // @ts-ignore
-function reorganizeChart(cbh5, cbh1, min, max) {
+function reorganizeChart(cbh5, cbh1, min, max, onlyData?:boolean) {
   let data = prepareDataforCbh(cbh5, cbh1, min);
   let {
     serie5star,

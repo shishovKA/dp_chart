@@ -2846,6 +2846,9 @@ WebFont.load({
                 cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
                 xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
                 zeroSeries = cbh1.map(function () { return 0; });
+                var max = xLabels.length - 1;
+                var min = 0;
+                reorganizeChart(cbh5, cbh1, min, max);
                 // @ts-ignore
                 rangeSelected.click(rangeSelected);
             });
@@ -2920,51 +2923,9 @@ function conncetBlueWidget(index) {
     if (blueWidget)
         blueWidget.textContent = cbh5[index].toFixed(1);
 }
-//настройка кнопок для управлением диапазоном оси дат
-//кнопка 6M
-var SixMBtn = document.getElementById('6M');
-//кнопка 1Y
-var OneYBtn = document.getElementById('1Y');
-//кнопка 2Y
-var TwoYBtn = document.getElementById('2Y');
-//кнопка Max
-var MaxBtn = document.getElementById('MAX');
-// @ts-ignore
-SixMBtn.addEventListener("click", function (event) {
-    var lastLb = xLabels[xLabels.length - 1];
-    var maxDate = lastLb;
-    var minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
-    var max = xLabels.length - 1;
-    var min = findDateInd(minDate);
-    reorganizeChart(cbh5, cbh1, min, max);
-});
-// @ts-ignore
-OneYBtn.addEventListener("click", function (event) {
-    var lastLb = xLabels[xLabels.length - 1];
-    var maxDate = lastLb;
-    var minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
-    var max = xLabels.length - 1;
-    var min = findDateInd(minDate);
-    reorganizeChart(cbh5, cbh1, min, max);
-});
-// @ts-ignore
-TwoYBtn.addEventListener("click", function (event) {
-    var lastLb = xLabels[xLabels.length - 1];
-    var maxDate = lastLb;
-    var minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
-    var max = xLabels.length - 1;
-    var min = findDateInd(minDate);
-    reorganizeChart(cbh5, cbh1, min, max);
-});
-// @ts-ignore
-MaxBtn.addEventListener("click", function (event) {
-    var max = xLabels.length - 1;
-    var min = 0;
-    reorganizeChart(cbh5, cbh1, min, max);
-});
 // настройка Chart
 // @ts-ignore
-function reorganizeChart(cbh5, cbh1, min, max) {
+function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
     var _a, _b, _c, _d, _e;
     var data = prepareDataforCbh(cbh5, cbh1, min);
     var serie5star = data.serie5star, area5starTop = data.area5starTop, area5starBottom = data.area5starBottom, serie1star = data.serie1star, area1starTop = data.area1starTop, area1starBottom = data.area1starBottom;
