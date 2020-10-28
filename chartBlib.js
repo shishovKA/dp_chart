@@ -2769,7 +2769,6 @@ var easing = bezier(0.65, 0, 0.35, 1);
 var gapY = 0.08;
 // @ts-ignore
 var startCSVurl = document.querySelector('.index .zones li.selected').querySelector('a').href;
-console.log(startCSVurl);
 //объявляем используемые переменные
 var chart;
 var cbh1 = [];
