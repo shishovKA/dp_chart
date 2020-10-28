@@ -2767,7 +2767,9 @@ var Chart_1 = require("./classes/Chart");
 //назначаем константы
 var easing = bezier(0.65, 0, 0.35, 1);
 var gapY = 0.08;
-var startCSVurl = "src/data/cbhPlotData_US.csv";
+// @ts-ignore
+var startCSVurl = document.querySelector('.index .zones li.selected').querySelector('a').href;
+console.log(startCSVurl);
 //объявляем используемые переменные
 var chart;
 var cbh1 = [];

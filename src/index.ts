@@ -10,7 +10,9 @@ import { Chart } from "./classes/Chart"
 //назначаем константы
 const easing = bezier(0.65, 0, 0.35, 1);
 const gapY: number = 0.08;
-const startCSVurl = "src/data/cbhPlotData_US.csv";
+// @ts-ignore
+const startCSVurl = document.querySelector('.index .zones li.selected').querySelector('a').href;
+console.log(startCSVurl);
 
 //объявляем используемые переменные
 let chart: Chart;
