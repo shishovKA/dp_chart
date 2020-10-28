@@ -147,13 +147,17 @@ WebFont.load({
 
         const max = zeroSeries.length - 1;
         const min = 0;
-        //reorganizeChart(cbh5, cbh1, min, max);
+        reorganizeChart(cbh5, cbh1, min, max);
       })
+
+      console.log(rangeSelected);
+      /*
       // @ts-ignore
       if (typeof rangeSelected.onclick == "function") {
       // @ts-ignore
           rangeSelected.onclick.apply(rangeSelected);
       }
+      */
     });
   });
 
