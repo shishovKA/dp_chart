@@ -2959,7 +2959,6 @@ function prepareDataforCbh(star5, star1, fromIndex) {
             customLoadDataFromCsv(link.href).then(function (data) {
                 // @ts-ignore
                 var chartData = csvToCols(data);
-                //console.log('chartData',chartData);
                 cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
                 cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
                 xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });

@@ -250,7 +250,6 @@ function prepareDataforCbh(star5: number[], star1: number[], fromIndex: number) 
       customLoadDataFromCsv(link.href).then((data) => {
         // @ts-ignore
         let chartData = csvToCols(data);
-        //console.log('chartData',chartData);
 
         cbh1 = chartData[2].slice(1).map((el) => { return +el });
         cbh5 = chartData[1].slice(1).map((el) => { return +el });
