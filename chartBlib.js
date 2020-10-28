@@ -2846,13 +2846,9 @@ WebFont.load({
                 cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
                 xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
                 zeroSeries = cbh1.map(function () { return 0; });
-                var max = zeroSeries.length - 1;
-                var min = 0;
-                //reorganizeChart(cbh5, cbh1, min, max);
+                // @ts-ignore
+                rangeSelected.click(rangeSelected);
             });
-            // @ts-ignore
-            rangeSelected.click(rangeSelected);
-            // @ts-ignore
         });
     });
 }());

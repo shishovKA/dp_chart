@@ -101,13 +101,9 @@ WebFont.load({
         xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
         zeroSeries = cbh1.map(() => 0);
 
-        const max = zeroSeries.length - 1;
-        const min = 0;
-        //reorganizeChart(cbh5, cbh1, min, max);
+        // @ts-ignore
+        rangeSelected.click(rangeSelected);
       })
-
-      // @ts-ignore
-      rangeSelected.click(rangeSelected);
 
     });
   });
