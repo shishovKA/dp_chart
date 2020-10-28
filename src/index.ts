@@ -89,9 +89,10 @@ WebFont.load({
       let link = item.querySelector('a');
       // @ts-ignore
       document.querySelector('.index .zones li.selected').classList.remove('selected');
-      //document.querySelector('.index .ranges li.selected').classList.remove('selected');
-      //document.querySelector('.index .ranges li:last-child').classList.add('selected');
       item.classList.add('selected');
+      
+      const rangeSelected = document.querySelector('.index .ranges li.selected');
+
       // @ts-ignore
       customLoadDataFromCsv(link.href).then((data) => {
         // @ts-ignore
@@ -106,7 +107,8 @@ WebFont.load({
         const min = 0;
         reorganizeChart(cbh5, cbh1, min, max);
       })
-
+      // @ts-ignore
+      rangeSelected.click();
     });
   });
 
