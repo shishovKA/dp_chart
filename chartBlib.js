@@ -2849,7 +2849,7 @@ WebFont.load({
                 zeroSeries = cbh1.map(function () { return 0; });
                 var max = zeroSeries.length - 1;
                 var min = 0;
-                reorganizeChart(cbh5, cbh1, min, max);
+                //reorganizeChart(cbh5, cbh1, min, max);
             });
             // @ts-ignore
             rangeSelected.click();
