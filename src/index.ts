@@ -91,7 +91,7 @@ WebFont.load({
       document.querySelector('.index .zones li.selected').classList.remove('selected');
       item.classList.add('selected');
       
-      const rangeSelected = document.querySelector('.index .ranges li.selected');
+      const rangeSelected = document.querySelector('.ranges li.selected');
 
       // @ts-ignore
       customLoadDataFromCsv(link.href).then((data) => {
@@ -158,6 +158,25 @@ WebFont.load({
   })
 
 }())
+
+//функция вешает слушатели на панель legends
+function setGraphLegendPercentages(cbhIdx5, cbhIdx1) {
+	// 5-Star
+	var f5 = parseFloat(cbhIdx5[0]),
+		l5 = parseFloat(cbhIdx5[cbhIdx5.length - 1]),
+		// res5 = ((l5-f5)/(f5+l5))*100,
+		res5 = ((l5-f5)/(f5))*100,
+		strSign5 = ((res5 > 0) ? '+' : '');
+	document.getElementById("cbhIdx5-val").innerHTML = strSign5 + res5.toFixed(2);
+
+	// 1-Star
+	var f1 = parseFloat(cbhIdx1[0]),
+		l1 = parseFloat(cbhIdx1[cbhIdx1.length - 1]),
+		// res1 = ((l1-f1)/(f1+l1))*100,
+		res1 = ((l1-f1)/(f1))*100,
+		strSign1 = ((res1 > 0) ? '+' : '');
+	document.getElementById("cbhIdx1-val").innerHTML = strSign1 + res1.toFixed(2);
+}
 
 
 
