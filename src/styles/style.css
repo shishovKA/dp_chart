@@ -122,8 +122,6 @@ body {
     background-color: gray;
 }
 
-
-
 @media screen and (max-width: 780px) {
     .chart__container {
         height: 360px;
