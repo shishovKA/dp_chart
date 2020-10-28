@@ -79,6 +79,46 @@ WebFont.load({
 
 // подключение слушателей к разметке как на cbh
 
+//функция вешает слушатели на панель nav - USA / EU
+(function prepareCsvLoadMenu() {
+  let zoneItems = document.querySelectorAll('.index .zones li');
+  zoneItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      let link = item.querySelector('a');
+      // @ts-ignore
+      document.querySelector('.index .zones li.selected').classList.remove('selected');
+      item.classList.add('selected');
+      
+      const rangeSelected = document.querySelector('.ranges li.selected');
+
+      // @ts-ignore
+      customLoadDataFromCsv(link.href).then((data) => {
+        // @ts-ignore
+        let chartData = csvToCols(data);
+
+        cbh1 = chartData[2].slice(1).map((el) => { return +el });
+        cbh5 = chartData[1].slice(1).map((el) => { return +el });
+        xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
+        zeroSeries = cbh1.map(() => 0);
+
+        const max = zeroSeries.length - 1;
+        const min = 0;
+        reorganizeChart(cbh5, cbh1, min, max);
+      })
+
+      console.log(rangeSelected);
+      /*
+      // @ts-ignore
+      if (typeof rangeSelected.onclick == "function") {
+      // @ts-ignore
+          rangeSelected.onclick.apply(rangeSelected);
+      }
+      */
+    });
+  });
+
+}());
+
 //функция вешает слушатели на панель ranges
 (function prepareRangesMenu() {
   let ranges = document.querySelectorAll('.ranges li');
@@ -122,48 +162,6 @@ WebFont.load({
   })
 
 }());
-
-//функция вешает слушатели на панель nav - USA / EU
-(function prepareCsvLoadMenu() {
-  let zoneItems = document.querySelectorAll('.index .zones li');
-  zoneItems.forEach((item) => {
-    item.addEventListener('click', () => {
-      let link = item.querySelector('a');
-      // @ts-ignore
-      document.querySelector('.index .zones li.selected').classList.remove('selected');
-      item.classList.add('selected');
-      
-      const rangeSelected = document.querySelector('.ranges li.selected');
-
-      // @ts-ignore
-      customLoadDataFromCsv(link.href).then((data) => {
-        // @ts-ignore
-        let chartData = csvToCols(data);
-
-        cbh1 = chartData[2].slice(1).map((el) => { return +el });
-        cbh5 = chartData[1].slice(1).map((el) => { return +el });
-        xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
-        zeroSeries = cbh1.map(() => 0);
-
-        const max = zeroSeries.length - 1;
-        const min = 0;
-        reorganizeChart(cbh5, cbh1, min, max);
-      })
-
-      console.log(rangeSelected);
-      /*
-      // @ts-ignore
-      if (typeof rangeSelected.onclick == "function") {
-      // @ts-ignore
-          rangeSelected.onclick.apply(rangeSelected);
-      }
-      */
-    });
-  });
-
-}());
-
-
 
 //функция вешает слушатели на панель legends
 /*

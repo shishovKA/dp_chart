@@ -2828,38 +2828,6 @@ WebFont.load({
     },
 });
 // подключение слушателей к разметке как на cbh
-//функция вешает слушатели на панель ranges
-(function prepareRangesMenu() {
-    var ranges = document.querySelectorAll('.ranges li');
-    ranges.forEach(function (item) {
-        item.addEventListener('click', function () {
-            // @ts-ignore
-            document.querySelector('.ranges li.selected').classList.remove('selected');
-            item.classList.add('selected');
-            var lastLb = xLabels[xLabels.length - 1];
-            var maxDate = lastLb, minDate, max = xLabels.length - 1, min = 0;
-            switch (item.innerHTML) {
-                case '6M':
-                    minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
-                    min = findDateInd(minDate);
-                    break;
-                case '1Y':
-                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
-                    min = findDateInd(minDate);
-                    break;
-                case '2Y':
-                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
-                    min = findDateInd(minDate);
-                    break;
-                case 'YTD':
-                    minDate = new Date(new Date(maxDate.getFullYear(), 0, 1).getTime()),
-                        min = findDateInd(minDate);
-                    break;
-            }
-            reorganizeChart(cbh5, cbh1, min, max);
-        });
-    });
-}());
 //функция вешает слушатели на панель nav - USA / EU
 (function prepareCsvLoadMenu() {
     var zoneItems = document.querySelectorAll('.index .zones li');
@@ -2890,6 +2858,38 @@ WebFont.load({
                 rangeSelected.onclick.apply(rangeSelected);
             }
             */
+        });
+    });
+}());
+//функция вешает слушатели на панель ranges
+(function prepareRangesMenu() {
+    var ranges = document.querySelectorAll('.ranges li');
+    ranges.forEach(function (item) {
+        item.addEventListener('click', function () {
+            // @ts-ignore
+            document.querySelector('.ranges li.selected').classList.remove('selected');
+            item.classList.add('selected');
+            var lastLb = xLabels[xLabels.length - 1];
+            var maxDate = lastLb, minDate, max = xLabels.length - 1, min = 0;
+            switch (item.innerHTML) {
+                case '6M':
+                    minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
+                    min = findDateInd(minDate);
+                    break;
+                case '1Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
+                    min = findDateInd(minDate);
+                    break;
+                case '2Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
+                    min = findDateInd(minDate);
+                    break;
+                case 'YTD':
+                    minDate = new Date(new Date(maxDate.getFullYear(), 0, 1).getTime()),
+                        min = findDateInd(minDate);
+                    break;
+            }
+            reorganizeChart(cbh5, cbh1, min, max);
         });
     });
 }());
