@@ -150,7 +150,8 @@ WebFont.load({
         break;
 
         case 'YTD' :
-
+          max = xLabels.length - 1;
+          min = 0;
         break;
 
         case 'MAX' :
