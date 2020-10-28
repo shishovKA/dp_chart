@@ -1,3 +1,5 @@
+// browserify ./src/index.ts -p [ tsify --noImplicitAny ] > chartBlib.js
+
 // @ts-ignore
 import WebFont from 'webfontloader';
 
