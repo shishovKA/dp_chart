@@ -2757,22 +2757,17 @@ exports.Transformer = Transformer;
 
 },{"./Point":12,"./Rectangle":13}],18:[function(require,module,exports){
 "use strict";
+// browserify ./src/index.ts -p [ tsify --noImplicitAny ] > chartBlib.js
 Object.defineProperty(exports, "__esModule", { value: true });
-// импорт стилей
-//import "./styles/normalize.css";
-//import "./styles/style.css";
-//import "./styles/fonts.css";
-//элементы управления
-var bezier = require('bezier-easing');
-var easing = bezier(0.65, 0, 0.35, 1);
-var Chart_1 = require("./classes/Chart");
-//const usCsv = require('./data/cbhPlotData_US.csv');
-//const euCsv = require('./data/cbhPlotData_EU.csv');
+// @ts-ignore
+// подключаем необходимые библиотеки
 var WebFont = require('webfontloader');
-//console.log(usCsv);
-//console.log(euCsv);
+var bezier = require('bezier-easing');
+var Chart_1 = require("./classes/Chart");
+//назначаем константы
+var easing = bezier(0.65, 0, 0.35, 1);
 var gapY = 0.08;
-//объявляем данные
+//объявляем используемые переменные
 var chart;
 var cbh1 = [];
 var cbh5 = [];
@@ -2835,24 +2830,29 @@ WebFont.load({
 });
 //настройка виджетов для отображения данных Тултипов
 var indexWidget = document.getElementById('chart_w_ind');
+var redWidget = document.getElementById('chart_w_data_red');
+var blueWidget = document.getElementById('chart_w_data_blue');
 function conncetIndexWidget(index) {
     if (indexWidget)
         indexWidget.textContent = index.toString();
 }
-var redWidget = document.getElementById('chart_w_data_red');
 function conncetRedWidget(index) {
     if (redWidget)
         redWidget.textContent = cbh1[index].toFixed(1);
 }
-var blueWidget = document.getElementById('chart_w_data_blue');
 function conncetBlueWidget(index) {
     if (blueWidget)
         blueWidget.textContent = cbh5[index].toFixed(1);
 }
 //настройка кнопок для управлением диапазоном оси дат
-//последняя дата
 //кнопка 6M
 var SixMBtn = document.getElementById('6M');
+//кнопка 1Y
+var OneYBtn = document.getElementById('1Y');
+//кнопка 2Y
+var TwoYBtn = document.getElementById('2Y');
+//кнопка Max
+var MaxBtn = document.getElementById('MAX');
 // @ts-ignore
 SixMBtn.addEventListener("click", function (event) {
     var lastLb = xLabels[xLabels.length - 1];
@@ -2862,8 +2862,6 @@ SixMBtn.addEventListener("click", function (event) {
     var min = findDateInd(minDate);
     reorganizeChart(cbh5, cbh1, min, max);
 });
-//кнопка 1Y
-var OneYBtn = document.getElementById('1Y');
 // @ts-ignore
 OneYBtn.addEventListener("click", function (event) {
     var lastLb = xLabels[xLabels.length - 1];
@@ -2873,8 +2871,6 @@ OneYBtn.addEventListener("click", function (event) {
     var min = findDateInd(minDate);
     reorganizeChart(cbh5, cbh1, min, max);
 });
-//кнопка 2Y
-var TwoYBtn = document.getElementById('2Y');
 // @ts-ignore
 TwoYBtn.addEventListener("click", function (event) {
     var lastLb = xLabels[xLabels.length - 1];
@@ -2884,49 +2880,13 @@ TwoYBtn.addEventListener("click", function (event) {
     var min = findDateInd(minDate);
     reorganizeChart(cbh5, cbh1, min, max);
 });
-//кнопка Max
-var MaxBtn = document.getElementById('MAX');
 // @ts-ignore
 MaxBtn.addEventListener("click", function (event) {
     var max = xLabels.length - 1;
     var min = 0;
     reorganizeChart(cbh5, cbh1, min, max);
 });
-//Кнока EU
-var euBtn = document.getElementById('EU');
-if (euBtn) {
-    euBtn.addEventListener("click", function (event) {
-        customLoadDataFromCsv("euCsv").then(function (data) {
-            // @ts-ignore
-            var chartData = csvToCols(data);
-            cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
-            cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
-            xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
-            zeroSeries = cbh1.map(function () { return 0; });
-            var max = zeroSeries.length - 1;
-            var min = 0;
-            reorganizeChart(cbh5, cbh1, min, max);
-        });
-    });
-}
-//Кнока US
-var usBtn = document.getElementById('US');
-if (usBtn) {
-    usBtn.addEventListener("click", function (event) {
-        customLoadDataFromCsv("usCsv").then(function (data) {
-            // @ts-ignore
-            var chartData = csvToCols(data);
-            cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
-            cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
-            xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
-            zeroSeries = cbh1.map(function () { return 0; });
-            var max = zeroSeries.length - 1;
-            var min = 0;
-            reorganizeChart(cbh5, cbh1, min, max);
-        });
-    });
-}
-// подготавливаем данные как на сайте CyberHedge
+// настройка Chart
 // @ts-ignore
 function reorganizeChart(cbh5, cbh1, min, max) {
     var _a, _b, _c, _d, _e;
@@ -2944,7 +2904,7 @@ function reorganizeChart(cbh5, cbh1, min, max) {
     var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
     chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
 }
-//вспомогательные функции для работы
+//поиск индекса ближайщей даты
 function findDateInd(date) {
     var ind = xLabels.reduce(function (prev, curr, i) {
         // @ts-ignore
@@ -2957,6 +2917,7 @@ function findDateInd(date) {
     }, 0);
     return ind;
 }
+// перевод из абсолютных величин в %
 function calculateDeviations(rowData, fromIndex) {
     var chartDataVariation = [];
     var zeroPoint = rowData[fromIndex];
@@ -2966,6 +2927,7 @@ function calculateDeviations(rowData, fromIndex) {
     }
     return chartDataVariation;
 }
+// подготоваливает данные для Chart
 function prepareDataforCbh(star5, star1, fromIndex) {
     var arrLength = star5.length;
     var serie5star = calculateDeviations(star5, fromIndex), serie1star = calculateDeviations(star1, fromIndex), area5starTop = [], area5starBottom = [], area1starTop = [], area1starBottom = [];
@@ -2982,7 +2944,36 @@ function prepareDataforCbh(star5, star1, fromIndex) {
     }
     return { serie5star: serie5star, area5starTop: area5starTop, area5starBottom: area5starBottom, serie1star: serie1star, area1starTop: area1starTop, area1starBottom: area1starBottom };
 }
-//функция создает и настраивает Chart как на сайте
+// подключение слушателей к разметке как на cbh
+prepareCsvLoadMenu();
+//функция вешает слушатели на панель nav - USA / EU
+function prepareCsvLoadMenu() {
+    var zoneItems = document.querySelectorAll('.index .zones li');
+    zoneItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            var link = item.querySelector('a');
+            // @ts-ignore
+            document.querySelector('.index .zones li.selected').classList.remove('selected');
+            //document.querySelector('.index .ranges li.selected').classList.remove('selected');
+            //document.querySelector('.index .ranges li:last-child').classList.add('selected');
+            item.classList.add('selected');
+            // @ts-ignore
+            customLoadDataFromCsv(link.href).then(function (data) {
+                // @ts-ignore
+                var chartData = csvToCols(data);
+                //console.log('chartData',chartData);
+                cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
+                cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
+                xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
+                zeroSeries = cbh1.map(function () { return 0; });
+                var max = zeroSeries.length - 1;
+                var min = 0;
+                reorganizeChart(cbh5, cbh1, min, max);
+            });
+        });
+    });
+}
+//функция-config создает и настраивает Chart как на сайте
 // @ts-ignore
 function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
@@ -3049,35 +3040,6 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
     chart.switchDataAnimation(true, 300);
     chart.data.changeAllSeriesAnimationTimeFunction(easing);
     return chart;
-}
-// подключение слушателей к разметке как на cbh
-prepareCsvLoadMenu();
-//функция вешает слушатели на панель nav - USA / EU
-function prepareCsvLoadMenu() {
-    var zoneItems = document.querySelectorAll('.index .zones li');
-    zoneItems.forEach(function (item) {
-        item.addEventListener('click', function () {
-            var link = item.querySelector('a');
-            // @ts-ignore
-            document.querySelector('.index .zones li.selected').classList.remove('selected');
-            //document.querySelector('.index .ranges li.selected').classList.remove('selected');
-            //document.querySelector('.index .ranges li:last-child').classList.add('selected');
-            item.classList.add('selected');
-            // @ts-ignore
-            customLoadDataFromCsv(link.href).then(function (data) {
-                // @ts-ignore
-                var chartData = csvToCols(data);
-                //console.log('chartData',chartData);
-                cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
-                cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
-                xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
-                zeroSeries = cbh1.map(function () { return 0; });
-                var max = zeroSeries.length - 1;
-                var min = 0;
-                reorganizeChart(cbh5, cbh1, min, max);
-            });
-        });
-    });
 }
 
 },{"./classes/Chart":7,"bezier-easing":1,"webfontloader":4}]},{},[18]);
