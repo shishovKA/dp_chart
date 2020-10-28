@@ -2848,7 +2848,7 @@ WebFont.load({
                 zeroSeries = cbh1.map(function () { return 0; });
                 var max = zeroSeries.length - 1;
                 var min = 0;
-                reorganizeChart(cbh5, cbh1, min, max);
+                //reorganizeChart(cbh5, cbh1, min, max);
             });
             console.log(rangeSelected);
             // @ts-ignore
@@ -2869,6 +2869,7 @@ WebFont.load({
             item.classList.add('selected');
             var lastLb = xLabels[xLabels.length - 1];
             var maxDate = lastLb, minDate, max = xLabels.length - 1, min = 0;
+            console.log(item.innerHTML);
             switch (item.innerHTML) {
                 case '6M':
                     minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));

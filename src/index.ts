@@ -103,7 +103,7 @@ WebFont.load({
 
         const max = zeroSeries.length - 1;
         const min = 0;
-        reorganizeChart(cbh5, cbh1, min, max);
+        //reorganizeChart(cbh5, cbh1, min, max);
       })
 
       console.log(rangeSelected);
@@ -132,7 +132,7 @@ WebFont.load({
           minDate,
           max = xLabels.length - 1,
           min = 0;  
-
+      console.log(item.innerHTML);
       switch (item.innerHTML) {
         case '6M' :
           minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
