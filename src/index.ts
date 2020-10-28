@@ -106,14 +106,9 @@ WebFont.load({
         //reorganizeChart(cbh5, cbh1, min, max);
       })
 
-      console.log(rangeSelected);
-      
       // @ts-ignore
-      if (typeof rangeSelected.onclick == "function") {
-      // @ts-ignore
-          rangeSelected.onclick.apply(rangeSelected);
-      }
-      
+      rangeSelected.click(rangeSelected);
+
     });
   });
 
@@ -132,7 +127,7 @@ WebFont.load({
           minDate,
           max = xLabels.length - 1,
           min = 0;  
-      console.log(item.innerHTML);
+
       switch (item.innerHTML) {
         case '6M' :
           minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
