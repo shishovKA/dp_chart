@@ -196,6 +196,7 @@ export class Ticks {
 
                 if (this.hasCustomLabels) {
                     value = Math.round(value);
+                    // @ts-ignore
                     this.labels.push(this.customLabels[value]);
                 } else {
                         this.labels.push(value.toFixed(2).toString());
@@ -262,6 +263,7 @@ export class Ticks {
 
                 if (this.hasCustomLabels) {
                     value = Math.round(curValue);
+                    // @ts-ignore
                     this.labels.push(this.customLabels[value]);
                 } else {
                         if (toFixed !== null) {
@@ -303,6 +305,7 @@ export class Ticks {
 
                 if (this.hasCustomLabels) {
                     value = Math.round(curValue);
+                    // @ts-ignore
                     this.labels.push(this.customLabels[value]);
                 } else {
                     if (toFixed !== null) {
@@ -341,9 +344,9 @@ export class Ticks {
         let deviation = Math.abs(max - min);
         let devInd = 0;
 
-
+// @ts-ignore
         for (let j = 0; j < this.customTicksOptions.length; j++) {
-
+// @ts-ignore
             coords = this.generateFixedStepTicks(min, max, vp, this.customTicksOptions[j], 0);
             const maxValue = this.values.reduce((prev, element) => {
                 return (element > prev) ? element : prev;
@@ -355,7 +358,7 @@ export class Ticks {
             }
 
         }
-
+// @ts-ignore
         coords = this.generateFixedStepTicks(min, max, vp, this.customTicksOptions[devInd], 0);
 
 
@@ -365,7 +368,7 @@ export class Ticks {
 
     generateCustomDateTicks(min:number, max:number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
         let coords = [];
-
+// @ts-ignore
         for (let j = 0; j < this.customTicksOptions.length; j++) {
 
             const ticksArr = this.generateCustomDateTicksByOption(j, min, max, vp, ctx);
@@ -392,7 +395,7 @@ export class Ticks {
     tickCoordAnimation(from: Point[], to: Point[], duration: number) {
 
         let start = performance.now();
-        
+      // @ts-ignore 
         const animate = (time) => {
             
             let timeFraction = (time - start) / duration;
@@ -472,6 +475,7 @@ export class Ticks {
         let labels = [];
 
         let yearDel = 1;
+        // @ts-ignore
         const partYear = this.customTicksOptions[j];
         switch (partYear) {
             case 'half year':
@@ -492,7 +496,9 @@ export class Ticks {
             //let preLabel = this.customLabels[i-1];
             //let curDate = dateParser(curLabel);
             //let preDate = dateParser(preLabel);
+            // @ts-ignore
             let curDate: Date = this.customLabels[i];
+            // @ts-ignore
             let preDate: Date = this.customLabels[i-1];
 
             //начала годов
@@ -515,6 +521,7 @@ export class Ticks {
                 labels.push(curDate.getFullYear());
             } else {
                         //начала месяцев
+                        // @ts-ignore
                     if ( (this.customTicksOptions[j] !== partYear) || (!(curDate.getMonth() % yearDel)) ) {
                             if ((curDate.getMonth() - preDate.getMonth()) !== 0) {
 
@@ -538,6 +545,7 @@ export class Ticks {
                     }
             
             //середины месяцев
+            // @ts-ignore
             if (this.customTicksOptions[j] == 'half month') { 
                 if ((curDate.getDay() !== 0) && (curDate.getDay() !== 6)) {
                     if ((curDate.getDate() == 14 || curDate.getDate() == 15 || curDate.getDate() == 16) && 

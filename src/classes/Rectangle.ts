@@ -36,7 +36,7 @@ export class Rectangle {
         this.y2 = y2;
     }
 
-
+// @ts-ignore
     countDistBetweenRects(type: string, next: Rectangle) : number {
         switch (type) {
             case 'vertical':

@@ -121,8 +121,9 @@ export class Axis {
             return;
         }
         */
-
+    // @ts-ignore
         this.min = to[0];
+        // @ts-ignore
         this.max = to[1];
         
         this.onMinMaxSetted.dispatch(hasPlotAnimation);
@@ -165,6 +166,7 @@ export class Axis {
             break;
         }
 
+        // @ts-ignore
         return axisVP
     }
 
@@ -181,7 +183,7 @@ export class Axis {
         ctx.setLineDash([]);
     }
 
-
+/*
     axisRangeAnimation(from: number[], to: number[], duration: number) {
         
         let start = performance.now();
@@ -199,6 +201,6 @@ export class Axis {
 
         requestAnimationFrame(animate);
     }
-
+*/
 
   }

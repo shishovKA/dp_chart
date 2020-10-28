@@ -9,12 +9,15 @@ export class Canvas {
     container: HTMLElement;
     canvas: HTMLCanvasElement;
     _ctx: CanvasRenderingContext2D | null;
+    // @ts-ignore
     height: number;
+    // @ts-ignore
     width: number;
     top: number;
     right: number;
     bottom: number;
     left: number;
+    // @ts-ignore
     mouseCoords: Point;
     changed: Signal;
     mouseMoved: Signal;
@@ -167,15 +170,19 @@ export class Canvas {
 
     drawVp() {
         const rect = this.viewport;
+        // @ts-ignore
         this.ctx.rect(rect.x1, rect.y1, rect.width, rect.height);
+        // @ts-ignore
         this.ctx.stroke();
     }
 
+    // @ts-ignore
     getMouseCoords(event): Point {
         var bcr = this.canvas.getBoundingClientRect();
         return new Point(event.clientX - bcr.left  - this.viewport.x1, event.clientY - bcr.top - this.viewport.y1);
     }
 
+    // @ts-ignore
     getTouchCoords(event): Point {
         const clientX = event.touches[0].clientX;
         const clientY = event.touches[0].clientY;
@@ -187,6 +194,7 @@ export class Canvas {
         const rect = this.viewport;
         let squarePath = new Path2D();
         squarePath.rect( rect.x1, rect.y1, rect.width, rect.height );
+        // @ts-ignore
         this._ctx.clip(squarePath);
     }
 

@@ -1,32 +1,28 @@
+// @ts-ignore
 import WebFont from 'webfontloader';
 
 // импорт стилей
-import "./styles/normalize.css";
-import "./styles/style.css";
-import "./styles/fonts.css";
-
-//импорт класса Chart
+//import "./styles/normalize.css";
+//import "./styles/style.css";
+//import "./styles/fonts.css";
 
 //элементы управления
 
-import  bezier  from "bezier-easing"
+const bezier = require('bezier-easing');
+
 const easing = bezier(0.65, 0, 0.35, 1);
 
-//import { Chart } from "dp-chart-lib"
+import { Chart } from "./classes/Chart"
 
-const path = require('path');
-const usCsv = require('./data/cbhPlotData_US.csv');
-const euCsv = require('./data/cbhPlotData_EU.csv');
+//const usCsv = require('./data/cbhPlotData_US.csv');
+//const euCsv = require('./data/cbhPlotData_EU.csv');
 
-console.log(usCsv);
-console.log(euCsv);
+const WebFont = require('webfontloader')
+
+//console.log(usCsv);
+//console.log(euCsv);
 
 const gapY: number = 0.08;
-
-// импорт стилей
-import "./styles/normalize.css";
-import "./styles/style.css";
-import "./styles/fonts.css";
 
 
 //объявляем данные
@@ -36,40 +32,6 @@ let cbh1: number[] = [];
 let cbh5: number[] = [];
 let xLabels: Date[] = [];
 let zeroSeries: number[] = [];
-
-// загрузка из CSV
-function loadDataFromCsv(filePath: string) {
-  return new Promise(function (resolve, reject) {
-    //console.log(path.resolve('https://raw.githubusercontent.com/shishovKA/dp_chart/gh-pages/', filePath))
-    csv(filePath)
-      .then((data) => {
-        let cbh1: number[] = [];
-        let cbh5: number[] = [];
-        let xLabels: string[] = [];
-        let zeroSeries: number[] = [];
-
-        data.forEach((element, index) => {
-          if (element.cbhIdx1) cbh1.push(+element.cbhIdx1);
-          if (element.cbhIdx5) cbh5.push(+element.cbhIdx5);
-          if (element.t) xLabels.push(new Date(element.t));
-
-        });
-
-        zeroSeries = cbh1.map(() => {
-          return 0;
-        })
-
-        resolve({cbh1, cbh5, xLabels, zeroSeries});
-
-      })
-      .catch((error) => {
-        reject(new Error("Can't Load CSV"));
-      })
-
-  });
-
-}
-
 
 
 // рукописная загрузка из CSV
@@ -85,6 +47,7 @@ return fetch(filePath).then((response) => {
 }
 
 // csv to array
+// @ts-ignore
 function csvToCols(strData, strDelimiter) {
 	strDelimiter = strDelimiter || ",";
 	let rowData = strData.split("\n");
@@ -93,7 +56,8 @@ function csvToCols(strData, strDelimiter) {
 	for (let i = rowData[0].split(strDelimiter).length - 1; i >= 0; i--) colResult.push([]);
 	for (let i = 0, l = rowData.length; i < l; i++) {
 		if (rowData[i].length) {
-			let row = rowData[i].split(strDelimiter);
+      let row = rowData[i].split(strDelimiter);
+      // @ts-ignore
 			for (let j = row.length - 1; j >= 0; j--) colResult[j].push(row[j]);
 		}
   }
@@ -110,24 +74,8 @@ WebFont.load({
 
   active: function () {
 
-    /*
-    loadDataFromCsv(usCsv)
-      .then((dataObj)=>{
-
-        cbh1 = dataObj.cbh1;
-        cbh5 = dataObj.cbh5;
-        xLabels = dataObj.xLabels;
-        zeroSeries = dataObj.zeroSeries;
-
-        chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
-        chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
-        chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
-        chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
-        chart.tooltipsDraw(true);
-
-      })
-*/
-    customLoadDataFromCsv(euCsv).then((data) => {
+    customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then((data) => {
+      // @ts-ignore
       let chartData = csvToCols(data);
       //console.log('chartData',chartData);
 
@@ -143,9 +91,6 @@ WebFont.load({
       chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
       chart.tooltipsDraw(true);
 
-      //const max = zeroSeries.length - 1;
-      //const min = 0;
-      //reorganizeChart(cbh5, cbh1, min, max);
     })
       .catch((err) => {
         console.log(err);
@@ -184,7 +129,7 @@ function conncetBlueWidget(index: number) {
 
 //кнопка 6M
 const SixMBtn = document.getElementById('6M');
-
+// @ts-ignore
 SixMBtn.addEventListener("click", (event) => {
     const lastLb = xLabels[xLabels.length-1];
     const maxDate = lastLb;
@@ -196,7 +141,7 @@ SixMBtn.addEventListener("click", (event) => {
 
 //кнопка 1Y
 const OneYBtn = document.getElementById('1Y');
-
+// @ts-ignore
 OneYBtn.addEventListener("click", (event) => {
     const lastLb: Date = xLabels[xLabels.length-1];
     const maxDate: Date = lastLb;
@@ -208,7 +153,7 @@ OneYBtn.addEventListener("click", (event) => {
 
 //кнопка 2Y
 const TwoYBtn = document.getElementById('2Y');
-
+// @ts-ignore
 TwoYBtn.addEventListener("click", (event) => {
   const lastLb = xLabels[xLabels.length-1];
   const maxDate = lastLb;
@@ -220,7 +165,7 @@ TwoYBtn.addEventListener("click", (event) => {
 
 //кнопка Max
 const MaxBtn = document.getElementById('MAX');
-
+// @ts-ignore
 MaxBtn.addEventListener("click", (event) => {
   const max = xLabels.length - 1;
   const min = 0;
@@ -233,32 +178,15 @@ const euBtn = document.getElementById('EU');
 
 if (euBtn) {
   euBtn.addEventListener("click", (event) => {
-    
-    /*
-    loadDataFromCsv(euCsv)
-      .then((dataObj) => {
-        cbh1 = dataObj.cbh1;
-        cbh5 = dataObj.cbh5;
-        xLabels = dataObj.xLabels;
-        zeroSeries = dataObj.zeroSeries;
 
-        const max = xLabels.length - 1;
-        const min = 0;
-
-        reorganizeChart(cbh5, cbh1, min, max);
-      })
-    */
-
-     customLoadDataFromCsv(euCsv).then((data) => {
+     customLoadDataFromCsv("euCsv").then((data) => {
+       // @ts-ignore
       let chartData = csvToCols(data);
-      //console.log('chartData',chartData);
     
       cbh1 = chartData[2].slice(1).map((el) => {return +el});
       cbh5 = chartData[1].slice(1).map((el) => {return +el});
       xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
       zeroSeries = cbh1.map(() => 0 );
-    
-      console.log('cbh1',cbh1);
     
       const max = zeroSeries.length - 1;
       const min = 0;
@@ -273,16 +201,14 @@ const usBtn = document.getElementById('US');
 
 if (usBtn) {
   usBtn.addEventListener("click", (event) => {
-    customLoadDataFromCsv(usCsv).then((data) => {
+    customLoadDataFromCsv("usCsv").then((data) => {
+      // @ts-ignore
       let chartData = csvToCols(data);
-      //console.log('chartData',chartData);
     
       cbh1 = chartData[2].slice(1).map((el) => {return +el});
       cbh5 = chartData[1].slice(1).map((el) => {return +el});
       xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
       zeroSeries = cbh1.map(() => 0 );
-    
-      console.log('cbh1',cbh1);
     
       const max = zeroSeries.length - 1;
       const min = 0;
@@ -292,6 +218,7 @@ if (usBtn) {
 }
 
 // подготавливаем данные как на сайте CyberHedge
+// @ts-ignore
 function reorganizeChart(cbh5, cbh1, min, max) {
   let data = prepareDataforCbh(cbh5, cbh1, min);
   let {
@@ -307,6 +234,7 @@ function reorganizeChart(cbh5, cbh1, min, max) {
   chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
   chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
   chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
+  // @ts-ignore
   chart.xAxis.ticks.setCustomLabels(xLabels);
   chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
 
@@ -322,7 +250,9 @@ function reorganizeChart(cbh5, cbh1, min, max) {
 
 function findDateInd(date: Date) {
   const ind =  xLabels.reduce((prev, curr, i) => {
+    // @ts-ignore
     const curDif = Math.abs(curr-date);
+    // @ts-ignore
     const prevDif = Math.abs(xLabels[prev]-date);
     if (curDif < prevDif) return i
     return prev
@@ -372,8 +302,9 @@ function prepareDataforCbh(star5: number[], star1: number[], fromIndex: number) 
 }
 
 //функция создает и настраивает Chart как на сайте
+// @ts-ignore
 function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
-
+  // @ts-ignore
   const chart = new Chart(document.getElementById('indexChart'), [0, 900], [0, 2000]);
   chart.setCanvasPaddings(25, 50, 35, 20); // задаем отступы для области отрисовки
 
@@ -472,18 +403,23 @@ function prepareCsvLoadMenu() {
   zoneItems.forEach( (item) => {
     item.addEventListener('click',  () => {
       let link = item.querySelector('a');
+      // @ts-ignore
       document.querySelector('.index .zones li.selected').classList.remove('selected');
       //document.querySelector('.index .ranges li.selected').classList.remove('selected');
       //document.querySelector('.index .ranges li:last-child').classList.add('selected');
       item.classList.add('selected');
+      // @ts-ignore
+      customLoadDataFromCsv(link.href).then((data) => {
+        // @ts-ignore
+        let chartData = csvToCols(data);
+        //console.log('chartData',chartData);
       
-      loadDataFromCsv(link.href)
-      .then((dataObj) => {
-        cbh1 = dataObj.cbh1;
-        cbh5 = dataObj.cbh5;
-        xLabels = dataObj.xLabels;
-        zeroSeries = dataObj.zeroSeries;
-        const max = xLabels.length - 1;
+        cbh1 = chartData[2].slice(1).map((el) => {return +el});
+        cbh5 = chartData[1].slice(1).map((el) => {return +el});
+        xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
+        zeroSeries = cbh1.map(() => 0 );
+      
+        const max = zeroSeries.length - 1;
         const min = 0;
         reorganizeChart(cbh5, cbh1, min, max);
       })
