@@ -27,31 +27,9 @@ body {
     align-items: center;
 }
 
-.section_widget {
-    width: 20%;
-    padding: 10px;
-    margin-right: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: solid 2px black;
-}
-
-.section_ranges {
-    width: 20%;
-    padding: 10px;
-    margin-right: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: solid 2px black;
-}
-
-.section_cbh {
+.section_panel {
+    flex-direction: row;
     width: 100%;
-    padding: 10px;
-    display: flex;
-    border: solid 2px black;
 }
 
 .chart__title {

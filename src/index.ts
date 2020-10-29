@@ -13,6 +13,7 @@ const bezier = require('bezier-easing');
 const easing = bezier(0.65, 0, 0.35, 1);
 
 import { Chart } from "./classes/Chart"
+import { ChartPanel } from "./interface/ChartPanel"
 
 const usCsv = require('./data/cbhPlotData_US.csv');
 const euCsv = require('./data/cbhPlotData_EU.csv');
@@ -78,7 +79,6 @@ WebFont.load({
       cbh5 = chartData[1].slice(1).map((el) => { return +el });
       xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
       zeroSeries = cbh1.map(() => 0);
-      console.log('cbh1', cbh1);
 
       chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
       const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
