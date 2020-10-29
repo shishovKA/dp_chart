@@ -14,14 +14,10 @@ const easing = bezier(0.65, 0, 0.35, 1);
 
 import { Chart } from "./classes/Chart"
 
-//const usCsv = require('./data/cbhPlotData_US.csv');
-//const euCsv = require('./data/cbhPlotData_EU.csv');
+const usCsv = require('./data/cbhPlotData_US.csv');
+const euCsv = require('./data/cbhPlotData_EU.csv');
 
 const WebFont = require('webfontloader')
-
-//console.log(usCsv);
-//console.log(euCsv);
-
 const gapY: number = 0.08;
 
 
@@ -74,10 +70,9 @@ WebFont.load({
 
   active: function () {
 
-    customLoadDataFromCsv("src/data/cbhPlotData_US.csv").then((data) => {
+    customLoadDataFromCsv(usCsv).then((data) => {
       // @ts-ignore
       let chartData = csvToCols(data);
-      //console.log('chartData',chartData);
 
       cbh1 = chartData[2].slice(1).map((el) => { return +el });
       cbh5 = chartData[1].slice(1).map((el) => { return +el });
@@ -86,9 +81,7 @@ WebFont.load({
       console.log('cbh1', cbh1);
 
       chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
-      chart.tooltipsDataIndexUpdated.add(conncetIndexWidget);
-      chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
-      chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
+      const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
       chart.tooltipsDraw(true);
 
     })
@@ -101,121 +94,6 @@ WebFont.load({
 
 });
 
-
-//настройка виджетов для отображения данных Тултипов
-const indexWidget = document.getElementById('chart_w_ind');
-
-function conncetIndexWidget(index: number) {
-  if (indexWidget) indexWidget.textContent = index.toString();
-}
-
-const redWidget = document.getElementById('chart_w_data_red');
-
-function conncetRedWidget(index: number) {
-  if (redWidget) redWidget.textContent = cbh1[index].toFixed(1);
-}
-
-const blueWidget = document.getElementById('chart_w_data_blue');
-
-function conncetBlueWidget(index: number) {
-  if (blueWidget) blueWidget.textContent = cbh5[index].toFixed(1);
-}
-
-
-//настройка кнопок для управлением диапазоном оси дат
-
-//последняя дата
-
-
-//кнопка 6M
-const SixMBtn = document.getElementById('6M');
-// @ts-ignore
-SixMBtn.addEventListener("click", (event) => {
-    const lastLb = xLabels[xLabels.length-1];
-    const maxDate = lastLb;
-    const minDate = new Date (new Date (maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
-    const max = xLabels.length-1;
-    const min = findDateInd(minDate);
-    reorganizeChart(cbh5, cbh1, min, max);
-  })
-
-//кнопка 1Y
-const OneYBtn = document.getElementById('1Y');
-// @ts-ignore
-OneYBtn.addEventListener("click", (event) => {
-    const lastLb: Date = xLabels[xLabels.length-1];
-    const maxDate: Date = lastLb;
-    const minDate = new Date (new Date (maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
-    const max = xLabels.length-1;
-    const min = findDateInd(minDate);
-    reorganizeChart(cbh5, cbh1, min, max);
-  })
-
-//кнопка 2Y
-const TwoYBtn = document.getElementById('2Y');
-// @ts-ignore
-TwoYBtn.addEventListener("click", (event) => {
-  const lastLb = xLabels[xLabels.length-1];
-  const maxDate = lastLb;
-  const minDate = new Date (new Date (maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
-  const max = xLabels.length - 1;
-  const min = findDateInd(minDate);
-  reorganizeChart(cbh5, cbh1, min, max);
-})
-
-//кнопка Max
-const MaxBtn = document.getElementById('MAX');
-// @ts-ignore
-MaxBtn.addEventListener("click", (event) => {
-  const max = xLabels.length - 1;
-  const min = 0;
-  reorganizeChart(cbh5, cbh1, min, max);
-});
-
-
-//Кнока EU
-const euBtn = document.getElementById('EU');
-
-if (euBtn) {
-  euBtn.addEventListener("click", (event) => {
-
-     customLoadDataFromCsv("euCsv").then((data) => {
-       // @ts-ignore
-      let chartData = csvToCols(data);
-    
-      cbh1 = chartData[2].slice(1).map((el) => {return +el});
-      cbh5 = chartData[1].slice(1).map((el) => {return +el});
-      xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
-      zeroSeries = cbh1.map(() => 0 );
-    
-      const max = zeroSeries.length - 1;
-      const min = 0;
-      reorganizeChart(cbh5, cbh1, min, max);
-    })
-
-  });
-}
-
-//Кнока US
-const usBtn = document.getElementById('US');
-
-if (usBtn) {
-  usBtn.addEventListener("click", (event) => {
-    customLoadDataFromCsv("usCsv").then((data) => {
-      // @ts-ignore
-      let chartData = csvToCols(data);
-    
-      cbh1 = chartData[2].slice(1).map((el) => {return +el});
-      cbh5 = chartData[1].slice(1).map((el) => {return +el});
-      xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
-      zeroSeries = cbh1.map(() => 0 );
-    
-      const max = zeroSeries.length - 1;
-      const min = 0;
-      reorganizeChart(cbh5, cbh1, min, max);
-    })
-  });
-}
 
 // подготавливаем данные как на сайте CyberHedge
 // @ts-ignore
@@ -394,36 +272,3 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
 
 }
 
-// подключение слушателей к разметке как на cbh
-prepareCsvLoadMenu();
-
-//функция вешает слушатели на панель nav - USA / EU
-function prepareCsvLoadMenu() {
-  let zoneItems = document.querySelectorAll('.index .zones li');
-  zoneItems.forEach( (item) => {
-    item.addEventListener('click',  () => {
-      let link = item.querySelector('a');
-      // @ts-ignore
-      document.querySelector('.index .zones li.selected').classList.remove('selected');
-      //document.querySelector('.index .ranges li.selected').classList.remove('selected');
-      //document.querySelector('.index .ranges li:last-child').classList.add('selected');
-      item.classList.add('selected');
-      // @ts-ignore
-      customLoadDataFromCsv(link.href).then((data) => {
-        // @ts-ignore
-        let chartData = csvToCols(data);
-        //console.log('chartData',chartData);
-      
-        cbh1 = chartData[2].slice(1).map((el) => {return +el});
-        cbh5 = chartData[1].slice(1).map((el) => {return +el});
-        xLabels = chartData[0].slice(1).map((el) => {return new Date(el)});
-        zeroSeries = cbh1.map(() => 0 );
-      
-        const max = zeroSeries.length - 1;
-        const min = 0;
-        reorganizeChart(cbh5, cbh1, min, max);
-      })
-
-    });
-  });
-}
