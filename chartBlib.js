@@ -2999,7 +2999,7 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
     chart.addPlot('black_line', 'line', 1, '#000000', '#000000', 1);
     // создаем Tooltipы
     // lines
-    (_a = chart.findPlotById('red_line')) === null || _a === void 0 ? void 0 : _a.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
+    (_a = chart.findPlotById('blue_line')) === null || _a === void 0 ? void 0 : _a.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
     (_b = chart.findPlotById('red_line')) === null || _b === void 0 ? void 0 : _b.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
     (_c = chart.findPlotById('blue_line')) === null || _c === void 0 ? void 0 : _c.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
     // circles
