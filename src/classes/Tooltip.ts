@@ -175,8 +175,8 @@ export class Tooltip {
         ctx.setLineDash(this._options.lineDash);
 
         // параметры
-        const rectPadding = 4;
-        const rectWidth = 55+2;
+        const rectPadding = 5;
+        const rectWidth = 55+4;
         // @ts-ignore
         const labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
         const cornersRadius = this._options.mainSize;
@@ -268,7 +268,7 @@ export class Tooltip {
         const cornersRadius = this._options.mainSize;
 
         this.label.position = 'right'
-        this.label.offset = 23;
+        this.label.offset = 26;
         const labelCoord = new Point(vp.x2, ttCoord.y);
 
         const labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);

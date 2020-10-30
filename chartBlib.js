@@ -2578,8 +2578,8 @@ var Tooltip = /** @class */ (function () {
         ctx.fillStyle = this._options.brushColor;
         ctx.setLineDash(this._options.lineDash);
         // параметры
-        var rectPadding = 4;
-        var rectWidth = 55 + 2;
+        var rectPadding = 5;
+        var rectWidth = 55 + 4;
         // @ts-ignore
         var labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
         var cornersRadius = this._options.mainSize;
@@ -2638,7 +2638,7 @@ var Tooltip = /** @class */ (function () {
         var labelText = (seriesData.y).toFixed(1) + '%';
         var cornersRadius = this._options.mainSize;
         this.label.position = 'right';
-        this.label.offset = 23;
+        this.label.offset = 26;
         var labelCoord = new Point_1.Point(vp.x2, ttCoord.y);
         var labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
         var labelStart = new Point_1.Point(labelRect.x1, labelRect.y1);
