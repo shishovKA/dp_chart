@@ -320,7 +320,7 @@ export class Tooltip {
         const lineX = ttCoord.x;
         labelCoord.y = labelCoord.y - 25;
         const rectPadding = 10;
-        const labelText = 'Δ '+(seriesData.y).toFixed(2);
+        const labelText = 'Δ '+(seriesData.y).toFixed(1)+ 'pp';
         const cornersRadius = this._options.mainSize;
 
         let labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
