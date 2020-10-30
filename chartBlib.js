@@ -2994,13 +2994,13 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
     (_g = chart.findPlotById('blue_line')) === null || _g === void 0 ? void 0 : _g.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
     (_h = chart.findPlotById('red_line')) === null || _h === void 0 ? void 0 : _h.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
     // labels
-    (_j = chart.findPlotById('red_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 11, ['11', '"Transcript Pro"']);
+    (_j = chart.findPlotById('red_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 11, ['12', '"Transcript Pro"']);
     // data
-    (_k = chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
-    (_l = chart.findPlotById('blue_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 11, ['11', '"Transcript Pro"']);
+    (_k = chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 11, ['12', '"Transcript Pro"']);
+    (_l = chart.findPlotById('blue_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 11, ['12', '"Transcript Pro"']);
     // delta
-    (_m = chart.findPlotById('red_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['11', '"Transcript Pro"']);
-    (_o = chart.findPlotById('blue_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['11', '"Transcript Pro"']);
+    (_m = chart.findPlotById('red_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['12', '"Transcript Pro"']);
+    (_o = chart.findPlotById('blue_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['12', '"Transcript Pro"']);
     // подготавливаем данные как на сайте CyberHedge
     var data = prepareDataforCbh(cbh5, cbh1, 0);
     var serie5star = data.serie5star, area5starTop = data.area5starTop, area5starBottom = data.area5starBottom, serie1star = data.serie1star, area1starTop = data.area1starTop, area1starBottom = data.area1starBottom;
