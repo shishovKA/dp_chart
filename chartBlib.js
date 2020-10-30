@@ -2579,7 +2579,7 @@ var Tooltip = /** @class */ (function () {
         ctx.setLineDash(this._options.lineDash);
         // параметры
         var rectPadding = 4;
-        var rectWidth = 55;
+        var rectWidth = 55 + 2;
         // @ts-ignore
         var labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
         var cornersRadius = this._options.mainSize;
@@ -2642,7 +2642,7 @@ var Tooltip = /** @class */ (function () {
         var labelCoord = new Point_1.Point(vp.x2, ttCoord.y);
         var labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
         var labelStart = new Point_1.Point(labelRect.x1, labelRect.y1);
-        var roundRect = new Rectangle_1.Rectangle(vp.x2 + 11 - rectPadding, labelStart.y - rectPadding, vp.x2 + rectPadding + 35, labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
+        var roundRect = new Rectangle_1.Rectangle(vp.x2 + 11 - rectPadding - 1, labelStart.y - rectPadding, vp.x2 + rectPadding + 35 + 1, labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
         if (roundRect.y1 < vp.y1) {
             labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
             ttCoord.y = labelCoord.y;

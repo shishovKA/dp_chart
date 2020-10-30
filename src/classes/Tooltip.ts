@@ -176,7 +176,7 @@ export class Tooltip {
 
         // параметры
         const rectPadding = 4;
-        const rectWidth = 55;
+        const rectWidth = 55+2;
         // @ts-ignore
         const labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
         const cornersRadius = this._options.mainSize;
@@ -275,9 +275,9 @@ export class Tooltip {
 
         let labelStart = new Point(labelRect.x1, labelRect.y1);
         
-        let roundRect: Rectangle = new Rectangle(vp.x2+11-rectPadding, 
+        let roundRect: Rectangle = new Rectangle(vp.x2+11-rectPadding-1, 
                                                     labelStart.y-rectPadding, 
-                                                    vp.x2+rectPadding + 35, 
+                                                    vp.x2+rectPadding + 35 + 1, 
                                                     labelStart.y-rectPadding + labelRect.height+2*rectPadding );
 
         if (roundRect.y1 < vp.y1) {
