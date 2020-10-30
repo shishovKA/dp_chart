@@ -973,6 +973,7 @@ var Chart = /** @class */ (function () {
         this.canvasTT = new Canvas_1.Canvas(container);
         this.canvasTT.turnOnListenres();
         this.canvasTT.canvas.style.zIndex = "10";
+        this.canvasA.canvas.style.zIndex = "9";
         this.data = new Data_1.Data();
         this.plots = [];
         this.xAxis = new Axis_1.Axis(xMinMax, 'horizontal');

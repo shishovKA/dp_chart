@@ -29,6 +29,7 @@ export class Chart {
         this.canvasTT.turnOnListenres();
 
         this.canvasTT.canvas.style.zIndex = "10";
+        this.canvasA.canvas.style.zIndex = "9";
         this.data = new Data();
         this.plots = [];
 
