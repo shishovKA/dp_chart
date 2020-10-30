@@ -259,16 +259,16 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
   chart.setCanvasPaddings(25, 50, 35, 20); // задаем отступы для области отрисовки
 
   // ось X
-  chart.xAxis.setOptions(2, '#7F7F7F');
+  chart.xAxis.setOptions(1, 'black');
   chart.xAxis.ticks.display = true;
-  chart.xAxis.ticks.settickDrawOptions(6, 2, '#7F7F7F');
-  chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['11', '"Transcript Pro"']);
+  chart.xAxis.ticks.settickDrawOptions(6, 1, 'black');
+  chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
 
   // ось Y
-  chart.yAxis.setOptions(2, '#B2B2B2', [1, 2]);
+  chart.yAxis.setOptions(1, '#B2B2B2', [1, 2]);
   chart.yAxis.display = true;
   chart.yAxis.position = 'end';
-  chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['11', '"Transcript Pro"']);
+  chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
 
   // создаем Plots
   chart.addPlot('red_line', 'line', 1, '#FF2222', '#FF2222');
