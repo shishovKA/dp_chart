@@ -275,9 +275,9 @@ export class Tooltip {
 
         let labelStart = new Point(labelRect.x1, labelRect.y1);
         
-        let roundRect: Rectangle = new Rectangle(vp.x2+11-rectPadding-1, 
+        let roundRect: Rectangle = new Rectangle(vp.x2+11-rectPadding+3, 
                                                     labelStart.y-rectPadding, 
-                                                    vp.x2+rectPadding + 35 + 1, 
+                                                    vp.x2+rectPadding + 35 + 3, 
                                                     labelStart.y-rectPadding + labelRect.height+2*rectPadding );
 
         if (roundRect.y1 < vp.y1) {

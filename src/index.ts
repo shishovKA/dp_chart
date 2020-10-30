@@ -66,6 +66,8 @@ WebFont.load({
       xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
       zeroSeries = cbh1.map(() => 0);
 
+      setLastUpdateDate(xLabels[xLabels.length - 1]);
+
       chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
       chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
       chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
@@ -199,6 +201,16 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?:boolean) {
     const lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
     chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
   }
+}
+
+
+function setLastUpdateDate(lastDate: Date) {
+	// NOTE: fill last update node
+  let lastUpdateNode = document.querySelector('.last-update time');
+  // @ts-ignore
+  lastUpdateNode.datetime = lastDate.toISOString();
+  // @ts-ignore
+	lastUpdateNode.innerHTML = [lastDate.getDate(), lastDate.toLocaleString('en-US', { month: 'long' }), lastDate.getFullYear()].join(' ');
 }
 
 

@@ -2642,7 +2642,7 @@ var Tooltip = /** @class */ (function () {
         var labelCoord = new Point_1.Point(vp.x2, ttCoord.y);
         var labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
         var labelStart = new Point_1.Point(labelRect.x1, labelRect.y1);
-        var roundRect = new Rectangle_1.Rectangle(vp.x2 + 11 - rectPadding - 1, labelStart.y - rectPadding, vp.x2 + rectPadding + 35 + 1, labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
+        var roundRect = new Rectangle_1.Rectangle(vp.x2 + 11 - rectPadding + 3, labelStart.y - rectPadding, vp.x2 + rectPadding + 35 + 3, labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
         if (roundRect.y1 < vp.y1) {
             labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
             ttCoord.y = labelCoord.y;
@@ -2818,6 +2818,7 @@ WebFont.load({
             cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
             xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
             zeroSeries = cbh1.map(function () { return 0; });
+            setLastUpdateDate(xLabels[xLabels.length - 1]);
             chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
             chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
             chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
@@ -2918,6 +2919,14 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
         var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
         chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
     }
+}
+function setLastUpdateDate(lastDate) {
+    // NOTE: fill last update node
+    var lastUpdateNode = document.querySelector('.last-update time');
+    // @ts-ignore
+    lastUpdateNode.datetime = lastDate.toISOString();
+    // @ts-ignore
+    lastUpdateNode.innerHTML = [lastDate.getDate(), lastDate.toLocaleString('en-US', { month: 'long' }), lastDate.getFullYear()].join(' ');
 }
 //поиск индекса ближайщей даты
 function findDateInd(date) {
