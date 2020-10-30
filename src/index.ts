@@ -102,6 +102,9 @@ WebFont.load({
         cbh5 = chartData[1].slice(1).map((el) => { return +el });
         xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
         zeroSeries = cbh1.map(() => 0);
+
+        setLastUpdateDate(xLabels[xLabels.length - 1]);
+        
         const max = xLabels.length - 1;
         const min = 0;
         reorganizeChart(cbh5, cbh1, min, max, false);
