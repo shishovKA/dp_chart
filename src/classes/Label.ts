@@ -102,7 +102,15 @@ export class Label {
             break;
         }
 
-        return new Rectangle(labelCoord.x, labelCoord.y-this.fontSize*0.5, labelCoord.x+text.width, labelCoord.y+this.fontSize*0.5);
+        let textYgap = 0;
+        
+        if (this.font.indexOf('Transcript Pro') !== -1) {
+            textYgap = 2;
+        }
+
+        const labelRect = new Rectangle(labelCoord.x, labelCoord.y-this.fontSize*0.5, labelCoord.x+text.width, labelCoord.y+this.fontSize*0.5-textYgap);
+
+        return labelRect;
     }
 
 

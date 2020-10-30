@@ -1436,7 +1436,12 @@ var Label = /** @class */ (function () {
                 labelCoord.x = labelCoord.x + this.offset;
                 break;
         }
-        return new Rectangle_1.Rectangle(labelCoord.x, labelCoord.y - this.fontSize * 0.5, labelCoord.x + text.width, labelCoord.y + this.fontSize * 0.5);
+        var textYgap = 0;
+        if (this.font.indexOf('Transcript Pro') !== -1) {
+            textYgap = 2;
+        }
+        var labelRect = new Rectangle_1.Rectangle(labelCoord.x, labelCoord.y - this.fontSize * 0.5, labelCoord.x + text.width, labelCoord.y + this.fontSize * 0.5 - textYgap);
+        return labelRect;
     };
     return Label;
 }());
