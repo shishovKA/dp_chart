@@ -2806,8 +2806,7 @@ function csvToCols(strData, strDelimiter) {
 // проверка подгрузки шрифта
 WebFont.load({
     custom: {
-        families: ['Transcript Pro'],
-        urls: ['./styles/fonts.css']
+        families: ['Transcript Pro']
     },
     active: function () {
         //загружает стартовый файл
