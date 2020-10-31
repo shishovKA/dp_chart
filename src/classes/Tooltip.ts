@@ -316,7 +316,7 @@ export class Tooltip {
 
         //параметры начальные
         this.label.position = 'right';
-        this.label.offset = 33; 
+        this.label.offset = 40; 
         const lineX = ttCoord.x;
         labelCoord.y = labelCoord.y - 25;
         const rectPadding = 10;

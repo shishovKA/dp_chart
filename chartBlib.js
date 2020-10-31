@@ -2675,7 +2675,7 @@ var Tooltip = /** @class */ (function () {
         var labelCoord = new Point_1.Point(ttCoord.x, ttCoord.y);
         //параметры начальные
         this.label.position = 'right';
-        this.label.offset = 33;
+        this.label.offset = 40;
         var lineX = ttCoord.x;
         labelCoord.y = labelCoord.y - 25;
         var rectPadding = 10;
