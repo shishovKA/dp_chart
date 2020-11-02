@@ -2583,8 +2583,8 @@ var Tooltip = /** @class */ (function () {
         ctx.fillStyle = this._options.brushColor;
         ctx.setLineDash(this._options.lineDash);
         // параметры
-        var rectPadding = 5;
-        var rectWidth = 55 + 4;
+        var rectPadding = 6;
+        var rectWidth = 60;
         // @ts-ignore
         var labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
         var cornersRadius = this._options.mainSize;
@@ -2643,11 +2643,18 @@ var Tooltip = /** @class */ (function () {
         var labelText = (seriesData.y).toFixed(1) + '%';
         var cornersRadius = this._options.mainSize;
         this.label.position = 'right';
-        this.label.offset = 26;
         var labelCoord = new Point_1.Point(vp.x2, ttCoord.y);
         var labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
         var labelStart = new Point_1.Point(labelRect.x1, labelRect.y1);
-        var roundRect = new Rectangle_1.Rectangle(vp.x2 + 11 - rectPadding + 3, labelStart.y - rectPadding, vp.x2 + rectPadding + 35 + 3, labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
+        var labelCenter = new Point_1.Point(labelRect.x1 + labelRect.width * 0.5, labelCoord.y);
+        var roundRectWidth = 40;
+        var roundRect = new Rectangle_1.Rectangle(labelCenter.x - roundRectWidth * 0.5, labelStart.y - rectPadding, labelCenter.x + roundRectWidth * 0.5, labelStart.y + labelRect.height + rectPadding);
+        /*
+        let roundRect: Rectangle = new Rectangle(vp.x2 + 11 - rectPadding + 3,
+            labelStart.y - rectPadding,
+            vp.x2 + rectPadding + 35 + 3,
+            labelStart.y  + labelRect.height + rectPadding);
+        */
         if (roundRect.y1 < vp.y1) {
             labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
             ttCoord.y = labelCoord.y;
@@ -2675,15 +2682,22 @@ var Tooltip = /** @class */ (function () {
         var labelCoord = new Point_1.Point(ttCoord.x, ttCoord.y);
         //параметры начальные
         this.label.position = 'right';
-        this.label.offset = 40;
         var lineX = ttCoord.x;
         labelCoord.y = labelCoord.y - 25;
-        var rectPadding = 10;
+        var rectPadding = 6;
         var labelText = 'Δ ' + (seriesData.y).toFixed(1) + 'pp';
         var cornersRadius = this._options.mainSize;
         var labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
         var labelStart = new Point_1.Point(labelRect.x1, labelRect.y1);
-        var roundRect = new Rectangle_1.Rectangle(labelStart.x - rectPadding, labelStart.y - rectPadding, labelStart.x - rectPadding + labelRect.width + 2 * rectPadding, labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
+        var labelCenter = new Point_1.Point(labelRect.x1 + labelRect.width * 0.5, labelCoord.y);
+        var roundRectWidth = 52;
+        var roundRect = new Rectangle_1.Rectangle(labelCenter.x - roundRectWidth * 0.5, labelStart.y - rectPadding, labelCenter.x + roundRectWidth * 0.5, labelStart.y + labelRect.height + rectPadding);
+        /*
+        let roundRect: Rectangle = new Rectangle(labelStart.x - rectPadding,
+            labelStart.y - rectPadding,
+            labelStart.x - rectPadding + labelRect.width + 2 * rectPadding,
+            labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
+        */
         if (roundRect.x2 > vp.x2) {
             labelCoord.x = labelCoord.x - roundRect.x2 + vp.x2;
             roundRect.move(-roundRect.x2 + vp.x2, 0);
@@ -2974,13 +2988,13 @@ function prepareDataforCbh(star5, star1, fromIndex) {
     }
     return { serie5star: serie5star, area5starTop: area5starTop, area5starBottom: area5starBottom, serie1star: serie1star, area1starTop: area1starTop, area1starBottom: area1starBottom };
 }
-//функция-config создает и настраивает Chart как на сайте
+//функция создает и настраивает Chart как на сайте
 // @ts-ignore
 function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
     // @ts-ignore
     var chart = new Chart_1.Chart(document.getElementById('indexChart'), [0, 900], [0, 2000]);
-    chart.setCanvasPaddings(25, 50, 35, 20); // задаем отступы для области отрисовки
+    chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
     // ось X
     chart.xAxis.setOptions(1, 'black');
     chart.xAxis.ticks.display = true;
@@ -3009,13 +3023,13 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
     (_g = chart.findPlotById('blue_line')) === null || _g === void 0 ? void 0 : _g.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
     (_h = chart.findPlotById('red_line')) === null || _h === void 0 ? void 0 : _h.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
     // labels
-    (_j = chart.findPlotById('red_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 11, ['12', '"Transcript Pro"']);
+    (_j = chart.findPlotById('red_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 14, ['12', '"Transcript Pro"']);
     // data
-    (_k = chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 11, ['12', '"Transcript Pro"']);
-    (_l = chart.findPlotById('blue_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 11, ['12', '"Transcript Pro"']);
+    (_k = chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 30, ['12', '"Transcript Pro"']);
+    (_l = chart.findPlotById('blue_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 30, ['12', '"Transcript Pro"']);
     // delta
-    (_m = chart.findPlotById('red_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['12', '"Transcript Pro"']);
-    (_o = chart.findPlotById('blue_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['12', '"Transcript Pro"']);
+    (_m = chart.findPlotById('red_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 35, ['12', '"Transcript Pro"']);
+    (_o = chart.findPlotById('blue_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 35, ['12', '"Transcript Pro"']);
     // подготавливаем данные как на сайте CyberHedge
     var data = prepareDataforCbh(cbh5, cbh1, 0);
     var serie5star = data.serie5star, area5starTop = data.area5starTop, area5starBottom = data.area5starBottom, serie1star = data.serie1star, area1starTop = data.area1starTop, area1starBottom = data.area1starBottom;

@@ -90,7 +90,7 @@ WebFont.load({
       // @ts-ignore
       document.querySelector('.index .zones li.selected').classList.remove('selected');
       item.classList.add('selected');
-      
+
       const rangeSelected = document.querySelector('.ranges li.selected');
 
       // @ts-ignore
@@ -104,7 +104,7 @@ WebFont.load({
         zeroSeries = cbh1.map(() => 0);
 
         setLastUpdateDate(xLabels[xLabels.length - 1]);
-        
+
         const max = xLabels.length - 1;
         const min = 0;
         reorganizeChart(cbh5, cbh1, min, max, false);
@@ -127,30 +127,30 @@ WebFont.load({
       item.classList.add('selected');
       const lastLb = xLabels[xLabels.length - 1];
       let maxDate = lastLb,
-          minDate,
-          max = xLabels.length - 1,
-          min = 0;  
+        minDate,
+        max = xLabels.length - 1,
+        min = 0;
 
       switch (item.innerHTML) {
-        case '6M' :
+        case '6M':
           minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
           min = findDateInd(minDate);
-        break;
+          break;
 
-        case '1Y' :
+        case '1Y':
           minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
           min = findDateInd(minDate);
-        break;
+          break;
 
-        case '2Y' :
+        case '2Y':
           minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
           min = findDateInd(minDate);
-        break;
+          break;
 
-        case 'YTD' :
+        case 'YTD':
           minDate = new Date(new Date(maxDate.getFullYear(), 0, 1).getTime()),
-          min = findDateInd(minDate);
-        break;
+            min = findDateInd(minDate);
+          break;
 
       }
 
@@ -179,7 +179,7 @@ function conncetBlueWidget(index: number) {
 
 // настройка Chart
 // @ts-ignore
-function reorganizeChart(cbh5, cbh1, min, max, onlyData?:boolean) {
+function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
   let data = prepareDataforCbh(cbh5, cbh1, min);
   let {
     serie5star,
@@ -195,7 +195,7 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?:boolean) {
   chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
   chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
   chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
-  
+
   if (onlyData) {
     // @ts-ignore
     chart.xAxis.ticks.setCustomLabels(xLabels);
@@ -208,12 +208,12 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?:boolean) {
 
 
 function setLastUpdateDate(lastDate: Date) {
-	// NOTE: fill last update node
+  // NOTE: fill last update node
   let lastUpdateNode = document.querySelector('.last-update time');
   // @ts-ignore
   lastUpdateNode.datetime = lastDate.toISOString();
   // @ts-ignore
-	lastUpdateNode.innerHTML = [lastDate.getDate(), lastDate.toLocaleString('en-US', { month: 'long' }), lastDate.getFullYear()].join(' ');
+  lastUpdateNode.innerHTML = [lastDate.getDate(), lastDate.toLocaleString('en-US', { month: 'long' }), lastDate.getFullYear()].join(' ');
 }
 
 
@@ -266,12 +266,12 @@ function prepareDataforCbh(star5: number[], star1: number[], fromIndex: number) 
 }
 
 
-//функция-config создает и настраивает Chart как на сайте
+//функция создает и настраивает Chart как на сайте
 // @ts-ignore
 function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
   // @ts-ignore
   const chart = new Chart(document.getElementById('indexChart'), [0, 900], [0, 2000]);
-  chart.setCanvasPaddings(25, 50, 35, 20); // задаем отступы для области отрисовки
+  chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
 
   // ось X
   chart.xAxis.setOptions(1, 'black');
@@ -308,15 +308,15 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
   chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
 
   // labels
-  chart.findPlotById('red_line')?.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 11, ['12', '"Transcript Pro"']);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 14, ['12', '"Transcript Pro"']);
 
   // data
-  chart.findPlotById('red_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 11, ['12', '"Transcript Pro"']);
-  chart.findPlotById('blue_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 11, ['12', '"Transcript Pro"']);
+  chart.findPlotById('red_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 30, ['12', '"Transcript Pro"']);
+  chart.findPlotById('blue_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 30, ['12', '"Transcript Pro"']);
 
   // delta
-  chart.findPlotById('red_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['12', '"Transcript Pro"']);
-  chart.findPlotById('blue_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 20, ['12', '"Transcript Pro"']);
+  chart.findPlotById('red_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 35, ['12', '"Transcript Pro"']);
+  chart.findPlotById('blue_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 35, ['12', '"Transcript Pro"']);
 
   // подготавливаем данные как на сайте CyberHedge
   let data = prepareDataforCbh(cbh5, cbh1, 0);
@@ -356,4 +356,5 @@ function CbhChart(cbh1, cbh5, xLabels, zeroSeries): Chart {
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   return chart;
+
 }
