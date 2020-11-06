@@ -38,14 +38,29 @@ export class Series {
         let resultData: number[][] = []
         
         initialData.forEach((dataRow) => {
-            const ind: number[] = [];
-            const val: number[] = [];
-            dataRow.forEach((element, index) => {
-                ind.push(index);
-                val.push(element);
-            });
-            resultData.push(ind);
-            resultData.push(val);
+
+            //когда данные формата x,y
+            if (Array.isArray(dataRow[0])) {
+                const x: number[] = [];
+                const y: number[] = [];
+
+                dataRow[0].forEach((element, index) => {
+                    x.push(element);
+                    y.push(dataRow[1][index]);
+                });
+                resultData.push(x);
+                resultData.push(y);
+
+            } else {
+                const ind: number[] = [];
+                const val: number[] = [];
+                dataRow.forEach((element, index) => {
+                    ind.push(index);
+                    val.push(element);
+                });
+                resultData.push(ind);
+                resultData.push(val);
+            }
         })
 
         return resultData;
@@ -156,6 +171,16 @@ export class Series {
             return prev
               }, 0);
         return new Point(ind, this.seriesData[1][ind])
+    }
+
+    getClosestPointX(x: number): Point {
+        const ind =  this.seriesData[0].reduce((prev, curr, i) => {
+            const curDif = Math.abs(curr - x);
+            const prevDif = Math.abs(this.seriesData[0][prev] - x);
+            if (curDif < prevDif) return i
+            return prev
+              }, 0);
+        return new Point(this.seriesData[0][ind], this.seriesData[1][ind])
     }
 
     getClosestPlotPoint(x: number): Point {

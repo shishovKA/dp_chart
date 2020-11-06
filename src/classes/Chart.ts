@@ -246,7 +246,8 @@ export class Chart {
         this.data.seriesStorage.forEach((series) => {
 
             const seriesX = this.xAxis.min + mouseXY.x * (this.xAxis.length) / this.canvasTT.viewport.width;
-            const pointData = series.getClosestPoint(seriesX);
+            console.log(seriesX)
+            const pointData = series.getClosestPointX(seriesX);
 
             const tooltipCoord = series.getClosestPlotPoint(mouseXY.x+this.canvasTT.left);
 

@@ -87,6 +87,10 @@ export class Plot {
             case 'area':
                 this.drawArea(ctx, plotData);
                 break;
+
+            case 'unicode':
+                this.drawUnicode(ctx, plotData);
+                break;
         }
 
     }
@@ -99,6 +103,15 @@ export class Plot {
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
+        }
+    }
+
+    drawUnicode(ctx: CanvasRenderingContext2D, plotData: Point[]) {
+        ctx.font = `${this._options.lineWidth}px serif`;
+        ctx.textBaseline = 'middle';
+        const text = ctx.measureText('●');
+        for (let i = 1; i < plotData.length; i++) {
+            ctx.fillText('●', plotData[i].x  - text.width*0.5  , plotData[i].y);
         }
     }
 
