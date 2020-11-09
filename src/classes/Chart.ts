@@ -211,8 +211,8 @@ export class Chart {
     }
 
 
-    addSeries(id: string, ...seriesData: number[][]) {
-        const newSeries = new Series(id, this.container, ...seriesData);
+    addSeries(id: string, seriesData: number[][]) {
+        const newSeries = new Series(id, this.container, seriesData);
         this.data.seriesStorage.push(newSeries);
         newSeries.canvas.setPaddings(this.canvas.top, this.canvas.right, this.canvas.bottom, this.canvas.left);
         newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
@@ -246,7 +246,6 @@ export class Chart {
         this.data.seriesStorage.forEach((series) => {
 
             const seriesX = this.xAxis.min + mouseXY.x * (this.xAxis.length) / this.canvasTT.viewport.width;
-            console.log(seriesX)
             const pointData = series.getClosestPointX(seriesX);
 
             const tooltipCoord = series.getClosestPlotPoint(mouseXY.x+this.canvasTT.left);

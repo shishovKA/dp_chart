@@ -6,6 +6,8 @@ interface plotOptions {
     lineColor: string;
     brushColor: string;
     mainSize: number;
+    fontSize: number;
+    char: string;
 }
 
 //описание класса
@@ -29,6 +31,8 @@ export class Plot {
             lineColor: '#000000',
             brushColor: '#000000',
             mainSize: 1,
+            fontSize: 10,
+            char: '1',
         };
 
         this.setOptions(options);
@@ -37,27 +41,30 @@ export class Plot {
 
 
     setOptions(options: any[]) {
-        switch (options.length) {
-            case 1:
-                this._options.lineWidth = options[0];
-                break;
 
-            case 2:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                break;
-
-            case 3:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                this._options.brushColor = options[2];
-                break;
-
-            case 4:
+        switch (this.type) {
+            case 'dotted':
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
                 this._options.brushColor = options[2];
                 this._options.mainSize = options[3];
+                break;
+
+            case 'line':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                break;
+
+            case 'area':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.brushColor = options[2];
+                break;
+
+            case 'unicode':
+                this._options.fontSize = options[0];
+                this._options.brushColor = options[1];
+                this._options.char = options[2];
                 break;
         }
     }
@@ -97,7 +104,7 @@ export class Plot {
 
     drawDotted(ctx: CanvasRenderingContext2D, plotData: Point[]) {
 
-        for (let i = 1; i < plotData.length; i++) {
+        for (let i = 0; i < plotData.length; i++) {
             ctx.beginPath();
             ctx.arc(plotData[i].x, plotData[i].y, this._options.mainSize, 0, Math.PI * 2, true);
             ctx.closePath();
@@ -107,11 +114,11 @@ export class Plot {
     }
 
     drawUnicode(ctx: CanvasRenderingContext2D, plotData: Point[]) {
-        ctx.font = `${this._options.lineWidth}px serif`;
+        ctx.font = `${this._options.fontSize}px serif`;
         ctx.textBaseline = 'middle';
-        const text = ctx.measureText('●');
-        for (let i = 1; i < plotData.length; i++) {
-            ctx.fillText('●', plotData[i].x  - text.width*0.5  , plotData[i].y);
+        const text = ctx.measureText(this._options.char);
+        for (let i = 0; i < plotData.length; i++) {
+            ctx.fillText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
         }
     }
 

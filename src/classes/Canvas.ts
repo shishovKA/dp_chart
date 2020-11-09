@@ -23,6 +23,7 @@ export class Canvas {
     mouseMoved: Signal;
     mouseOuted: Signal;
     touchEnded: Signal;
+    isSquare: boolean = true;
 
     constructor(container: HTMLElement, ...paddings: number[]) {
         this.changed = new Signal();
@@ -32,7 +33,6 @@ export class Canvas {
 
         this.container = container;
         this.canvas = document.createElement('canvas');
-
 
         this.canvas.style.position = 'absolute';
 
@@ -151,8 +151,18 @@ export class Canvas {
     resize() {
         this.clear();
         this.drawVp();
-        this.width = this.container.getBoundingClientRect().width;
-        this.height = this.container.getBoundingClientRect().height;
+
+        if (this.isSquare) {
+            let w = this.container.getBoundingClientRect().width;
+            let h = this.container.getBoundingClientRect().height;
+            this.width = Math.min(w,h); 
+            this.height = Math.min(w,h);
+        }
+            else {
+                this.width = this.container.getBoundingClientRect().width;
+                this.height = this.container.getBoundingClientRect().height;
+            }
+
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         this.canvas.style.width = this.width.toString()+'px';

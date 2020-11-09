@@ -43,9 +43,11 @@ body {
 .chart__container {
     width: 100%;
     max-width: 1024px;
-    height: 450px;
+    min-height: 600px;
     border: solid 2px black;
     overflow: visible;
+    display: flex;
+    justify-content: center;
 }
 
 .datawidget {
@@ -100,6 +102,6 @@ body {
 
 @media screen and (max-width: 780px) {
     .chart__container {
-        height: 360px;
+        max-height: 500px;
     }
   }
