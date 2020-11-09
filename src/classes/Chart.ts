@@ -19,6 +19,7 @@ export class Chart {
     plots: Plot[];
     xAxis: Axis;
     yAxis: Axis;
+    hasBorder: boolean = false;
     tooltipsDataIndexUpdated: Signal;
 
     constructor(container: HTMLElement, xMinMax: number[], yMinMax: number[]) {
@@ -58,14 +59,14 @@ export class Chart {
         
         this.xAxis.onOptionsSetted.add(() => {
         // @ts-ignore
-            this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
         //min max
         this.xAxis.onMinMaxSetted.add((hasPlotAnimation) => {
             // @ts-ignore
-            this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
 
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             
@@ -75,7 +76,7 @@ export class Chart {
 
         this.xAxis.onCustomLabelsAdded.add(() => {
             // @ts-ignore
-            this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
@@ -86,14 +87,14 @@ export class Chart {
 
         this.yAxis.onOptionsSetted.add(() => {
             // @ts-ignore
-            this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
         //min max
         this.yAxis.onMinMaxSetted.add((hasPlotAnimation) => {
             // @ts-ignore
-            this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             this.tooltipsDraw(true);
@@ -101,7 +102,7 @@ export class Chart {
 
         this.yAxis.onCustomLabelsAdded.add(() => {
             // @ts-ignore
-            this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
@@ -154,9 +155,9 @@ export class Chart {
     // генерируем тики у Осей
     ticksCreate() {
         // @ts-ignore
-        this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+        this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
         // @ts-ignore
-        this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx); 
+        this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx); 
     }
     
     // отрисовываем Оси
@@ -165,6 +166,8 @@ export class Chart {
         this.xAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
         // @ts-ignore
         this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
+
+        if (this.hasBorder) this.canvasA.drawVp();
     }
 
 
@@ -226,8 +229,6 @@ export class Chart {
             if (duration) series.animationDuration = duration;
         })
     }
-
-    
 
 
     // отрисовываем тултипы

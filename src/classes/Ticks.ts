@@ -114,6 +114,11 @@ export class Ticks {
                 this.distributionType = distributionType;
                 if (options.length !== 0) this.customTicksOptions = options[0];
             break;
+
+            case 'midStep':
+                this.distributionType = distributionType;
+                this.count = options[0];
+            break;
         }
         this.onOptionsSetted.dispatch();
     }
@@ -142,6 +147,10 @@ export class Ticks {
             case 'niceCbhStep':
                 coords = this.generateNiceCbhTicks(min, max, vp);
             break;
+
+            case 'midStep':
+                coords = this.generateMidStep(min, max, vp);
+            break;
         }
 
         //если нужна анимация тиков
@@ -160,6 +169,65 @@ export class Ticks {
         }
 
         this.coords = coords;
+    }
+
+    generateMidStep(min: number, max: number, vp: Rectangle) {
+        let coords = [];
+        this.values = [];
+        this.labels = [];
+        let stepCoord = 0;
+        let rectXY: number[] = [];
+        const transformer = new Transformer();
+
+        let stepValue = Math.abs(max - min) / (this.count);
+
+        switch (this.type) {
+            case 'vertical':
+                stepCoord = vp.height / this.count;
+                rectXY = [0, min, 1, max];
+                break;
+
+            case 'horizontal':
+                stepCoord = vp.width / this.count;
+                rectXY = [min, 0, max, 1];
+                break;
+        }
+
+        const fromRect = new Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
+
+
+        for (let i = 0; i <= this.count-1; i++) {
+
+            let pointXY: number[] = [];
+
+            let value = min + i * stepValue + stepValue*0.5;
+
+            if (this.hasCustomLabels) {
+                //value = Math.round(value);
+                // @ts-ignore
+                this.labels.push(this.customLabels[0]);
+            } else {
+                this.labels.push(value.toFixed(2).toString());
+            }
+
+            switch (this.type) {
+                case 'vertical':
+                    pointXY = [0, value];
+                    break;
+
+                case 'horizontal':
+                    pointXY = [value, 0];
+                    break;
+            }
+
+            const valuePoint = new Point(pointXY[0], pointXY[1]);
+            const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+            coords.push(coordPoint);
+            this.values.push(value);
+
+        }
+
+        return coords;
     }
 
 

@@ -24,6 +24,8 @@ export class Canvas {
     mouseOuted: Signal;
     touchEnded: Signal;
     isSquare: boolean = true;
+    lineWidth: number = 1;
+    color: string = 'black'
 
     constructor(container: HTMLElement, ...paddings: number[]) {
         this.changed = new Signal();
@@ -182,6 +184,12 @@ export class Canvas {
         const rect = this.viewport;
         // @ts-ignore
         this.ctx.rect(rect.x1, rect.y1, rect.width, rect.height);
+        
+
+        this.ctx.strokeStyle = this.color;
+        this.ctx.fillStyle = this.color;
+        this.ctx.lineWidth = this.lineWidth;
+
         // @ts-ignore
         this.ctx.stroke();
     }

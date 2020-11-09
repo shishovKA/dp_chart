@@ -23,6 +23,7 @@ export class Axis {
     gridOn: boolean = false;
 
     ticks: Ticks;
+    customTicks: Ticks[] = [];
 
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
@@ -48,7 +49,8 @@ export class Axis {
         };
 
         this.ticks = new Ticks(this.type);
-        
+
+
         this.setOptions(...options);
         this.bindChildSignals();
     }
@@ -134,6 +136,21 @@ export class Axis {
         const axisVp = this.getaxisViewport(viewport);
         if (this.display) this.drawAxis(ctx, axisVp);
         this.ticks.draw(ctx, viewport);
+
+        this.customTicks.forEach((ticks) => {
+            ticks.draw(ctx, viewport);
+        })
+    }
+
+    createTicks(min: number, max: number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
+        this.ticks.createTicks(min, max, vp, ctx);
+        this.customTicks.forEach((ticks) => {
+            ticks.createTicks(min, max, vp, ctx);
+        })
+    }
+
+    addCustomTicks(ticks: Ticks) {
+        this.customTicks.push(ticks);
     }
 
     getaxisViewport(vp: Rectangle): Rectangle {

@@ -13,6 +13,8 @@ const bezier = require('bezier-easing');
 const easing = bezier(0.65, 0, 0.35, 1);
 
 import { Chart } from "./classes/Chart"
+import { Ticks } from "./classes/Ticks"
+
 //import { ChartPanel } from "./interface/ChartPanel"
 
 const sqrData = require('./data/cbhVulnerability_test.csv');
@@ -29,8 +31,6 @@ let y: number[] = [];
 
 let oneX: number[] = [1.3];
 let oneY: number[] = [2.5];
-
-console.log(Array.isArray(oneX))
 
 
 
@@ -101,14 +101,23 @@ WebFont.load({
 function CbhChart(x, y): Chart {
   // @ts-ignore
   const chart = new Chart(document.getElementById('indexChart'), [0, 5], [0, 5]);
-  chart.setCanvasPaddings(40, 40, 40, 40); // задаем отступы для области отрисовки
+  chart.setCanvasPaddings(60, 60, 60, 60); // задаем отступы для области отрисовки
 
   // ось X
   chart.xAxis.setOptions(1, 'black');
   chart.xAxis.ticks.setOptions('fixedCount', 5);
   chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
   chart.xAxis.ticks.grid.display = true;
-  chart.xAxis.ticks.grid.setOptions('black', 0.5, [])
+  chart.xAxis.ticks.grid.setOptions('black', 0.5, []);
+  chart.xAxis.ticks.label.display = false;
+  chart.xAxis.position = 'end'
+
+//добавляем custom ticks для X
+  const newTicks = new Ticks(chart.xAxis.type);
+  newTicks.setOptions('midStep', 5);
+  newTicks.label.setOptions('#B2B2B2', 'top', 20, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
+  newTicks.setCustomLabels(['●'])
+  chart.xAxis.addCustomTicks(newTicks);
 
   // ось Y
   chart.yAxis.setOptions(1, '#B2B2B2');
@@ -116,7 +125,18 @@ function CbhChart(x, y): Chart {
   chart.yAxis.position = 'end';
   chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
   chart.yAxis.ticks.grid.display = true;
-  chart.yAxis.ticks.grid.setOptions('black', 0.5, [])
+  chart.yAxis.ticks.grid.setOptions('black', 0.5, []);
+  chart.yAxis.ticks.label.display = false;
+
+  //добавляем custom ticks для Y
+  const newYTicks = new Ticks(chart.yAxis.type);
+  newYTicks.setOptions('midStep', 5);
+  newYTicks.label.setOptions('#B2B2B2', 'right', 30, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
+  newYTicks.setCustomLabels(['●'])
+  chart.yAxis.addCustomTicks(newYTicks);
+
+  // контур графика
+  chart.hasBorder = true;
 
   // создаем Plots
   chart.addPlot('uni_circles', 'unicode', 20, '#454e56', '●');

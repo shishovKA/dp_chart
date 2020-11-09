@@ -6,6 +6,8 @@ export class Label {
     display: boolean = true;
     
     color: string = 'black';
+    colorArr?: string[];
+    color_counter: number = 0;
     font: string = '16px serif';
     fontSize: number = 16;
     position: string = 'bottom';
@@ -30,10 +32,15 @@ export class Label {
 
     }
 
-    setOptions(color?: string, position?: string, offset?: number, fontOptions?: string[]) {
+    setOptions(color?: string, position?: string, offset?: number, fontOptions?: string[], colorArr?:string[]) {
         this.color = color || 'black';
         this.position = position || 'bottom';
         this.offset = offset || 0;
+
+        if (colorArr) {
+            this.colorArr = colorArr;
+            this.color_counter = 0;
+        }
 
         if (fontOptions) {
             this.font = `${fontOptions[0]}px ${fontOptions[1]}`;
@@ -45,7 +52,16 @@ export class Label {
 
     draw(ctx: CanvasRenderingContext2D, coord:Point, labeltext:string) {
         
-        ctx.fillStyle = this.color;
+        if (this.colorArr) {
+            ctx.fillStyle = this.colorArr[this.color_counter];
+            this.color_counter = this.color_counter + 1;
+            if (this.color_counter == this.colorArr.length) this.color_counter = 0;
+        }
+
+        else {
+            ctx.fillStyle = this.color; 
+        }
+
         ctx.font = this.font;
         
         ctx.textBaseline = 'middle';
