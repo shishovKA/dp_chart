@@ -44,10 +44,10 @@ body {
     width: 100%;
     max-width: 1024px;
     min-height: 600px;
-    border: solid 2px black;
     overflow: visible;
     display: flex;
     justify-content: center;
+    background-color: white;
 }
 
 .datawidget {

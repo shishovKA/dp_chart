@@ -7,6 +7,7 @@ import { Transformer } from "./Transformer";
 import { Rectangle } from "./Rectangle";
 import { Point } from "./Point";
 import { Series } from "./Series";
+import { BackGround } from "./BackGround";
 import { Signal } from "signals";
 
 export class Chart {
@@ -20,6 +21,7 @@ export class Chart {
     xAxis: Axis;
     yAxis: Axis;
     hasBorder: boolean = false;
+    background?: BackGround;
     tooltipsDataIndexUpdated: Signal;
 
     constructor(container: HTMLElement, xMinMax: number[], yMinMax: number[]) {
@@ -28,11 +30,9 @@ export class Chart {
         this.canvasA = new Canvas(container);
         this.canvasTT = new Canvas(container);
         this.canvasTT.turnOnListenres();
-
         this.canvasTT.canvas.style.zIndex = "10";
         this.data = new Data();
         this.plots = [];
-
         this.xAxis = new Axis(xMinMax, 'horizontal');
         this.yAxis = new Axis(yMinMax, 'vertical');
 
@@ -42,9 +42,7 @@ export class Chart {
         window.addEventListener('resize', () => { this.reSize() });
 
         this.reSize();
-
         this.bindChildSignals();
-
         this.tooltipsDraw(true);
 
         this.tooltipsDataIndexUpdated = new Signal();
@@ -55,8 +53,6 @@ export class Chart {
     bindChildSignals() {
         
         // axis
-
-        
         this.xAxis.onOptionsSetted.add(() => {
         // @ts-ignore
             this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
@@ -162,12 +158,14 @@ export class Chart {
     
     // отрисовываем Оси
     axisDraw() {
+        if (this.background) this.background.draw(this.canvasA.ctx, this.xAxis.ticks.coords, this.yAxis.ticks.coords)
         // @ts-ignore
         this.xAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
         // @ts-ignore
         this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
 
         if (this.hasBorder) this.canvasA.drawVp();
+
     }
 
 
@@ -198,6 +196,9 @@ export class Chart {
     }
 
 
+    addBackGround(type: string) {
+        this.background = new BackGround(type);
+    }
 
     addPlot(id: string, type: string, ...options: any) {
         const plot = new Plot(id, type, ...options);

@@ -69,7 +69,6 @@ function csvToCols(strData, strDelimiter) {
 WebFont.load({
   custom: {
     families: ['Transcript Pro'],
-    urls: ['./styles/fonts.css']
   },
 
   active: function () {
@@ -115,7 +114,7 @@ function CbhChart(x, y): Chart {
 //добавляем custom ticks для X
   const newTicks = new Ticks(chart.xAxis.type);
   newTicks.setOptions('midStep', 5);
-  newTicks.label.setOptions('#B2B2B2', 'top', 20, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
+  newTicks.label.setOptions('#B2B2B2', 'top', 17, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
   newTicks.setCustomLabels(['●'])
   chart.xAxis.addCustomTicks(newTicks);
 
@@ -154,6 +153,9 @@ function CbhChart(x, y): Chart {
   chart.yAxis.ticks.switchAnimation(false, 300);
   chart.switchDataAnimation(false, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
+
+  //обавляем фон
+  chart.addBackGround('coloredGrid');
 
   return chart;
 
