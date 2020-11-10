@@ -102,10 +102,22 @@ WebFont.load({
 
 const randBtn = document.getElementById('rand_btn');
 randBtn.addEventListener('click', () => {
-  for (let i=0; i<x.length; i++) {
-    x[i] = 0.1+Math.random()*4.8;
-    y[i] = 0.1+Math.random()*4.8;
+
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const charactersLength = characters.length;
+
+  const newLength = 1+Math.round(Math.random()*16);
+
+  x.splice(0, x.length);
+  y.splice(0, y.length);
+  labels.splice(0, labels.length)
+
+  for (let i=0; i<newLength-1; i++) {
+    x.push(0.1+Math.random()*4.8);
+    y.push(0.1+Math.random()*4.8);
+    labels.push(characters.charAt(Math.floor(Math.random() * charactersLength)))
   }
+
   oneX = [0.1+Math.random()*4.8];
   oneY = [0.1+Math.random()*4.8];
   
@@ -115,6 +127,7 @@ randBtn.addEventListener('click', () => {
 function reorganizeChart() {
   chart.data.findSeriesById('portfolio')?.replaceSeriesData([x, y]);
   chart.data.findSeriesById('portfolio_1')?.replaceSeriesData([oneX, oneY]);
+  chart.findPlotById('uni_circles')?.findTooltipById('ttId')?.labels = labels;
 }
 
 
