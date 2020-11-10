@@ -147,7 +147,7 @@ function CbhChart(x, y): Chart {
   chart.addPlot('uni_triangle', 'unicode', 20, '#454e56', '▼');
 
   //tt
-  chart.findPlotById('uni_circles')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 40, ['12', '"Transcript Pro"']);
+  chart.findPlotById('uni_circles')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions('black', 'top', 15, ['12', '"Transcript Pro"']);
 
   // создаем Series
   chart.addSeries('portfolio', [x, y]).setPlotsIds('uni_circles');

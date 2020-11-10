@@ -168,15 +168,19 @@ export class Series {
     }
 
     
-    getClosestPoint(seriesPoint: Point): Point {
+    getClosestPoint(seriesPoint: Point): [Point, number] {
+        let ind = 0;
         const resultPoint =  this.seriesData[0].reduce((prev, curr, i) => {
             let curPoint = new Point(curr, this.seriesData[1][i])
             const curDif = seriesPoint.findDist(curPoint);
             const prevDif = seriesPoint.findDist(prev);
-            if (curDif < prevDif) return curPoint
+            if (curDif < prevDif) {
+                ind = i;
+                return curPoint
+            }
             return prev
               }, new Point(this.seriesData[0][0], this.seriesData[1][0]));
-        return resultPoint;
+        return [resultPoint, ind];
     }
 
     getClosestPointX(x: number): Point {

@@ -17,7 +17,7 @@ export class Tooltip {
     _id: string;
     type: string;
     _options: tooltipOptions;
-    labels?: Date[];
+    labels?: any[];
     label: Label;
 
     constructor(id: string, type: string, ...options: any) {
@@ -97,14 +97,14 @@ export class Tooltip {
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
                 this._options.brushColor = options[2];
-                this._options.mainSize = options[3];
+                this.labels = options[3];
                 break;
 
         }
     }
 
 
-    drawTooltip(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, xyData: Point, toDraw?: boolean) {
+    drawTooltip(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, xyData: Point, ind: number, toDraw?: boolean) {
         switch (this.type) {
 
             case 'circle_series':
@@ -135,13 +135,13 @@ export class Tooltip {
                 break;
             
             case 'data_label':
-                this.drawDataLabel(ctx, vp, ttCoord, xyData);
+                this.drawDataLabel(ctx, vp, ttCoord, xyData, ind);
                 break;
 
         }
     }
 
-    drawDataLabel(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, seriesData: Point) {
+    drawDataLabel(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, seriesData: Point, ind: number) {
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
@@ -150,53 +150,62 @@ export class Tooltip {
         const labelCoord = new Point(ttCoord.x, ttCoord.y);
 
         //параметры начальные
-        this.label.position = 'right';
-    
+        this.label.position = 'top';
         const lineX = ttCoord.x;
-        labelCoord.y = labelCoord.y - 20;
+
         const rectPadding = 6;
-        const labelText = 'x: ' + (seriesData.x).toFixed(1) + '; y: '+ (seriesData.y).toFixed(1);
+        const labelText = this.labels[ind] + '; x: ' + (seriesData.x).toFixed(1) + '; y: '+ (seriesData.y).toFixed(1);
         const cornersRadius = this._options.mainSize;
 
         let labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
-        let labelStart = new Point(labelRect.x1, labelRect.y1);
 
-        let labelCenter = new Point(labelRect.x1 + labelRect.width*0.5, labelCoord.y);
-
-        const roundRectWidth = 60;
-
-        let roundRect: Rectangle = new Rectangle(labelCenter.x - roundRectWidth*0.5,
-            labelStart.y - rectPadding,
-            labelCenter.x + roundRectWidth*0.5,
-            labelStart.y  + labelRect.height + rectPadding);
-
-        /*
-        let roundRect: Rectangle = new Rectangle(labelStart.x - rectPadding,
-            labelStart.y - rectPadding,
-            labelStart.x - rectPadding + labelRect.width + 2 * rectPadding,
-            labelStart.y - rectPadding + labelRect.height + 2 * rectPadding);
-        */
-
+        let roundRect: Rectangle = new Rectangle(labelRect.x1 - rectPadding,
+            labelRect.y1 - rectPadding,
+            labelRect.x2 + rectPadding,
+            labelRect.y2 + rectPadding);
+        
+/*
         if (roundRect.x2 > vp.x2) {
             labelCoord.x = labelCoord.x - roundRect.x2 + vp.x2;
             roundRect.move(- roundRect.x2 + vp.x2, 0)
         }
+*/
 
-        if (roundRect.x1 < lineX) {
-            labelCoord.x = lineX;
-            this.label.position = 'left';
+        if (roundRect.x2 > vp.x2) {
+            labelCoord.x = labelCoord.x - Math.abs(roundRect.x2 - vp.x2) - rectPadding;
+
             labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
-            labelStart = new Point(labelRect.x2, labelRect.y1);
 
-            roundRect = new Rectangle(labelStart.x - labelRect.width - rectPadding,
-                labelStart.y - rectPadding,
-                labelStart.x + rectPadding,
-                labelStart.y + labelRect.height + rectPadding);
+            roundRect = new Rectangle(labelRect.x1 - rectPadding,
+                labelRect.y1 - rectPadding,
+                labelRect.x2 + rectPadding,
+                labelRect.y2 + rectPadding);
         }
 
+        if (roundRect.x1 < vp.x1) {
+            labelCoord.x = labelCoord.x + Math.abs(roundRect.x1 - vp.x1) + rectPadding;
+            
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+
+            roundRect = new Rectangle(labelRect.x1 - rectPadding,
+                labelRect.y1 - rectPadding,
+                labelRect.x2 + rectPadding,
+                labelRect.y2 + rectPadding);
+        }
+
+
         if (roundRect.y1 < vp.y1) {
-            labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
-            roundRect.move(0, vp.y1 - roundRect.y1);
+            this.label.position = 'bottom';
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+
+            roundRect = new Rectangle(labelRect.x1 - rectPadding,
+                labelRect.y1 - rectPadding,
+                labelRect.x2 + rectPadding,
+                labelRect.y2 + rectPadding);
+
+            //labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
+            //roundRect.move(0, vp.y1 - roundRect.y1);
+
         }
 
         this.roundRect(ctx, roundRect.x1, roundRect.y1, roundRect.width, roundRect.height, cornersRadius);
