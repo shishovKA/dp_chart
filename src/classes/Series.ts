@@ -168,14 +168,15 @@ export class Series {
     }
 
     
-    getClosestPoint(x: number): Point {
-        const ind =  this.seriesData[0].reduce((prev, curr, i) => {
-            const curDif = Math.abs(i - x);
-            const prevDif = Math.abs(prev - x);
-            if (curDif < prevDif) return i
+    getClosestPoint(seriesPoint: Point): Point {
+        const resultPoint =  this.seriesData[0].reduce((prev, curr, i) => {
+            let curPoint = new Point(curr, this.seriesData[1][i])
+            const curDif = seriesPoint.findDist(curPoint);
+            const prevDif = seriesPoint.findDist(prev);
+            if (curDif < prevDif) return curPoint
             return prev
-              }, 0);
-        return new Point(ind, this.seriesData[1][ind])
+              }, new Point(this.seriesData[0][0], this.seriesData[1][0]));
+        return resultPoint;
     }
 
     getClosestPointX(x: number): Point {
@@ -188,10 +189,10 @@ export class Series {
         return new Point(this.seriesData[0][ind], this.seriesData[1][ind])
     }
 
-    getClosestPlotPoint(x: number): Point {
+    getClosestPlotPoint(coordPoint: Point): Point {
         const coord =  this.plotDataArr.reduce((prev, curr, i) => {
-            const curDif = Math.abs(curr.x - x);
-            const prevDif = Math.abs(prev.x - x);
+            const curDif = coordPoint.findDist(curr);
+            const prevDif = coordPoint.findDist(prev);
             if (curDif < prevDif) return curr
             return prev
               }, this.plotDataArr[0]);

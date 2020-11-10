@@ -75,7 +75,7 @@ export class Plot {
 
 
 
-    drawPlot(ctx: CanvasRenderingContext2D, plotData: Point[]) {
+    drawPlot(ctx: CanvasRenderingContext2D, plotData: Point[], highlighted?: boolean) {
 
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
@@ -96,7 +96,7 @@ export class Plot {
                 break;
 
             case 'unicode':
-                this.drawUnicode(ctx, plotData);
+                this.drawUnicode(ctx, plotData, highlighted);
                 break;
         }
 
@@ -113,13 +113,26 @@ export class Plot {
         }
     }
 
-    drawUnicode(ctx: CanvasRenderingContext2D, plotData: Point[]) {
+    drawUnicode(ctx: CanvasRenderingContext2D, plotData: Point[], highlighted?: boolean) {
         ctx.font = `${this._options.fontSize}px serif`;
         ctx.textBaseline = 'middle';
+        
+        if (highlighted) { 
+            ctx.lineWidth = 3;
+            ctx.font = `${this._options.fontSize+2*ctx.lineWidth}px serif`;
+            ctx.globalAlpha = 0.3;
+        }
+
         const text = ctx.measureText(this._options.char);
         for (let i = 0; i < plotData.length; i++) {
             ctx.fillText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
+            if (highlighted) {
+                ctx.strokeText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
+                ctx.globalAlpha = 1;
+            }
         }
+
+        
     }
 
     drawLine(ctx: CanvasRenderingContext2D, plotData: Point[]) {

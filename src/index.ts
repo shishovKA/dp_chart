@@ -13,6 +13,7 @@ const bezier = require('bezier-easing');
 const easing = bezier(0.65, 0, 0.35, 1);
 
 import { Chart } from "./classes/Chart"
+import { Label } from './classes/Label';
 import { Ticks } from "./classes/Ticks"
 
 //import { ChartPanel } from "./interface/ChartPanel"
@@ -28,6 +29,7 @@ let chart: Chart;
 
 let x: number[] = [];
 let y: number[] = [];
+let labels: string[] = [];
 
 let oneX: number[] = [1.3];
 let oneY: number[] = [2.5];
@@ -79,6 +81,9 @@ WebFont.load({
 
       x = chartData[0].slice(1).map((el) => { return +el });
       y = chartData[1].slice(1).map((el) => { return +el });
+      labels = chartData[2].slice(1).map((el) => { return el });
+
+      console.log(labels)
 
       chart = CbhChart(x, y);
       chart.reSize();
