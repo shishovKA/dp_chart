@@ -20,9 +20,11 @@ export class Series {
       };
 
     onPlotDataChanged: Signal;
+    onSeriesDataChanged: Signal;
     
     constructor(id: string, container: HTMLElement, seriesData: number[][]) {
         this.onPlotDataChanged = new Signal();
+        this.onSeriesDataChanged = new Signal();
         this.id = id;
         this.seriesData = this.getInitialData(seriesData);
         this.extremes = this.findExtremes();
@@ -165,6 +167,7 @@ export class Series {
     replaceSeriesData(seriesData_to: number[][]) {
         this.seriesData = this.getInitialData(seriesData_to);
         this.extremes = this.findExtremes();
+        this.onSeriesDataChanged.dispatch(this);
     }
 
     

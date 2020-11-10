@@ -100,6 +100,24 @@ WebFont.load({
 });
 
 
+const randBtn = document.getElementById('rand_btn');
+randBtn.addEventListener('click', () => {
+  for (let i=0; i<x.length; i++) {
+    x[i] = 0.1+Math.random()*4.8;
+    y[i] = 0.1+Math.random()*4.8;
+  }
+  oneX = [0.1+Math.random()*4.8];
+  oneY = [0.1+Math.random()*4.8];
+  
+  reorganizeChart();
+})
+
+function reorganizeChart() {
+  chart.data.findSeriesById('portfolio')?.replaceSeriesData([x, y]);
+  chart.data.findSeriesById('portfolio_1')?.replaceSeriesData([oneX, oneY]);
+}
+
+
 //функция создает и настраивает Chart квадратный
 // @ts-ignore
 function CbhChart(x, y): Chart {
@@ -156,7 +174,7 @@ function CbhChart(x, y): Chart {
   //включаем анимацию
   chart.xAxis.ticks.switchAnimation(false, 300);
   chart.yAxis.ticks.switchAnimation(false, 300);
-  chart.switchDataAnimation(false, 300);
+  chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   //обавляем фон

@@ -225,6 +225,10 @@ export class Chart {
         newSeries.canvas.setPaddings(this.canvas.top, this.canvas.right, this.canvas.bottom, this.canvas.left);
         newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
         newSeries.onPlotDataChanged.add( this.seriesReDraw );
+        newSeries.onSeriesDataChanged.add((series) => {
+            series.updatePlotData(this.axisRect, series.canvas.viewport);
+            this.seriesReDraw(series);
+        })
         return newSeries;
     }
 
