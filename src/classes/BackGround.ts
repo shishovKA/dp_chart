@@ -2,7 +2,7 @@ import { Point } from "./Point";
 
 export class BackGround {
     
-    type: string = 'coloredGrid'
+    type: string = 'default'
 
 
     constructor(type: string) {
@@ -11,7 +11,7 @@ export class BackGround {
 
     draw(ctx: CanvasRenderingContext2D, xCoord: Point[], yCoord: Point[]) {
         switch (this.type) {
-            case 'coloredGrid':
+            case 'coloredGrid_cbh':
                 this.drawColoredGrid(ctx, xCoord, yCoord);
             break;
         }

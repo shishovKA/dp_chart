@@ -155,7 +155,7 @@ function CbhChart(x, y): Chart {
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   //обавляем фон
-  chart.addBackGround('coloredGrid');
+  chart.addBackGround('coloredGrid_cbh');
 
   return chart;
 

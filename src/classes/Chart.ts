@@ -12,6 +12,7 @@ import { Signal } from "signals";
 
 export class Chart {
 
+
     container: HTMLElement
     canvas: Canvas;
     canvasA: Canvas;
@@ -21,6 +22,7 @@ export class Chart {
     xAxis: Axis;
     yAxis: Axis;
     hasBorder: boolean = false;
+    clipSeriesCanvas: boolean = false;
     background?: BackGround;
     tooltipsDataIndexUpdated: Signal;
 
@@ -173,7 +175,9 @@ export class Chart {
     seriesReDraw(series: Series) {
             const canvas = series.canvas;
             canvas.clear();
-            canvas.clipCanvas();
+
+            if (this.clipSeriesCanvas) canvas.clipCanvas();
+
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
