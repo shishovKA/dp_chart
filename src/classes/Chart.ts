@@ -324,7 +324,7 @@ export class Chart {
                                     // @ts-ignore
                                     tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData, tt_ind);
                                     // @ts-ignore
-                                    plot.drawPlot(this.canvasTT.ctx, [tooltipCoord], true);
+                                    if (plot.type == 'unicode') plot.drawPlot(this.canvasTT.ctx, [tooltipCoord], true);
                                     break;
 
                                 default:

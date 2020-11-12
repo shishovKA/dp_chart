@@ -116,23 +116,18 @@ export class Plot {
     drawUnicode(ctx: CanvasRenderingContext2D, plotData: Point[], highlighted?: boolean) {
         ctx.font = `${this._options.fontSize}px serif`;
         ctx.textBaseline = 'middle';
-        
-        if (highlighted) { 
-            ctx.lineWidth = 3;
-            ctx.font = `${this._options.fontSize+2*ctx.lineWidth}px serif`;
-            ctx.globalAlpha = 0.3;
-        }
 
         const text = ctx.measureText(this._options.char);
         for (let i = 0; i < plotData.length; i++) {
             ctx.fillText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
             if (highlighted) {
+                ctx.lineWidth = 7;
+                ctx.globalAlpha = 0.3;
                 ctx.strokeText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
                 ctx.globalAlpha = 1;
+                ctx.fillText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
             }
-        }
-
-        
+        } 
     }
 
     drawLine(ctx: CanvasRenderingContext2D, plotData: Point[]) {

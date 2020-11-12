@@ -179,6 +179,8 @@ function CbhChart(x, y): Chart {
 
   //tt
   chart.findPlotById('uni_circles')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions('black', 'top', 15, ['12', '"Transcript Pro"']);
+  //chart.findPlotById('uni_triangle')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions('black', 'top', 15, ['12', '"Transcript Pro"']);
+
 
   // создаем Series
   chart.addSeries('portfolio', [x, y]).setPlotsIds('uni_circles');
