@@ -27,6 +27,9 @@ export class Chart {
     tooltipsDataIndexUpdated: Signal;
 
     constructor(container: HTMLElement, xMinMax: number[], yMinMax: number[]) {
+        //signals
+        this.tooltipsDataIndexUpdated = new Signal();
+
         this.container = container;
         this.canvas = new Canvas(container);
         this.canvasA = new Canvas(container);
@@ -35,21 +38,21 @@ export class Chart {
         this.canvasTT.canvas.style.zIndex = "10";
         this.data = new Data();
         this.plots = [];
-        this.xAxis = new Axis(xMinMax, 'horizontal');
-        this.yAxis = new Axis(yMinMax, 'vertical');
 
+        this.xAxis = new Axis(xMinMax, 'horizontal', this.canvasA);
+        this.yAxis = new Axis(yMinMax, 'vertical', this.canvasA);
+
+        //bind
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
         this.seriesReDraw = this.seriesReDraw.bind(this);    
 
+        //listeners
         window.addEventListener('resize', () => { this.reSize() });
 
-        this.reSize();
+        //call methods
         this.bindChildSignals();
         this.tooltipsDraw(true);
-
-        this.tooltipsDataIndexUpdated = new Signal();
     }
-
 
 
     bindChildSignals() {
@@ -57,14 +60,14 @@ export class Chart {
         // axis
         this.xAxis.onOptionsSetted.add(() => {
         // @ts-ignore
-            this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
         //min max
         this.xAxis.onMinMaxSetted.add((hasPlotAnimation) => {
             // @ts-ignore
-            this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
 
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             
@@ -74,7 +77,7 @@ export class Chart {
 
         this.xAxis.onCustomLabelsAdded.add(() => {
             // @ts-ignore
-            this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
@@ -85,14 +88,14 @@ export class Chart {
 
         this.yAxis.onOptionsSetted.add(() => {
             // @ts-ignore
-            this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
         //min max
         this.yAxis.onMinMaxSetted.add((hasPlotAnimation) => {
             // @ts-ignore
-            this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             this.tooltipsDraw(true);
@@ -100,7 +103,7 @@ export class Chart {
 
         this.yAxis.onCustomLabelsAdded.add(() => {
             // @ts-ignore
-            this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
+            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             this.axisReDraw();
         });
 
@@ -124,22 +127,13 @@ export class Chart {
     }
 
     reSize() {
-        this.canvas.resize();
-        this.canvasA.resize();
-        this.canvasTT.resize();
-
-        this.data.seriesStorage.forEach((series, ind) => {
-            series.canvas.resize();
-        })
-
-        this.seriesUpdatePlotData();
-        this.ticksCreate();
         this.axisReDraw();
+        this.seriesUpdatePlotData();
     }
 
 
     axisReDraw() {
-        this.canvasA.clear();
+        //this.canvasA.clear();
         this.axisDraw();
     }
 
@@ -150,24 +144,11 @@ export class Chart {
         })
     }
 
-    // генерируем тики у Осей
-    ticksCreate() {
-        // @ts-ignore
-        this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-        // @ts-ignore
-        this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx); 
-    }
-    
+
     // отрисовываем Оси
     axisDraw() {
         if (this.background) this.background.draw(this.canvasA.ctx, this.xAxis.ticks.coords, this.yAxis.ticks.coords)
-        // @ts-ignore
-        this.xAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
-        // @ts-ignore
-        this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
-
         if (this.hasBorder) this.canvasA.drawVp();
-
     }
 
 
@@ -175,6 +156,7 @@ export class Chart {
     seriesReDraw(series: Series) {
             const canvas = series.canvas;
             canvas.clear();
+
 
             if (this.clipSeriesCanvas) canvas.clipCanvas();
 
@@ -193,7 +175,7 @@ export class Chart {
         this.canvas.setPaddings(...paddings);
         this.canvasTT.setPaddings(...paddings);
         this.canvasA.setPaddings(...paddings);
-        
+
         this.data.seriesStorage.forEach((series, ind) => {
             series.canvas.setPaddings(...paddings);
         })

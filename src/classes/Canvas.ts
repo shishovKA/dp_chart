@@ -19,7 +19,8 @@ export class Canvas {
     left: number;
     // @ts-ignore
     mouseCoords: Point;
-    changed: Signal;
+    resized: Signal;
+    paddingsSetted: Signal;
     mouseMoved: Signal;
     mouseOuted: Signal;
     touchEnded: Signal;
@@ -28,27 +29,32 @@ export class Canvas {
     color: string = 'black'
 
     constructor(container: HTMLElement, ...paddings: number[]) {
-        this.changed = new Signal();
+        this.paddingsSetted = new Signal();
         this.mouseMoved = new Signal();
         this.mouseOuted = new Signal();
         this.touchEnded = new Signal();
 
+        this.resized = new Signal();
+
         this.container = container;
         this.canvas = document.createElement('canvas');
-
         this.canvas.style.position = 'absolute';
-
         this.top = 0;
         this.right = 0;
         this.bottom = 0;
         this.left = 0;
-        this.setPaddings(...paddings);
-        
+
         this.container.appendChild(this.canvas);
         this._ctx = this.canvas.getContext('2d');
         
+        //bind
         this.clear = this.clear.bind(this);
 
+        //listeners
+        window.addEventListener('resize', () => { this.resize() });
+
+        //call methods
+        this.setPaddings(...paddings);
         this.resize();
     }
 
@@ -141,7 +147,7 @@ export class Canvas {
           }
         
         this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
-        this.changed.dispatch();
+        this.paddingsSetted.dispatch();
         return 
     }
 
@@ -151,25 +157,24 @@ export class Canvas {
     }
 
     resize() {
-        this.clear();
-        this.drawVp();
-
         if (this.isSquare) {
             let w = this.container.getBoundingClientRect().width;
             let h = this.container.getBoundingClientRect().height;
-            this.width = Math.min(w,h); 
-            this.height = Math.min(w,h);
+            this.width = Math.min(w, h);
+            this.height = Math.min(w, h);
         }
-            else {
-                this.width = this.container.getBoundingClientRect().width;
-                this.height = this.container.getBoundingClientRect().height;
-            }
+        else {
+            this.width = this.container.getBoundingClientRect().width;
+            this.height = this.container.getBoundingClientRect().height;
+        }
 
         this.canvas.width = this.width;
         this.canvas.height = this.height;
-        this.canvas.style.width = this.width.toString()+'px';
-        this.canvas.style.height = this.height.toString()+'px';
+        this.canvas.style.width = this.width.toString() + 'px';
+        this.canvas.style.height = this.height.toString() + 'px';
         canvasDpiScaler(this.canvas, this._ctx, this.width, this.height);
+
+        this.resized.dispatch();
     }
 
     clear() {
@@ -185,10 +190,11 @@ export class Canvas {
         // @ts-ignore
         this.ctx.rect(rect.x1, rect.y1, rect.width, rect.height);
         
-
-        this.ctx.strokeStyle = this.color;
-        this.ctx.fillStyle = this.color;
-        this.ctx.lineWidth = this.lineWidth;
+        if (this.ctx) {
+            this.ctx.strokeStyle = this.color;
+            this.ctx.fillStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+        }
 
         // @ts-ignore
         this.ctx.stroke();

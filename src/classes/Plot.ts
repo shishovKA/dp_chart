@@ -13,8 +13,6 @@ interface plotOptions {
 //описание класса
 
 export class Plot {
-    hasAnimation: boolean = false;
-    animationDuration: number = 300;
 
     _id: string;
     type: string;
@@ -171,7 +169,5 @@ export class Plot {
         if (tooltips.length !== 0) return tooltips[0];
         return null;
     }
-
-
 
 }

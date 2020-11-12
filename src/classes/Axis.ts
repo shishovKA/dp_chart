@@ -1,6 +1,7 @@
 import { Signal } from "signals"
 import { Rectangle } from "./Rectangle";
 import { Ticks } from "./Ticks";
+import { Canvas } from "./Canvas";
 
 
 interface axisOptions  {
@@ -13,13 +14,15 @@ interface axisOptions  {
 
 export class Axis {
 
+    canvas: Canvas;
+
     display: boolean = false;
     position: string = 'start'
 
     min: number;
     max: number;
     type: string;
-    _options: axisOptions;
+    optionsDraw: axisOptions;
     gridOn: boolean = false;
 
     ticks: Ticks;
@@ -30,7 +33,7 @@ export class Axis {
     onCustomLabelsAdded: Signal;
     onAnimated: Signal;
     
-    constructor( MinMax: number[], type: string, ...options: any) {
+    constructor( MinMax: number[], type: string, canvas: Canvas) {
         
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
@@ -40,33 +43,51 @@ export class Axis {
         this.min = 0;
         this.max = 0;
         this.setMinMax(MinMax);
+
         this.type = type;
 
-        this._options = {
+        this.canvas = canvas;
+
+        this.optionsDraw = {
             lineWidth: 1,
             lineColor: '#000000',
-            lineDash: [1,0]
+            lineDash: []
         };
 
         this.ticks = new Ticks(this.type);
-
-
-        this.setOptions(...options);
         this.bindChildSignals();
     }
 
     bindChildSignals() {
         this.ticks.onOptionsSetted.add(() => {
             this.onOptionsSetted.dispatch();
+            this.canvas.clear();
+            this.createTicks();
+            this.draw();
         });
 
         this.ticks.onCustomLabelsAdded.add(() => {
             this.onCustomLabelsAdded.dispatch();
+            this.canvas.clear();
+            this.createTicks();
+            this.draw();
         });
 
         this.ticks.onAnimated.add(() => {
             this.onAnimated.dispatch();
         });
+
+        //подключаем перестройку ticks к сигналам
+        this.canvas.resized.add(() => {
+            this.createTicks();
+            this.draw();
+        });
+
+        this.onMinMaxSetted.add(() => {
+            this.canvas.clear();
+            this.createTicks();
+            this.draw();
+        })
 
     }
 
@@ -74,25 +95,10 @@ export class Axis {
         return Math.abs(this.max-this.min);
     }
 
-    setOptions(...options: any[]) {
-
-        switch(options.length) {
-            case 1:
-                this._options.lineWidth = options[0];
-            break;
-          
-            case 2:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-            break;
-
-            case 3:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                this._options.lineDash = options[2];
-            break;
-        }
-
+    setOptions(lineWidth?: number, lineColor?: string, lineDash?: number[]) {
+        if (lineWidth) this.optionsDraw.lineWidth = lineWidth;
+        if (lineColor) this.optionsDraw.lineColor = lineColor;
+        if (lineDash) this.optionsDraw.lineDash = lineDash;
         this.onOptionsSetted.dispatch();
     }
 
@@ -132,20 +138,19 @@ export class Axis {
 
     }
 
-    draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        const axisVp = this.getaxisViewport(viewport);
-        if (this.display) this.drawAxis(ctx, axisVp);
-        this.ticks.draw(ctx, viewport);
-
+    draw() {
+        const axisVp = this.axisViewport;
+        if (this.display) this.drawAxis();
+        this.ticks.draw(this.canvas.ctx, this.canvas.viewport);
         this.customTicks.forEach((ticks) => {
-            ticks.draw(ctx, viewport);
+            ticks.draw(this.canvas.ctx, this.canvas.viewport);
         })
     }
 
-    createTicks(min: number, max: number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
-        this.ticks.createTicks(min, max, vp, ctx);
+    createTicks() {
+        this.ticks.createTicks(this.min, this.max, this.axisViewport, this.canvas.ctx);
         this.customTicks.forEach((ticks) => {
-            ticks.createTicks(min, max, vp, ctx);
+            ticks.createTicks(this.min, this.max, this.axisViewport, this.canvas.ctx);
         })
     }
 
@@ -153,8 +158,9 @@ export class Axis {
         this.customTicks.push(ticks);
     }
 
-    getaxisViewport(vp: Rectangle): Rectangle {
-        let axisVP;
+    get axisViewport(): Rectangle {
+        const vp: Rectangle = this.canvas.viewport;
+        let axisVP: Rectangle = new Rectangle(0, 0, 0, 0);
         switch(this.position) {
             case 'start':
                 switch(this.type) {
@@ -181,23 +187,26 @@ export class Axis {
                     }
                 break;
             break;
+
         }
 
-        // @ts-ignore
-        return axisVP
+        return axisVP;
     }
 
-    drawAxis(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        
-        ctx.strokeStyle = this._options.lineColor;
-        ctx.lineWidth = this._options.lineWidth;
-        ctx.setLineDash(this._options.lineDash);
+    drawAxis() {
+        const ctx = this.canvas.ctx;
+        const viewport = this.axisViewport;
 
-        ctx.beginPath();
-        ctx.moveTo(viewport.x1, viewport.y1);
-        ctx.lineTo(viewport.x2, viewport.y2);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        if (ctx) {
+            ctx.strokeStyle = this.optionsDraw.lineColor;
+            ctx.lineWidth = this.optionsDraw.lineWidth;
+            ctx.setLineDash(this.optionsDraw.lineDash);
+            ctx.beginPath();
+            ctx.moveTo(viewport.x1, viewport.y1);
+            ctx.lineTo(viewport.x2, viewport.y2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
     }
 
 /*

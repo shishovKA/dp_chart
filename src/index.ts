@@ -102,6 +102,10 @@ WebFont.load({
 
 const randBtn = document.getElementById('rand_btn');
 randBtn.addEventListener('click', () => {
+  reorganizeChart();
+})
+
+function reorganizeChart() {
 
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const charactersLength = characters.length;
@@ -112,7 +116,7 @@ randBtn.addEventListener('click', () => {
   y.splice(0, y.length);
   labels.splice(0, labels.length)
 
-  for (let i=0; i<newLength-1; i++) {
+  for (let i=0; i<newLength; i++) {
     x.push(0.1+Math.random()*4.8);
     y.push(0.1+Math.random()*4.8);
     labels.push(characters.charAt(Math.floor(Math.random() * charactersLength)))
@@ -120,11 +124,8 @@ randBtn.addEventListener('click', () => {
 
   oneX = [0.1+Math.random()*4.8];
   oneY = [0.1+Math.random()*4.8];
-  
-  reorganizeChart();
-})
 
-function reorganizeChart() {
+
   chart.data.findSeriesById('portfolio')?.replaceSeriesData([x, y]);
   chart.data.findSeriesById('portfolio_1')?.replaceSeriesData([oneX, oneY]);
   chart.findPlotById('uni_circles')?.findTooltipById('ttId')?.labels = labels;
@@ -144,7 +145,7 @@ function CbhChart(x, y): Chart {
   chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
   chart.xAxis.ticks.grid.display = true;
   chart.xAxis.ticks.grid.setOptions('black', 0.5, []);
-  chart.xAxis.ticks.label.display = false;
+  chart.xAxis.ticks.label.display = true;
   chart.xAxis.position = 'end'
 
 //добавляем custom ticks для X
@@ -161,7 +162,7 @@ function CbhChart(x, y): Chart {
   chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
   chart.yAxis.ticks.grid.display = true;
   chart.yAxis.ticks.grid.setOptions('black', 0.5, []);
-  chart.yAxis.ticks.label.display = false;
+  chart.yAxis.ticks.label.display = true;
 
   //добавляем custom ticks для Y
   const newYTicks = new Ticks(chart.yAxis.type);
@@ -189,7 +190,7 @@ function CbhChart(x, y): Chart {
   //включаем анимацию
   chart.xAxis.ticks.switchAnimation(false, 300);
   chart.yAxis.ticks.switchAnimation(false, 300);
-  chart.switchDataAnimation(true, 300);
+  chart.switchDataAnimation(false, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   //обавляем фон

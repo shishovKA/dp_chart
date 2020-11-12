@@ -35,6 +35,12 @@ export class Series {
         return this
     }
 
+    bindChildSignals() {
+        this.canvas.resized.add(() => {
+
+        })
+    }
+
 
     getInitialData(initialData: number[][]): number[][] {
         let resultData: number[][] = []
@@ -224,6 +230,7 @@ export class Series {
     }
 
     updatePlotData(axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean) {
+        
         const plotData = this.generatePlotData(axisRect, vp);
         //если нужна анимация графиков
      
@@ -250,6 +257,7 @@ export class Series {
 
         }
 
+        console.log('uppd');
         this.plotData = plotData;
         this.onPlotDataChanged.dispatch(this);
         return this;

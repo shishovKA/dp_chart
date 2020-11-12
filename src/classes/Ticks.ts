@@ -13,7 +13,6 @@ export class Ticks {
     hasAnimation: boolean = false;
     animationDuration: number = 300;
 
-
     label: Label;
     grid: Grid;
 
@@ -27,7 +26,6 @@ export class Ticks {
     labels: string[];
 
     customLabels?: string[];
-
     customTicksOptions?: any[];
 
     // параметры отрисовки тика
