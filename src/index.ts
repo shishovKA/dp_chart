@@ -83,11 +83,7 @@ WebFont.load({
       y = chartData[1].slice(1).map((el) => { return +el });
       labels = chartData[2].slice(1).map((el) => { return el });
 
-      console.log(labels)
-
       chart = CbhChart(x, y);
-      chart.reSize();
-      //const chartPanel = new ChartPanel(document.querySelector('.panel'), chart);
 
     })
       .catch((err) => {
@@ -136,44 +132,31 @@ function reorganizeChart() {
 // @ts-ignore
 function CbhChart(x, y): Chart {
   // @ts-ignore
-  const chart = new Chart(document.getElementById('indexChart'), [0, 5], [0, 5]);
+  const chart = new Chart(document.getElementById('indexChart'), [0, 5], [0, 5]); 
 
   // ось X
-  chart.xAxis.position = 'end'
-  chart.xAxis.setOptions(1, 'black');
-
-  chart.xAxis.ticks.display = true;
-  chart.xAxis.ticks.setOptions('fixedCount', 5);
-
-  chart.xAxis.ticks.label.display = true;
-  chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
-  
+  chart.xAxis.setOptions('end', 1, 'black');
+  chart.xAxis.ticks.setOptions(false, 'fixedCount', 5);
+  chart.xAxis.ticks.label.setOptions(false, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
   chart.xAxis.grid.setOptions(true, 'black', 0.5, []);
   
-
 //добавляем custom ticks для X
   const newTicks = new Ticks(chart.xAxis.type);
-  newTicks.setOptions('midStep', 5);
-  newTicks.label.setOptions('#B2B2B2', 'top', 17, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
+  newTicks.setOptions(false, 'midStep', 5);
+  newTicks.label.setOptions(true, '#B2B2B2', 'top', 17, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
   newTicks.setCustomLabels(['●'])
   chart.xAxis.addCustomTicks(newTicks);
 
   // ось Y
-  chart.yAxis.setOptions(1, '#B2B2B2');
-  chart.yAxis.position = 'end';
-
-  chart.yAxis.ticks.display = true;
-  chart.yAxis.ticks.setOptions('fixedCount', 5);
-  
-  chart.yAxis.ticks.label.display = true;
-  chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
-  
+  chart.yAxis.setOptions('end', 1, '#B2B2B2');
+  chart.yAxis.ticks.setOptions(false, 'fixedCount', 5);
+  chart.yAxis.ticks.label.setOptions(false, '#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
   chart.yAxis.grid.setOptions(true, 'black', 0.5, []);
 
   //добавляем custom ticks для Y
   const newYTicks = new Ticks(chart.yAxis.type);
-  newYTicks.setOptions('midStep', 5);
-  newYTicks.label.setOptions('#B2B2B2', 'right', 30, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
+  newYTicks.setOptions(false, 'midStep', 5);
+  newYTicks.label.setOptions(true, '#B2B2B2', 'right', 30, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
   newYTicks.setCustomLabels(['●'])
   chart.yAxis.addCustomTicks(newYTicks);
 
@@ -185,9 +168,8 @@ function CbhChart(x, y): Chart {
   chart.addPlot('uni_triangle', 'unicode', 20, '#454e56', '▼');
 
   //tt
-  chart.findPlotById('uni_circles')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions('black', 'top', 15, ['12', '"Transcript Pro"']);
+  chart.findPlotById('uni_circles')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions(true, 'black', 'top', 15, ['12', '"Transcript Pro"']);
   //chart.findPlotById('uni_triangle')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions('black', 'top', 15, ['12', '"Transcript Pro"']);
-
 
   // создаем Series
   chart.addSeries('portfolio', [x, y]).setPlotsIds('uni_circles');
@@ -196,14 +178,15 @@ function CbhChart(x, y): Chart {
   //включаем анимацию
   chart.xAxis.ticks.switchAnimation(false, 300);
   chart.yAxis.ticks.switchAnimation(false, 300);
-  chart.switchDataAnimation(false, 300);
+  chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   //обавляем фон
   chart.addBackGround('coloredGrid_cbh');
 
   // задаем отступы для области отрисовки
-  chart.setCanvasPaddings(60, 60, 60, 60); 
+  chart.setCanvasPaddings(60, 60, 60, 60);
+
 
   return chart;
 

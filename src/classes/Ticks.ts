@@ -34,13 +34,11 @@ export class Ticks {
 
     onOptionsSetted: Signal;
     onCustomLabelsAdded: Signal;
-    onAnimated: Signal;
     onCoordsChanged: Signal;
 
     constructor(axistype: string) {
         this.onOptionsSetted = new Signal();
         this.onCustomLabelsAdded = new Signal();
-        this.onAnimated = new Signal();
         this.onCoordsChanged = new Signal();
 
         this.coords = [];
@@ -81,7 +79,10 @@ export class Ticks {
     }
 
 
-    setOptions(distributionType: string, ...options: any[]) {
+    setOptions(display: boolean, distributionType: string, ...options: any[]) {
+        
+        this.display = display;
+
         switch (distributionType) {
             case 'default':
                 this.distributionType = distributionType;
@@ -157,6 +158,7 @@ export class Ticks {
             }
 
             this.coords = from;
+            this.onCoordsChanged.dispatch();
             this.tickCoordAnimation(from, coords, this.animationDuration);
 
             return this

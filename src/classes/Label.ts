@@ -32,10 +32,12 @@ export class Label {
 
     }
 
-    setOptions(color?: string, position?: string, offset?: number, fontOptions?: string[], colorArr?:string[]) {
+    setOptions(display:boolean, color?: string, position?: string, offset?: number, fontOptions?: string[], colorArr?:string[]) {
         this.color = color || 'black';
         this.position = position || 'bottom';
         this.offset = offset || 0;
+
+        this.display = display;
 
         if (colorArr) {
             this.colorArr = colorArr;

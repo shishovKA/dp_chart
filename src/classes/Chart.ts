@@ -13,8 +13,6 @@ export class Chart {
 
 
     container: HTMLElement
-    canvas: Canvas;
-    //canvasA: Canvas;
     canvasTT: Canvas;
     data: Data;
     plots: Plot[];
@@ -29,11 +27,10 @@ export class Chart {
         //signals
         this.tooltipsDataIndexUpdated = new Signal();
         this.container = container;
-        this.canvas = new Canvas(container);
         
         this.canvasTT = new Canvas(container);
         this.canvasTT.turnOnListenres();
-        this.canvasTT.canvas.style.zIndex = "10";
+        this.canvasTT.canvas.style.zIndex = "4";
         this.data = new Data();
         this.plots = [];
 
@@ -77,14 +74,6 @@ export class Chart {
             this.tooltipsDraw(true);
         });
 
-        //ticks
-        this.xAxis.ticks.onCoordsChanged.add(() => {
-            this.backgroundDraw();
-        })
-
-        this.yAxis.ticks.onCoordsChanged.add(() => {
-            this.backgroundDraw();
-        })
     }
 
     get axisRect(): Rectangle {
@@ -93,16 +82,11 @@ export class Chart {
 
 
 
-
     // генерируем PlotData у series
     seriesUpdatePlotData() {
         this.data.seriesStorage.forEach((series, ind) => {
             series.updatePlotData(this.axisRect, series.canvas.viewport);
         })
-    }
-
-    backgroundDraw() {
-        if (this.background) this.background.draw(this.xAxis.ticks.coords, this.yAxis.ticks.coords)
     }
 
 
@@ -123,9 +107,7 @@ export class Chart {
     }
 
     setCanvasPaddings(...paddings: number[]) {
-        this.canvas.setPaddings(...paddings);
         this.canvasTT.setPaddings(...paddings);
-
         this.xAxis.canvas.setPaddings(...paddings);
         this.yAxis.canvas.setPaddings(...paddings);
 
@@ -139,7 +121,26 @@ export class Chart {
 
     addBackGround(type: string) {
         this.background = new BackGround(type, this.container);
+        //ticks
+        this.xAxis.ticks.onCoordsChanged.add(() => {
+            this.backgroundDraw();
+        });
+
+        this.yAxis.ticks.onCoordsChanged.add(() => {
+            this.backgroundDraw();
+        });
+
+        this.background.canvas.resized.add(() => {
+            this.backgroundDraw();
+        })
+
+        this.backgroundDraw();
     }
+
+    backgroundDraw() {
+        if (this.background) this.background.draw(this.xAxis.ticks.coords, this.yAxis.ticks.coords)
+    }
+
 
     addPlot(id: string, type: string, ...options: any) {
         const plot = new Plot(id, type, ...options);
@@ -159,13 +160,17 @@ export class Chart {
     addSeries(id: string, seriesData: number[][]) {
         const newSeries = new Series(id, this.container, seriesData);
         this.data.seriesStorage.push(newSeries);
-        newSeries.canvas.setPaddings(this.canvas.top, this.canvas.right, this.canvas.bottom, this.canvas.left);
+        newSeries.canvas.setPaddings(this.canvasTT.top, this.canvasTT.right, this.canvasTT.bottom, this.canvasTT.left);
         newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
         newSeries.onPlotDataChanged.add( this.seriesReDraw );
         newSeries.onSeriesDataChanged.add((series) => {
             series.updatePlotData(this.axisRect, series.canvas.viewport);
         });
         newSeries.canvas.resized.add(() => {
+            newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
+        })
+
+        newSeries.canvas.onPaddingsSetted.add(() => {
             newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport);
         })
 

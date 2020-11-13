@@ -33,14 +33,12 @@ export class Axis {
 
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
-    onAnimated: Signal;
     onCustomTicksAdded: Signal;
     
     constructor( MinMax: number[], type: string, container: HTMLElement) {
         
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
-        this.onAnimated = new Signal();
         this.onCustomTicksAdded = new Signal();
 
         this.min = 0;
@@ -68,18 +66,15 @@ export class Axis {
     bindSignals() {
         
         this.onMinMaxSetted.add(() => {
-            this.canvas.clear();
             this.createTicks();
             this.draw();
         })
 
         this.onOptionsSetted.add(() => {
-            this.canvas.clear();
             this.draw();
         })
 
         this.onCustomTicksAdded.add(()=>{
-            this.canvas.clear();
             this.createTicks();
             this.draw();
         })
@@ -133,7 +128,8 @@ export class Axis {
     }
 
 
-    setOptions(lineWidth?: number, lineColor?: string, lineDash?: number[]) {
+    setOptions(position?: string, lineWidth?: number, lineColor?: string, lineDash?: number[]) {
+        if (position) this.position = position;
         if (lineWidth) this.optionsDraw.lineWidth = lineWidth;
         if (lineColor) this.optionsDraw.lineColor = lineColor;
         if (lineDash) this.optionsDraw.lineDash = lineDash;
@@ -177,11 +173,13 @@ export class Axis {
     }
 
     draw() {
-        this.canvas.clear();
         const ctx = this.canvas.ctx;
-        
+
         if (ctx) {
+
+            this.canvas.clear();
             const axisVp = this.axisViewport;
+            
             if (this.display) this.drawAxis();
             this.ticks.draw(ctx, this.canvas.viewport);
             this.customTicks.forEach((ticks) => {

@@ -157,7 +157,6 @@ export class Canvas {
     }
 
     resize() {
-        //this.clear();
 
         if (this.isSquare) {
             let w = this.container.getBoundingClientRect().width;
@@ -181,6 +180,7 @@ export class Canvas {
 
     clear() {
         if (this._ctx) this._ctx.clearRect(0, 0, this.width, this.height);
+       
     }
 
     get viewport(): Rectangle {
