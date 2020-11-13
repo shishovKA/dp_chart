@@ -117,6 +117,7 @@ export class Plot {
 
         const text = ctx.measureText(this._options.char);
         for (let i = 0; i < plotData.length; i++) {
+            ctx.globalAlpha = 1;
             ctx.fillText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
             if (highlighted) {
                 ctx.lineWidth = 7;

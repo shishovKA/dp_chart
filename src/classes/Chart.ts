@@ -1,4 +1,3 @@
-
 import { Canvas } from "./Canvas";
 import { Data } from "./Data";
 import { Plot } from "./Plot";
@@ -15,7 +14,7 @@ export class Chart {
 
     container: HTMLElement
     canvas: Canvas;
-    canvasA: Canvas;
+    //canvasA: Canvas;
     canvasTT: Canvas;
     data: Data;
     plots: Plot[];
@@ -29,25 +28,21 @@ export class Chart {
     constructor(container: HTMLElement, xMinMax: number[], yMinMax: number[]) {
         //signals
         this.tooltipsDataIndexUpdated = new Signal();
-
         this.container = container;
         this.canvas = new Canvas(container);
-        this.canvasA = new Canvas(container);
+        
         this.canvasTT = new Canvas(container);
         this.canvasTT.turnOnListenres();
         this.canvasTT.canvas.style.zIndex = "10";
         this.data = new Data();
         this.plots = [];
 
-        this.xAxis = new Axis(xMinMax, 'horizontal', this.canvasA);
-        this.yAxis = new Axis(yMinMax, 'vertical', this.canvasA);
+        this.xAxis = new Axis(xMinMax, 'horizontal', container);
+        this.yAxis = new Axis(yMinMax, 'vertical', container);
 
         //bind
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
         this.seriesReDraw = this.seriesReDraw.bind(this);    
-
-        //listeners
-        window.addEventListener('resize', () => { this.reSize() });
 
         //call methods
         this.bindChildSignals();
@@ -57,60 +52,21 @@ export class Chart {
 
     bindChildSignals() {
         
-        // axis
-        this.xAxis.onOptionsSetted.add(() => {
-        // @ts-ignore
-            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.axisReDraw();
-        });
-
         //min max
         this.xAxis.onMinMaxSetted.add((hasPlotAnimation) => {
             // @ts-ignore
             //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
 
             if (hasPlotAnimation) this.seriesUpdatePlotData();
-            
-            this.axisReDraw();
             this.tooltipsDraw(true);
-        });
-
-        this.xAxis.onCustomLabelsAdded.add(() => {
-            // @ts-ignore
-            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.axisReDraw();
-        });
-
-        this.xAxis.onAnimated.add(() => {
-            this.axisReDraw();
-        });
-
-
-        this.yAxis.onOptionsSetted.add(() => {
-            // @ts-ignore
-            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.axisReDraw();
         });
 
         //min max
         this.yAxis.onMinMaxSetted.add((hasPlotAnimation) => {
-            // @ts-ignore
             //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.axisReDraw();
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             this.tooltipsDraw(true);
         });
-
-        this.yAxis.onCustomLabelsAdded.add(() => {
-            // @ts-ignore
-            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-            this.axisReDraw();
-        });
-
-        this.yAxis.onAnimated.add(() => {
-            this.axisReDraw();
-        });
-
         // canvas
 
         this.canvasTT.mouseMoved.add(this.tooltipsDraw);
@@ -120,22 +76,23 @@ export class Chart {
         this.canvasTT.touchEnded.add(() => {
             this.tooltipsDraw(true);
         });
+
+        //ticks
+        this.xAxis.ticks.onCoordsChanged.add(() => {
+            this.backgroundDraw();
+        })
+
+        this.yAxis.ticks.onCoordsChanged.add(() => {
+            this.backgroundDraw();
+        })
     }
 
     get axisRect(): Rectangle {
         return (new Rectangle(this.xAxis.min, this.yAxis.min, this.xAxis.max, this.yAxis.max))
     }
 
-    reSize() {
-        this.axisReDraw();
-        this.seriesUpdatePlotData();
-    }
 
 
-    axisReDraw() {
-        //this.canvasA.clear();
-        this.axisDraw();
-    }
 
     // генерируем PlotData у series
     seriesUpdatePlotData() {
@@ -144,11 +101,8 @@ export class Chart {
         })
     }
 
-
-    // отрисовываем Оси
-    axisDraw() {
-        if (this.background) this.background.draw(this.canvasA.ctx, this.xAxis.ticks.coords, this.yAxis.ticks.coords)
-        if (this.hasBorder) this.canvasA.drawVp();
+    backgroundDraw() {
+        if (this.background) this.background.draw(this.xAxis.ticks.coords, this.yAxis.ticks.coords)
     }
 
 
@@ -156,8 +110,6 @@ export class Chart {
     seriesReDraw(series: Series) {
             const canvas = series.canvas;
             canvas.clear();
-
-
             if (this.clipSeriesCanvas) canvas.clipCanvas();
 
             series.plots.forEach((plotId) => {
@@ -166,15 +118,18 @@ export class Chart {
                     // @ts-ignore
                     plot.drawPlot(canvas.ctx, series.plotDataArr);
                 };
-            })
-            
+            })   
         this.tooltipsDraw(true);
     }
 
     setCanvasPaddings(...paddings: number[]) {
         this.canvas.setPaddings(...paddings);
         this.canvasTT.setPaddings(...paddings);
-        this.canvasA.setPaddings(...paddings);
+
+        this.xAxis.canvas.setPaddings(...paddings);
+        this.yAxis.canvas.setPaddings(...paddings);
+
+        if (this.background) this.background.canvas.setPaddings(...paddings);
 
         this.data.seriesStorage.forEach((series, ind) => {
             series.canvas.setPaddings(...paddings);
@@ -183,7 +138,7 @@ export class Chart {
 
 
     addBackGround(type: string) {
-        this.background = new BackGround(type);
+        this.background = new BackGround(type, this.container);
     }
 
     addPlot(id: string, type: string, ...options: any) {
@@ -209,8 +164,11 @@ export class Chart {
         newSeries.onPlotDataChanged.add( this.seriesReDraw );
         newSeries.onSeriesDataChanged.add((series) => {
             series.updatePlotData(this.axisRect, series.canvas.viewport);
-            this.seriesReDraw(series);
+        });
+        newSeries.canvas.resized.add(() => {
+            newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport);
         })
+
         return newSeries;
     }
 

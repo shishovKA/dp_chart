@@ -20,7 +20,7 @@ export class Canvas {
     // @ts-ignore
     mouseCoords: Point;
     resized: Signal;
-    paddingsSetted: Signal;
+    onPaddingsSetted: Signal;
     mouseMoved: Signal;
     mouseOuted: Signal;
     touchEnded: Signal;
@@ -29,7 +29,7 @@ export class Canvas {
     color: string = 'black'
 
     constructor(container: HTMLElement, ...paddings: number[]) {
-        this.paddingsSetted = new Signal();
+        this.onPaddingsSetted = new Signal();
         this.mouseMoved = new Signal();
         this.mouseOuted = new Signal();
         this.touchEnded = new Signal();
@@ -147,7 +147,7 @@ export class Canvas {
           }
         
         this.mouseCoords = new Point(this.viewport.x2, this.viewport.zeroY);
-        this.paddingsSetted.dispatch();
+        this.onPaddingsSetted.dispatch();
         return 
     }
 
@@ -157,6 +157,8 @@ export class Canvas {
     }
 
     resize() {
+        //this.clear();
+
         if (this.isSquare) {
             let w = this.container.getBoundingClientRect().width;
             let h = this.container.getBoundingClientRect().height;

@@ -137,16 +137,19 @@ function reorganizeChart() {
 function CbhChart(x, y): Chart {
   // @ts-ignore
   const chart = new Chart(document.getElementById('indexChart'), [0, 5], [0, 5]);
-  chart.setCanvasPaddings(60, 60, 60, 60); // задаем отступы для области отрисовки
 
   // ось X
-  chart.xAxis.setOptions(1, 'black');
-  chart.xAxis.ticks.setOptions('fixedCount', 5);
-  chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
-  chart.xAxis.ticks.grid.display = true;
-  chart.xAxis.ticks.grid.setOptions('black', 0.5, []);
-  chart.xAxis.ticks.label.display = true;
   chart.xAxis.position = 'end'
+  chart.xAxis.setOptions(1, 'black');
+
+  chart.xAxis.ticks.display = true;
+  chart.xAxis.ticks.setOptions('fixedCount', 5);
+
+  chart.xAxis.ticks.label.display = true;
+  chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
+  
+  chart.xAxis.grid.setOptions(true, 'black', 0.5, []);
+  
 
 //добавляем custom ticks для X
   const newTicks = new Ticks(chart.xAxis.type);
@@ -157,12 +160,15 @@ function CbhChart(x, y): Chart {
 
   // ось Y
   chart.yAxis.setOptions(1, '#B2B2B2');
-  chart.yAxis.ticks.setOptions('fixedCount', 5);
   chart.yAxis.position = 'end';
-  chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
-  chart.yAxis.ticks.grid.display = true;
-  chart.yAxis.ticks.grid.setOptions('black', 0.5, []);
+
+  chart.yAxis.ticks.display = true;
+  chart.yAxis.ticks.setOptions('fixedCount', 5);
+  
   chart.yAxis.ticks.label.display = true;
+  chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
+  
+  chart.yAxis.grid.setOptions(true, 'black', 0.5, []);
 
   //добавляем custom ticks для Y
   const newYTicks = new Ticks(chart.yAxis.type);
@@ -195,6 +201,9 @@ function CbhChart(x, y): Chart {
 
   //обавляем фон
   chart.addBackGround('coloredGrid_cbh');
+
+  // задаем отступы для области отрисовки
+  chart.setCanvasPaddings(60, 60, 60, 60); 
 
   return chart;
 

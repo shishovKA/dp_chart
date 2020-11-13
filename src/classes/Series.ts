@@ -32,6 +32,7 @@ export class Series {
         this.plots = [];
         this.plotData = [];
         this.canvas = new Canvas(container);
+        this.canvas.canvas.style.zIndex = "3";
         return this
     }
 
@@ -257,7 +258,7 @@ export class Series {
 
         }
 
-        console.log('uppd');
+       
         this.plotData = plotData;
         this.onPlotDataChanged.dispatch(this);
         return this;

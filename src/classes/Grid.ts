@@ -20,10 +20,13 @@ export class Grid {
         this.lineDash = [1,0];
     }
 
-    setOptions(color:string, width: number, lineDash: number[]) {
+    setOptions(display: boolean, color:string, width: number, lineDash: number[]) {
+        
+        this.display = display;
         this.width = width;
         this.color = color;
         this.lineDash = lineDash;
+
         this.onOptionsSetted.dispatch();
     }
 

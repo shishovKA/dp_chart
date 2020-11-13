@@ -2,6 +2,7 @@ import { Signal } from "signals"
 import { Rectangle } from "./Rectangle";
 import { Ticks } from "./Ticks";
 import { Canvas } from "./Canvas";
+import { Grid } from "./Grid";
 
 
 interface axisOptions  {
@@ -28,17 +29,19 @@ export class Axis {
     ticks: Ticks;
     customTicks: Ticks[] = [];
 
+    grid: Grid;
+
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
-    onCustomLabelsAdded: Signal;
     onAnimated: Signal;
+    onCustomTicksAdded: Signal;
     
-    constructor( MinMax: number[], type: string, canvas: Canvas) {
+    constructor( MinMax: number[], type: string, container: HTMLElement) {
         
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
-        this.onCustomLabelsAdded = new Signal();
         this.onAnimated = new Signal();
+        this.onCustomTicksAdded = new Signal();
 
         this.min = 0;
         this.max = 0;
@@ -46,7 +49,8 @@ export class Axis {
 
         this.type = type;
 
-        this.canvas = canvas;
+        this.canvas = new Canvas(container);
+        this.canvas.canvas.style.zIndex = "2";
 
         this.optionsDraw = {
             lineWidth: 1,
@@ -55,35 +59,26 @@ export class Axis {
         };
 
         this.ticks = new Ticks(this.type);
+        this.grid = new Grid(this.type);
+
         this.bindChildSignals();
+        this.bindSignals();
     }
 
-    bindChildSignals() {
-        this.ticks.onOptionsSetted.add(() => {
-            this.onOptionsSetted.dispatch();
-            this.canvas.clear();
-            this.createTicks();
-            this.draw();
-        });
-
-        this.ticks.onCustomLabelsAdded.add(() => {
-            this.onCustomLabelsAdded.dispatch();
-            this.canvas.clear();
-            this.createTicks();
-            this.draw();
-        });
-
-        this.ticks.onAnimated.add(() => {
-            this.onAnimated.dispatch();
-        });
-
-        //подключаем перестройку ticks к сигналам
-        this.canvas.resized.add(() => {
-            this.createTicks();
-            this.draw();
-        });
-
+    bindSignals() {
+        
         this.onMinMaxSetted.add(() => {
+            this.canvas.clear();
+            this.createTicks();
+            this.draw();
+        })
+
+        this.onOptionsSetted.add(() => {
+            this.canvas.clear();
+            this.draw();
+        })
+
+        this.onCustomTicksAdded.add(()=>{
             this.canvas.clear();
             this.createTicks();
             this.draw();
@@ -91,9 +86,52 @@ export class Axis {
 
     }
 
+    bindChildSignals() {
+
+        //canvas
+        this.canvas.resized.add(() => {
+            this.createTicks();
+            this.draw();
+        });
+
+        this.canvas.onPaddingsSetted.add(() => {
+            this.createTicks();
+            this.draw();
+        });
+
+        //ticks
+        this.ticks.onOptionsSetted.add(() => {
+            this.createTicks();
+            this.draw();
+        });
+
+        this.ticks.onCustomLabelsAdded.add(() => {
+            this.createTicks();
+            this.draw();
+        });
+
+        this.ticks.onCoordsChanged.add(() => {
+            this.draw();
+        });
+
+        //ticks.labels
+        this.ticks.label.onOptionsSetted.add(() => {
+            this.draw();
+        });
+
+        //grid
+        this.grid.onOptionsSetted.add(()=>{
+            this.draw();
+        });
+
+
+    }
+
+
     get length():number {
         return Math.abs(this.max-this.min);
     }
+
 
     setOptions(lineWidth?: number, lineColor?: string, lineDash?: number[]) {
         if (lineWidth) this.optionsDraw.lineWidth = lineWidth;
@@ -104,8 +142,8 @@ export class Axis {
 
 
     setMinMax(MinMax: number[], hasPlotAnimation?:boolean) {
-        let to:number[];
-        let from:number[];
+        let to:number[] = [];
+        let from:number[] = [];
 
         from = [this.min, this.max];
 
@@ -129,9 +167,9 @@ export class Axis {
             return;
         }
         */
-    // @ts-ignore
+   
         this.min = to[0];
-        // @ts-ignore
+        
         this.max = to[1];
         
         this.onMinMaxSetted.dispatch(hasPlotAnimation);
@@ -139,23 +177,34 @@ export class Axis {
     }
 
     draw() {
-        const axisVp = this.axisViewport;
-        if (this.display) this.drawAxis();
-        this.ticks.draw(this.canvas.ctx, this.canvas.viewport);
-        this.customTicks.forEach((ticks) => {
-            ticks.draw(this.canvas.ctx, this.canvas.viewport);
-        })
+        this.canvas.clear();
+        const ctx = this.canvas.ctx;
+        
+        if (ctx) {
+            const axisVp = this.axisViewport;
+            if (this.display) this.drawAxis();
+            this.ticks.draw(ctx, this.canvas.viewport);
+            this.customTicks.forEach((ticks) => {
+                ticks.draw(ctx, this.canvas.viewport);
+            })
+            if (this.grid.display) this.grid.draw(ctx, this.canvas.viewport, this.ticks.coords);
+        }
     }
 
     createTicks() {
-        this.ticks.createTicks(this.min, this.max, this.axisViewport, this.canvas.ctx);
-        this.customTicks.forEach((ticks) => {
-            ticks.createTicks(this.min, this.max, this.axisViewport, this.canvas.ctx);
-        })
+        const ctx = this.canvas.ctx;
+
+        if (ctx) {
+            this.ticks.createTicks(this.min, this.max, this.axisViewport, ctx);
+            this.customTicks.forEach((ticks) => {
+                ticks.createTicks(this.min, this.max, this.axisViewport, ctx);
+            })
+        }
     }
 
     addCustomTicks(ticks: Ticks) {
         this.customTicks.push(ticks);
+        this.onCustomTicksAdded.dispatch();
     }
 
     get axisViewport(): Rectangle {

@@ -2,7 +2,6 @@ import { Signal } from "signals"
 import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 import { Label } from "./Label";
-import { Grid } from "./Grid";
 import { Transformer } from "./Transformer";
 
 
@@ -14,7 +13,7 @@ export class Ticks {
     animationDuration: number = 300;
 
     label: Label;
-    grid: Grid;
+    
 
     type: string;
     distributionType: string;
@@ -36,11 +35,13 @@ export class Ticks {
     onOptionsSetted: Signal;
     onCustomLabelsAdded: Signal;
     onAnimated: Signal;
+    onCoordsChanged: Signal;
 
     constructor(axistype: string) {
         this.onOptionsSetted = new Signal();
         this.onCustomLabelsAdded = new Signal();
         this.onAnimated = new Signal();
+        this.onCoordsChanged = new Signal();
 
         this.coords = [];
         this.values = [];
@@ -49,7 +50,7 @@ export class Ticks {
         this.type = axistype;
 
         this.label = new Label(this.type);
-        this.grid = new Grid(this.type);
+        
 
         this.distributionType = 'default';
         this.count = 5;
@@ -64,13 +65,7 @@ export class Ticks {
     }
 
     bindChildSignals() {
-        this.label.onOptionsSetted.add(() => {
-            this.onOptionsSetted.dispatch();
-        });
 
-        this.grid.onOptionsSetted.add(() => {
-            this.onOptionsSetted.dispatch();
-        });
     }
 
     setCustomLabels(labels:string[]) {
@@ -157,6 +152,7 @@ export class Ticks {
 
             if (from.length == 0) {
                 this.coords = coords;
+                this.onCoordsChanged.dispatch();
                 return this;
             }
 
@@ -167,6 +163,7 @@ export class Ticks {
         }
 
         this.coords = coords;
+        this.onCoordsChanged.dispatch();
     }
 
     generateMidStep(min: number, max: number, vp: Rectangle) {
@@ -472,8 +469,7 @@ export class Ticks {
             });
 
             this.coords = tek;
-
-            this.onAnimated.dispatch();
+            this.onCoordsChanged.dispatch();
 
             if (timeFraction < 1) {
                 requestAnimationFrame(animate);
@@ -658,7 +654,6 @@ export class Ticks {
             if (this.display) this.drawTick(ctx, tickCoord);
             if (this.label.display) this.label.draw(ctx, tickCoord, this.labels[i]);
         }); 
-        if (this.grid.display) this.grid.draw(ctx, viewport, this.coords);
     }
 
 
