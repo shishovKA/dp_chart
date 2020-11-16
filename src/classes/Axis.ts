@@ -3,6 +3,9 @@ import { Rectangle } from "./Rectangle";
 import { Ticks } from "./Ticks";
 import { Canvas } from "./Canvas";
 import { Grid } from "./Grid";
+import { Label } from "./Label";
+import { Point } from "./Point";
+import { throws } from "assert";
 
 
 interface axisOptions  {
@@ -16,6 +19,11 @@ interface axisOptions  {
 export class Axis {
 
     canvas: Canvas;
+
+    name?: string;
+    namePosition?: string;
+
+    label: Label;
 
     display: boolean = false;
     position: string = 'start'
@@ -34,18 +42,22 @@ export class Axis {
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
     onCustomTicksAdded: Signal;
+    onNameSetted: Signal;
     
     constructor( MinMax: number[], type: string, container: HTMLElement) {
         
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
         this.onCustomTicksAdded = new Signal();
+        this.onNameSetted = new Signal();
 
         this.min = 0;
         this.max = 0;
         this.setMinMax(MinMax);
 
         this.type = type;
+
+        this.label = new Label(this.type);
 
         this.canvas = new Canvas(container);
         this.canvas.canvas.style.zIndex = "2";
@@ -79,6 +91,10 @@ export class Axis {
             this.draw();
         })
 
+        this.onNameSetted.add(() => {
+            this.draw();
+        })
+
     }
 
     bindChildSignals() {
@@ -109,6 +125,11 @@ export class Axis {
             this.draw();
         });
 
+        //label
+        this.label.onOptionsSetted.add(() => {
+            this.draw();
+        });
+
         //ticks.labels
         this.ticks.label.onOptionsSetted.add(() => {
             this.draw();
@@ -127,6 +148,11 @@ export class Axis {
         return Math.abs(this.max-this.min);
     }
 
+    setName(name:string, namePosition:string) {
+        this.name = name;
+        this.namePosition = namePosition;
+        return this;
+    }
 
     setOptions(position?: string, lineWidth?: number, lineColor?: string, lineDash?: number[]) {
         if (position) this.position = position;
@@ -186,6 +212,8 @@ export class Axis {
                 ticks.draw(ctx, this.canvas.viewport);
             })
             if (this.grid.display) this.grid.draw(ctx, this.canvas.viewport, this.ticks.coords);
+            
+            this.drawAxisName();
         }
     }
 
@@ -253,6 +281,23 @@ export class Axis {
             ctx.lineTo(viewport.x2, viewport.y2);
             ctx.stroke();
             ctx.setLineDash([]);
+        }
+    }
+
+    drawAxisName() {
+        const ctx = this.canvas.ctx;
+        const viewport = this.canvas.viewport;
+
+        let xCoord = 0;
+        let yCoord = 0;
+
+        (this.type == 'horizontal') ? xCoord = viewport.midX : ((this.namePosition == 'start') ? xCoord = viewport.x1 : xCoord = viewport.x2); 
+        (this.type == 'vertical') ? yCoord = viewport.midY : ((this.namePosition == 'start') ? yCoord = viewport.y2 : yCoord = viewport.y1);
+        
+        const coord = new Point(xCoord, yCoord);
+
+        if ((this.name) && (ctx)) {
+            this.label.draw(ctx, coord, this.name);
         }
     }
 

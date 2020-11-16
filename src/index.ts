@@ -139,6 +139,8 @@ function CbhChart(x, y): Chart {
   chart.xAxis.ticks.setOptions(false, 'fixedCount', 5);
   chart.xAxis.ticks.label.setOptions(false, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
   chart.xAxis.grid.setOptions(true, 'black', 0.5, []);
+
+  chart.xAxis.setName('Capital Managment', 'start').label.setOptions(true, 'black', 'top', -30, ['18', '"Transcript Pro"']);
   
 //добавляем custom ticks для X
   const newTicks = new Ticks(chart.xAxis.type);
@@ -152,6 +154,8 @@ function CbhChart(x, y): Chart {
   chart.yAxis.ticks.setOptions(false, 'fixedCount', 5);
   chart.yAxis.ticks.label.setOptions(false, '#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
   chart.yAxis.grid.setOptions(true, 'black', 0.5, []);
+
+  chart.yAxis.setName('Vulnerability', 'start').label.setOptions(true, 'black', 'right', 0, ['18', '"Transcript Pro"']);
 
   //добавляем custom ticks для Y
   const newYTicks = new Ticks(chart.yAxis.type);
