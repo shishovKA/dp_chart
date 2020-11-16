@@ -9,6 +9,7 @@ import { Series } from "./Series";
 import { BackGround } from "./BackGround";
 import { Signal } from "signals";
 
+
 export class Chart {
 
 
@@ -16,6 +17,7 @@ export class Chart {
     canvasTT: Canvas;
     data: Data;
     plots: Plot[];
+    
     xAxis: Axis;
     yAxis: Axis;
     hasBorder: boolean = false;
@@ -31,6 +33,7 @@ export class Chart {
         this.canvasTT = new Canvas(container);
         this.canvasTT.turnOnListenres();
         this.canvasTT.canvas.style.zIndex = "4";
+
         this.data = new Data();
         this.plots = [];
 
@@ -171,7 +174,7 @@ export class Chart {
         })
 
         newSeries.canvas.onPaddingsSetted.add(() => {
-            newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport);
+            newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
         })
 
         return newSeries;

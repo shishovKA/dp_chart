@@ -14,6 +14,9 @@ const easing = bezier(0.65, 0, 0.35, 1);
 
 import { Chart } from "./classes/Chart"
 import { Label } from './classes/Label';
+import { Legend } from './classes/Legend';
+import { Point } from './classes/Point';
+import { Rectangle } from './classes/Rectangle';
 import { Ticks } from "./classes/Ticks"
 
 //import { ChartPanel } from "./interface/ChartPanel"
@@ -121,7 +124,6 @@ function reorganizeChart() {
   oneX = [0.1+Math.random()*4.8];
   oneY = [0.1+Math.random()*4.8];
 
-
   chart.data.findSeriesById('portfolio')?.replaceSeriesData([x, y]);
   chart.data.findSeriesById('portfolio_1')?.replaceSeriesData([oneX, oneY]);
   chart.findPlotById('uni_circles')?.findTooltipById('ttId')?.labels = labels;
@@ -139,9 +141,17 @@ function CbhChart(x, y): Chart {
   chart.xAxis.ticks.setOptions(false, 'fixedCount', 5);
   chart.xAxis.ticks.label.setOptions(false, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
   chart.xAxis.grid.setOptions(true, 'black', 0.5, []);
-
   chart.xAxis.setName('Capital Managment', 'start').label.setOptions(true, 'black', 'top', -30, ['18', '"Transcript Pro"']);
   
+  //легенда для оси X
+  const lowRisk = new Legend(['Low','Risk'], function (vp: Rectangle): Point { return new Point(vp.x1-25, vp.y2+25) })
+  lowRisk.label.setOptions(true, 'black', 'top', 0, ['14', '"Transcript Pro"']);
+  chart.xAxis.addLegend(lowRisk);
+
+  const highRisk = new Legend(['High','Risk'], function (vp: Rectangle): Point { return new Point(vp.x2+25, vp.y1-25) })
+  highRisk.label.setOptions(true, 'black', 'top', 0, ['14', '"Transcript Pro"']);
+  chart.xAxis.addLegend(highRisk);
+
 //добавляем custom ticks для X
   const newTicks = new Ticks(chart.xAxis.type);
   newTicks.setOptions(false, 'midStep', 5);
@@ -155,7 +165,8 @@ function CbhChart(x, y): Chart {
   chart.yAxis.ticks.label.setOptions(false, '#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
   chart.yAxis.grid.setOptions(true, 'black', 0.5, []);
 
-  chart.yAxis.setName('Vulnerability', 'start').label.setOptions(true, 'black', 'right', 0, ['18', '"Transcript Pro"']);
+  chart.yAxis.setName('Vulnerability', 'start').label.setOptions(true, 'black', 'right', -10, ['18', '"Transcript Pro"']);
+  chart.yAxis.label.rotationAngle = -90;
 
   //добавляем custom ticks для Y
   const newYTicks = new Ticks(chart.yAxis.type);

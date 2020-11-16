@@ -11,8 +11,9 @@ export class Label {
     font: string = '16px serif';
     fontSize: number = 16;
     position: string = 'bottom';
-    offset: number = 15;
+    offset: number = 0;
     units?: string;
+    rotationAngle: number = 0;
 
     onOptionsSetted: Signal;
 
@@ -92,8 +93,18 @@ export class Label {
         
         let printText = labeltext;
         if (this.units) printText = labeltext+this.units;
-        ctx.fillText(printText, labelCoord.x, labelCoord.y);
 
+        if (this.rotationAngle !== 0) {
+            ctx.save();
+            ctx.translate(labelCoord.x+text.width*0.5, labelCoord.y+this.fontSize*0.5);
+            ctx.rotate((Math.PI / 180) * this.rotationAngle);
+            ctx.translate(-labelCoord.x-text.width*0.5, -labelCoord.y-this.fontSize*0.5);
+            ctx.fillText(printText, labelCoord.x, labelCoord.y);
+
+            ctx.restore();
+        } else {
+            ctx.fillText(printText, labelCoord.x, labelCoord.y);
+        }
     }
 
     getlabelRect(ctx: CanvasRenderingContext2D, coord:Point, labeltext:string): Rectangle {

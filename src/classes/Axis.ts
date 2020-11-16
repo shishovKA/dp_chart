@@ -5,8 +5,7 @@ import { Canvas } from "./Canvas";
 import { Grid } from "./Grid";
 import { Label } from "./Label";
 import { Point } from "./Point";
-import { throws } from "assert";
-
+import { Legend } from "./Legend";
 
 interface axisOptions  {
     lineWidth: number;
@@ -36,6 +35,7 @@ export class Axis {
 
     ticks: Ticks;
     customTicks: Ticks[] = [];
+    legends: Legend[] = [];
 
     grid: Grid;
 
@@ -50,6 +50,7 @@ export class Axis {
         this.onMinMaxSetted = new Signal();
         this.onCustomTicksAdded = new Signal();
         this.onNameSetted = new Signal();
+        
 
         this.min = 0;
         this.max = 0;
@@ -140,12 +141,14 @@ export class Axis {
             this.draw();
         });
 
-
     }
-
 
     get length():number {
         return Math.abs(this.max-this.min);
+    }
+
+    addLegend(newLegend: Legend) {
+        this.legends.push(newLegend);
     }
 
     setName(name:string, namePosition:string) {
@@ -214,6 +217,10 @@ export class Axis {
             if (this.grid.display) this.grid.draw(ctx, this.canvas.viewport, this.ticks.coords);
             
             this.drawAxisName();
+
+            this.legends.forEach((legend) => {
+                legend.draw(ctx, this.canvas.viewport);
+            })
         }
     }
 
