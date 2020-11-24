@@ -41,7 +41,6 @@ let oneY: number[] = [2.5];
 
 // рукописная загрузка из CSV
 function customLoadDataFromCsv(filePath: string) {
-
   return fetch(filePath).then((response) => {
     var contentType = response.headers.get("content-type");
     if (contentType && (contentType.includes("text/csv") || contentType.includes("application/octet-stream"))) {
@@ -100,6 +99,7 @@ WebFont.load({
 
 
 const randBtn = document.getElementById('rand_btn');
+//@ts-ignore
 randBtn.addEventListener('click', () => {
   reorganizeChart();
 })
@@ -126,7 +126,10 @@ function reorganizeChart() {
 
   chart.data.findSeriesById('portfolio')?.replaceSeriesData([x, y]);
   chart.data.findSeriesById('portfolio_1')?.replaceSeriesData([oneX, oneY]);
-  chart.findPlotById('uni_circles')?.findTooltipById('ttId')?.labels = labels;
+
+  let tekLabels = chart.findPlotById('uni_circles')?.findTooltipById('ttId')?.labels
+  tekLabels = labels;
+
 }
 
 
