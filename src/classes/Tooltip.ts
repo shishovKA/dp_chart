@@ -120,7 +120,7 @@ export class Tooltip {
                 break;
 
             case 'label_x_start':
-                this.drawLabelXStart(ctx, vp, ttCoord, xyData);
+                this.drawLabelXStart(ctx, vp, ttCoord, xyData, ind);
                 break;
 
             case 'circle_y_end':
@@ -253,7 +253,7 @@ export class Tooltip {
     }
 
 
-    drawLabelXStart(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, seriesData: Point) {
+    drawLabelXStart(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, seriesData: Point, ind: number) {
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
@@ -264,7 +264,7 @@ export class Tooltip {
         const rectWidth = 60;
 
         // @ts-ignore
-        const labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
+        const labelText = (this.labels[ind]).toLocaleDateString('en');
         const cornersRadius = this._options.mainSize;
 
         const labelCoord = new Point(ttCoord.x, vp.zeroY);
@@ -399,6 +399,7 @@ export class Tooltip {
             this.label.draw(ctx, labelCoord, labelText);
         }
 
+        //console.log(labelCoord, labelText);
         return roundRect
     }
 

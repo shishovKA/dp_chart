@@ -14,7 +14,6 @@ export class Ticks {
 
     label: Label;
     
-
     type: string;
     distributionType: string;
     count: number;
@@ -118,7 +117,7 @@ export class Ticks {
     }
 
 
-    createTicks(min: number, max: number, vp: Rectangle, ctx: CanvasRenderingContext2D) {
+    createTicks(min: number, max: number, vp: Rectangle, ctx: CanvasRenderingContext2D, noAnimate?: boolean) {
         let coords = [];
 
         switch (this.distributionType) {
@@ -148,7 +147,7 @@ export class Ticks {
         }
 
         //если нужна анимация тиков
-        if (this.hasAnimation) {
+        if ((this.hasAnimation) && (!noAnimate) ) {
             const from = this.makeFromPointArr(this.coords, coords);
 
             if (from.length == 0) {

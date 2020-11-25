@@ -1,11 +1,13 @@
 import { Signal } from "signals"
-import { Canvas } from "./Canvas";
-import { Point } from "./Point";
-import { Rectangle } from "./Rectangle";
-import { Transformer } from "./Transformer";
+import { Canvas } from "../Canvas";
+import { Point } from "../Point";
+import { Rectangle } from "../Rectangle";
+import { Transformer } from "../Transformer";
+
+import { Series } from "../Series";
 
 
-export class SeriesRow {
+export class SeriesBase implements Series {
 
     id: string;
     seriesData: number[][];
@@ -22,7 +24,7 @@ export class SeriesRow {
     onPlotDataChanged: Signal;
     onSeriesDataChanged: Signal;
     
-    constructor(id: string, container: HTMLElement, ...seriesData: number[][]) {
+    constructor(id: string, container: HTMLElement, seriesData: number[][]) {
         this.onPlotDataChanged = new Signal();
         this.onSeriesDataChanged = new Signal();
         this.id = id;
@@ -32,7 +34,7 @@ export class SeriesRow {
         this.plots = [];
         this.plotData = [];
         this.canvas = new Canvas(container);
-        this.canvas.canvas.style.zIndex = "3";
+        this.canvas.canvas.style.zIndex = "0";
         return this
     }
 
@@ -158,12 +160,12 @@ export class SeriesRow {
     }
 
     
-    getClosestPoint(seriesPoint: Point): [Point, number] {
+    getClosestDataPointX(seriesPoint: Point): [Point, number] {
         let ind = 0;
         const resultPoint =  this.seriesData[0].reduce((prev, curr, i) => {
             let curPoint = new Point(curr, this.seriesData[1][i])
-            const curDif = seriesPoint.findDist(curPoint);
-            const prevDif = seriesPoint.findDist(prev);
+            const curDif = seriesPoint.findDistX(curPoint);
+            const prevDif = seriesPoint.findDistX(prev);
             if (curDif < prevDif) {
                 ind = i;
                 return curPoint
@@ -173,17 +175,17 @@ export class SeriesRow {
         return [resultPoint, ind];
     }
 
-    getClosestPointX(x: number): Point {
-        const ind =  this.seriesData[0].reduce((prev, curr, i) => {
-            const curDif = Math.abs(curr - x);
-            const prevDif = Math.abs(this.seriesData[0][prev] - x);
-            if (curDif < prevDif) return i
+    getClosestPlotPointX(coordPoint: Point): Point {
+        const coord =  this.plotDataArr.reduce((prev, curr, i) => {
+            const curDif = coordPoint.findDistX(curr);
+            const prevDif = coordPoint.findDistX(prev);
+            if (curDif < prevDif) return curr
             return prev
-              }, 0);
-        return new Point(this.seriesData[0][ind], this.seriesData[1][ind])
+              }, this.plotDataArr[0]);
+        return new Point(coord.x, coord.y);
     }
 
-    getClosestPlotPoint(coordPoint: Point): Point {
+    getClosestPlotPointXY(coordPoint: Point): Point {
         const coord =  this.plotDataArr.reduce((prev, curr, i) => {
             const curDif = coordPoint.findDist(curr);
             const prevDif = coordPoint.findDist(prev);

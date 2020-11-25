@@ -8,7 +8,8 @@ import { Point } from "./Point";
 import { Series } from "./Series";
 import { BackGround } from "./BackGround";
 import { Signal } from "signals";
-
+import { SeriesBase } from "./series/SeriesBase";
+import { SeriesXY } from "./series/SeriesXY";
 
 export class Chart {
 
@@ -160,7 +161,7 @@ export class Chart {
 
 
     addSeries(id: string, seriesData: number[][]) {
-        const newSeries = new Series(id, this.container, seriesData);
+        const newSeries: Series = new SeriesXY(id, this.container, seriesData);
         this.data.seriesStorage.push(newSeries);
         newSeries.canvas.setPaddings(this.canvasTT.top, this.canvasTT.right, this.canvasTT.bottom, this.canvasTT.left);
         newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
@@ -175,6 +176,28 @@ export class Chart {
         newSeries.canvas.onPaddingsSetted.add(() => {
             newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
         })
+        return newSeries;
+    }
+
+    addSeriesRow(id: string, seriesData: number[][]) {
+        const newSeries: Series = new SeriesBase(id, this.container, seriesData);
+
+        this.data.seriesStorage.push(newSeries);
+        newSeries.canvas.setPaddings(this.canvasTT.top, this.canvasTT.right, this.canvasTT.bottom, this.canvasTT.left);
+        newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
+        newSeries.onPlotDataChanged.add( this.seriesReDraw );
+
+        newSeries.onSeriesDataChanged.add((series) => {
+            series.updatePlotData(this.axisRect, series.canvas.viewport);
+        });
+        newSeries.canvas.resized.add(() => {
+            newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
+        })
+
+        newSeries.canvas.onPaddingsSetted.add(() => {
+            newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
+        })
+
         return newSeries;
     }
 
@@ -205,14 +228,12 @@ export class Chart {
             const seriesY = this.yAxis.max - mouseXY.y * (this.yAxis.length) / this.canvasTT.viewport.height;
             const sriesP = new Point(seriesX, seriesY);
             
-            const [pointData, tt_ind] = series.getClosestPoint(sriesP);
-
-            //const pointData = series.getClosestPointX(seriesX);
-
-            const tooltipCoord = series.getClosestPlotPoint(new Point(mouseXY.x+this.canvasTT.left, mouseXY.y+this.canvasTT.top));
+            const [pointData, tt_ind] = series.getClosestDataPointX(sriesP);
+            const tooltipCoordX = series.getClosestPlotPointX(new Point(mouseXY.x+this.canvasTT.left, mouseXY.y+this.canvasTT.top));
+            const tooltipCoordXY = series.getClosestPlotPointXY(new Point(mouseXY.x+this.canvasTT.left, mouseXY.y+this.canvasTT.top));
 
             this.tooltipsDataIndexUpdated.dispatch(pointData.x);
-            //const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
+            const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
 
             series.plots.forEach((plotId) => {
                 const plot: Plot | null = this.findPlotById(plotId);
@@ -224,12 +245,12 @@ export class Chart {
                             switch (tooltip.type) {
 
                                 case 'data_y_end':
-                                    data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
+                                    data_y_end_buf.push([tooltip, tooltipCoordX, pointData]);
                                     break;
 
                                 case 'circle_series':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordX.x, tooltipCoordX.y), pointData);
                                     break;
 
                             }
@@ -241,9 +262,9 @@ export class Chart {
                                 case 'delta_abs':
                                     if (delta_abs_buf.length == 0) {
                                         delta_abs_buf.push(pointData);
-                                        delta_abs_buf_coord.push(tooltipCoord);
+                                        delta_abs_buf_coord.push(tooltipCoordX);
                                     } else {
-                                        const ttCoord: Point = (delta_abs_buf_coord[0].y < tooltipCoord.y) ? delta_abs_buf_coord[0] : tooltipCoord;
+                                        const ttCoord: Point = (delta_abs_buf_coord[0].y < tooltipCoordX.y) ? delta_abs_buf_coord[0] : tooltipCoordX;
                                         const absData = new Point(Math.abs(pointData.x - delta_abs_buf[0].x), Math.abs(pointData.y - delta_abs_buf[0].y));
                                         // @ts-ignore
                                         tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttCoord, absData);
@@ -253,29 +274,29 @@ export class Chart {
                                     break;
 
                                 case 'data_y_end':
-                                    data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
+                                    data_y_end_buf.push([tooltip, tooltipCoordX, pointData]);
                                     break;
 
                                 case 'label_x_start':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordX.x, tooltipCoordX.y), pointData, tt_ind);
                                     break;
 
                                 case 'line_vertical_full':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasA.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordX.x, tooltipCoordX.y), pointData);
                                     break;
 
                                 case 'data_label':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData, tt_ind);
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordXY.x, tooltipCoordXY.y), pointData, tt_ind);
                                     // @ts-ignore
-                                    if (plot.type == 'unicode') plot.drawPlot(this.canvasTT.ctx, [tooltipCoord], true);
+                                    if (plot.type == 'unicode') plot.drawPlot(this.canvasTT.ctx, [tooltipCoordXY], true);
                                     break;
 
                                 default:
                                     // @ts-ignore
-                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordX.x, tooltipCoordX.y), pointData);
 
                                     break;
 
@@ -294,9 +315,9 @@ export class Chart {
 
         for (let i = 0; i < data_y_end_buf.length - 1; i++) {
             // @ts-ignore
-            const rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], false);
+            const rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
             // @ts-ignore
-            const rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], false);
+            const rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
 
             if (rect1.y2 > rect2.y1) {
 
@@ -322,7 +343,7 @@ export class Chart {
         }
 // @ts-ignore
         data_y_end_buf.forEach((ttRow) => {
-            ttRow[0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttRow[1], ttRow[2], true);
+            ttRow[0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttRow[1], ttRow[2], 0, true);
         })
     }
 

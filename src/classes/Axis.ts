@@ -102,7 +102,7 @@ export class Axis {
 
         //canvas
         this.canvas.resized.add(() => {
-            this.createTicks();
+            this.createTicks(true);
             this.draw();
         });
 
@@ -224,13 +224,12 @@ export class Axis {
         }
     }
 
-    createTicks() {
+    createTicks(noAnimate?: boolean) {
         const ctx = this.canvas.ctx;
-
         if (ctx) {
-            this.ticks.createTicks(this.min, this.max, this.axisViewport, ctx);
+            this.ticks.createTicks(this.min, this.max, this.axisViewport, ctx, noAnimate);
             this.customTicks.forEach((ticks) => {
-                ticks.createTicks(this.min, this.max, this.axisViewport, ctx);
+                ticks.createTicks(this.min, this.max, this.axisViewport, ctx, noAnimate);
             })
         }
     }

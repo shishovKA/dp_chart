@@ -24,7 +24,7 @@ export class Canvas {
     mouseMoved: Signal;
     mouseOuted: Signal;
     touchEnded: Signal;
-    isSquare: boolean = true;
+    isSquare: boolean = false;
     lineWidth: number = 1;
     color: string = 'black'
 
