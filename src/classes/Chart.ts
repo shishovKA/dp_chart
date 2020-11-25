@@ -12,7 +12,6 @@ import { Signal } from "signals";
 
 export class Chart {
 
-
     container: HTMLElement
     canvasTT: Canvas;
     data: Data;
@@ -176,7 +175,6 @@ export class Chart {
         newSeries.canvas.onPaddingsSetted.add(() => {
             newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
         })
-
         return newSeries;
     }
 

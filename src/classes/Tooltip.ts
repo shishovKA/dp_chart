@@ -154,6 +154,7 @@ export class Tooltip {
         const lineX = ttCoord.x;
 
         const rectPadding = 6;
+
         const labelText = this.labels[ind] + '; x: ' + (seriesData.x).toFixed(1) + '; y: '+ (seriesData.y).toFixed(1);
         const cornersRadius = this._options.mainSize;
 
