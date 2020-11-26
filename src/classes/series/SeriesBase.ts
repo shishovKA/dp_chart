@@ -156,7 +156,7 @@ export class SeriesBase implements Series {
     replaceSeriesData(seriesData_to: number[][]) {
         this.seriesData = this.getInitialData(seriesData_to);
         this.extremes = this.findExtremes();
-        this.onSeriesDataChanged.dispatch(this);
+        //this.onSeriesDataChanged.dispatch(this);
     }
 
     

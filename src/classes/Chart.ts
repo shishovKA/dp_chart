@@ -16,13 +16,14 @@ export class Chart {
     container: HTMLElement
     canvasTT: Canvas;
     data: Data;
-    plots: Plot[];
-    
+    plots: Plot[]; 
     xAxis: Axis;
     yAxis: Axis;
     hasBorder: boolean = false;
     clipSeriesCanvas: boolean = false;
     background?: BackGround;
+    
+
     tooltipsDataIndexUpdated: Signal;
 
     constructor(container: HTMLElement, xMinMax: number[], yMinMax: number[]) {
@@ -50,13 +51,26 @@ export class Chart {
     }
 
 
+    switchResolution() {
+        this.xAxis.canvas.squareRes = true;
+        this.yAxis.canvas.squareRes = true;
+        this.canvasTT.squareRes = true;
+
+        if (this.background) this.background.canvas.squareRes = true;
+
+        this.data.seriesStorage.forEach((series, ind) => {
+            series.canvas.squareRes = true;
+        });
+
+    }
+
+
     bindChildSignals() {
         
         //min max
         this.xAxis.onMinMaxSetted.add((hasPlotAnimation) => {
             // @ts-ignore
             //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             this.tooltipsDraw(true);
         });

@@ -156,6 +156,11 @@ export class Canvas {
         return this._ctx;
     }
 
+    set squareRes(res: boolean) {
+        this.isSquare = res;
+        this.resize();
+    }
+
     resize() {
 
         if (this.isSquare) {

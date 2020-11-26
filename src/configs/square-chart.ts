@@ -4,6 +4,8 @@ import { Point } from '../classes/Point';
 import { Rectangle } from '../classes/Rectangle';
 import { Ticks } from "../classes/Ticks"
 
+export let chart: Chart;
+
 // @ts-ignore
 export function prepareData(data): any[] {
     //разбираем CSV по рядам
@@ -21,9 +23,9 @@ export function prepareData(data): any[] {
 
 //функция создает и настраивает Chart квадратный
 // @ts-ignore
-export function createChart(container, data): Chart {
+export function createChart(container, data) {
     // @ts-ignore
-    const chart = new Chart(container, [0, 5], [0, 5]);
+    chart = new Chart(container, [0, 5], [0, 5]);
 
     let x, y, oneX, oneY, labels;
     [x, y, oneX, oneY, labels] = [...data];
@@ -94,14 +96,14 @@ export function createChart(container, data): Chart {
     //обавляем фон
     chart.addBackGround('coloredGrid_cbh');
 
+    // делаем квадратное соотношение
+    chart.switchResolution();
     // задаем отступы для области отрисовки
     chart.setCanvasPaddings(60, 60, 60, 60);
-
-    return chart;
 }
 
 
-export function reorganizeChart(chart: Chart) {
+export function reorganizeChart() {
     let x, y, oneX, oneY, labels;
 
     x = [];
@@ -125,7 +127,6 @@ export function reorganizeChart(chart: Chart) {
     chart.data.findSeriesById('portfolio_1')?.replaceSeriesData([oneX, oneY]);
     // @ts-ignore
     chart.findPlotById('uni_circles')?.findTooltipById('ttId').labels = labels;
-
 }
 
 

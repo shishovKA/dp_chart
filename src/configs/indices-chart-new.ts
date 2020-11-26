@@ -1,16 +1,8 @@
 import { Chart } from "../classes/Chart"
-import { customLoadDataFromCsv, csvToCols } from "../scripts/helpers";
 
-export let chart: Chart;
-let cbh1: number[] = [];
-let cbh5: number[] = [];
-let xLabels: Date[] = [];
-let zeroSeries: number[] = [];
-const gapY: number = 0.08;
-
-export function createChart(container, data) {
+export function createChart(container, data): Chart {
     // @ts-ignore
-    chart = new Chart(container, [0, 900], [0, 2000]);
+    const chart = new Chart(container, [0, 900], [0, 2000]);
 
     let xLabels, cbh5, cbh1, zeroSeries;
     [xLabels, cbh5, cbh1, zeroSeries] = [...data];
@@ -89,7 +81,7 @@ export function createChart(container, data) {
     chart.xAxis.display = true;
 
     // настраиваем Min Max осей
-
+    const gapY: number = 0.08;
     chart.xAxis.setMinMax(chart.data.findExtremes('val'), true); //по экстремумам оси X
     chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), true); //scale to fit по Y
     chart.yAxis.setMinMax([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], true); //добавляем по отступам как на сайте
@@ -105,6 +97,8 @@ export function createChart(container, data) {
     chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
     chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
+
+    return chart;
 
 }
 
@@ -145,7 +139,7 @@ function calculateDeviations(rowData: number[], fromIndex: number) {
 }
 
 
-
+/*
 // подключение слушателей к разметке как на cbh
 
 //функция вешает слушатели на панель nav - USA / EU
@@ -164,7 +158,10 @@ function calculateDeviations(rowData: number[], fromIndex: number) {
         customLoadDataFromCsv(link.href).then((data) => {
           // @ts-ignore
           let chartData = csvToCols(data);
-
+          let cbh1: number[] = [];
+          let cbh5: number[] = [];
+          let xLabels: Date[] = [];
+          let zeroSeries: number[] = [];
   
           cbh1 = chartData[2].slice(1).map((el) => { return +el });
           cbh5 = chartData[1].slice(1).map((el) => { return +el });
@@ -297,4 +294,4 @@ function calculateDeviations(rowData: number[], fromIndex: number) {
     return ind;
   }
   
-  
+  */

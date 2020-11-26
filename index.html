@@ -9,19 +9,69 @@
 
 <body>
 
+    <p class='chart__title'>div - to insert your Chart:</p>
     <section class="section section_chart">
-        <p class='chart__title'>div - to insert your Chart:</p>
+        
         <!-- div to insert your Chart-->
-        <div id="indexChart" class="chart__container"></div>
+        <div id="indexChart_0" class="chart__container"></div>
+        <div id="indexChart_1" class="chart__container"></div>
     </section>
 
+    <section class="section section_cbh index">
 
+        <nav class="tabs caps">
+            <ul class="zones">
+
+                <li class="selected">
+                    <a href="src/data/cbhPlotData_US.csv" onclick="return false;">USA</a>
+                </li>
+
+                <li>
+                    <a href="src/data/cbhPlotData_EU.csv" onclick="return false;">EU <span class="light">/</span> UK</a>
+                </li>
+
+            </ul>
+        </nav>
+
+
+        <div class="controls overline">
+            <ul class="ranges">
+                <li>6M</li>
+                <li>YTD</li>
+                <li>1Y</li>
+                <li>2Y</li>
+                <li class="selected">Max</li>
+            </ul>
+
+            <ul class="legend">
+                <li><span class="bul" style="background:#0070ff"></span>5-star (Best)<strong>
+                        <span id="cbhIdx5-val">0</span></strong>
+                </li>
+                <li><span class="bul" style="background:red"></span>1-star (Worst)<strong>
+                        <span id="cbhIdx1-val">0</span></strong>
+                </li>
+
+            </ul>
+        </div>
+
+        <p class="overline last-update">Last update <time datetime="2000-01-01 00:00">28 October 2020</time></p>
+
+    </section>
+
+    <p class='chart__title'>div - to insert your Chart:</p>
+    <section class="section section_chart">
+        
+        <!-- div to insert your Chart-->
+        <div id="indexChart_2" class="chart__container"></div>
+    </section>
+
+<!--
     <section class="section section_panel">
         <div class="panel">
             <button id='rand_btn'>Randomize series</button>
         </div>
     </section>
-
+-->
 
     <script src="./src/index.ts"></script>
     
