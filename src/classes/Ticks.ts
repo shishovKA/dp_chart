@@ -29,7 +29,8 @@ export class Ticks {
     // параметры отрисовки тика
     linewidth: number = 2;
     tickSize: number = 5;
-    color: string = 'black'
+    color: string = 'black';
+    lineDash: number[] = [];
 
     onOptionsSetted: Signal;
     onCustomLabelsAdded: Signal;
@@ -71,10 +72,11 @@ export class Ticks {
         this.onCustomLabelsAdded.dispatch();
     }
 
-    settickDrawOptions(length: number, width: number, color: string) {
+    settickDrawOptions(length: number, width: number, color: string, lineDash?: number[]) {
         this.linewidth = width;
         this.tickSize = length;
         this.color = color;
+        if (lineDash) this.lineDash = lineDash;
     }
 
 
@@ -662,12 +664,13 @@ export class Ticks {
         ctx.beginPath();
         ctx.strokeStyle = this.color;
         ctx.lineWidth = this.linewidth;
+        ctx.setLineDash(this.lineDash);
         let r = this.tickSize;
 
         switch (this.type) {
             case 'vertical' :
                 ctx.moveTo(tick.x-r, tick.y);
-                ctx.lineTo(tick.x+r, tick.y);
+                ctx.lineTo(tick.x, tick.y);
                 ctx.stroke();
             break;
 
@@ -679,23 +682,5 @@ export class Ticks {
         }
     }
 
-    // Метод анимации изменение параметра step
-
-    /*
-    tickStepAnimation(from: number, to: number, duration: number) {
-        let start = performance.now();
-        
-        const animate = (time) => {
-            let timeFraction = (time - start) / duration;
-            if (timeFraction > 1) timeFraction = 1;
-            this.step = from+(to - from)*timeFraction;
-            this.changed.dispatch(); // отрисовать её
-            if (timeFraction < 1) {
-                requestAnimationFrame(animate);
-            }
-        }
-        requestAnimationFrame(animate);
-    }
-    */
 
   }

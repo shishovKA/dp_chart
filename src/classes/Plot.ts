@@ -1,4 +1,5 @@
 import { Point } from "./Point";
+import { Rectangle } from "./Rectangle";
 import { Tooltip } from "./Tooltip";
 
 interface plotOptions {
@@ -59,7 +60,19 @@ export class Plot {
                 this._options.brushColor = options[2];
                 break;
 
+            case 'area_bottom':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.brushColor = options[2];
+                break;
+
             case 'unicode':
+                this._options.fontSize = options[0];
+                this._options.brushColor = options[1];
+                this._options.char = options[2];
+                break;
+
+            case 'text':
                 this._options.fontSize = options[0];
                 this._options.brushColor = options[1];
                 this._options.char = options[2];
@@ -73,7 +86,7 @@ export class Plot {
 
 
 
-    drawPlot(ctx: CanvasRenderingContext2D, plotData: Point[], highlighted?: boolean) {
+    drawPlot(ctx: CanvasRenderingContext2D, plotData: Point[], vp: Rectangle, highlighted?: boolean) {
 
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
@@ -90,11 +103,19 @@ export class Plot {
                 break;
 
             case 'area':
-                this.drawArea(ctx, plotData);
+                this.drawArea(ctx, plotData, vp);
+                break;
+
+            case 'area_bottom':
+                this.drawArea(ctx, plotData, vp);
                 break;
 
             case 'unicode':
                 this.drawUnicode(ctx, plotData, highlighted);
+                break;
+
+            case 'text':
+                this.drawText(ctx, plotData, highlighted);
                 break;
         }
 
@@ -118,15 +139,38 @@ export class Plot {
         const text = ctx.measureText(this._options.char);
         for (let i = 0; i < plotData.length; i++) {
             ctx.globalAlpha = 1;
-            ctx.fillText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
+            ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
             if (highlighted) {
                 ctx.lineWidth = 7;
                 ctx.globalAlpha = 0.3;
-                ctx.strokeText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
+                ctx.strokeText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
                 ctx.globalAlpha = 1;
-                ctx.fillText(this._options.char, plotData[i].x  - text.width*0.5  , plotData[i].y);
+                ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
             }
-        } 
+        }
+    }
+
+
+    drawText(ctx: CanvasRenderingContext2D, plotData: Point[], highlighted?: boolean) {
+        ctx.font = `${this._options.fontSize}px serif`;
+        ctx.textBaseline = 'middle';
+
+        const text = ctx.measureText(this._options.char);
+        for (let i = 0; i < plotData.length; i++) {
+            ctx.globalAlpha = 1;
+            ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
+
+            ctx.fillText('Text some text', plotData[i].x - text.width * 0.5, plotData[i].y - 50);
+            if (highlighted) {
+                ctx.lineWidth = 7;
+                ctx.globalAlpha = 0.3;
+                ctx.strokeText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
+                ctx.globalAlpha = 1;
+                ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
+            }
+        }
+
+
     }
 
     drawLine(ctx: CanvasRenderingContext2D, plotData: Point[]) {
@@ -142,13 +186,23 @@ export class Plot {
         ctx.stroke();
     }
 
-    drawArea(ctx: CanvasRenderingContext2D, plotData: Point[]) {
+    drawArea(ctx: CanvasRenderingContext2D, plotData: Point[], vp: Rectangle) {
 
         ctx.beginPath();
+
+        if (this.type == 'area_bottom') {
+            ctx.lineTo(vp.x1, vp.zeroY);
+        }
+
         ctx.lineTo(plotData[0].x, plotData[0].y);
 
         for (let i = 1; i < plotData.length; i++) {
             ctx.lineTo(plotData[i].x, plotData[i].y)
+        }
+
+        if (this.type == 'area_bottom') {
+            ctx.lineTo(vp.x2, vp.zeroY);
+            //ctx.lineTo(vp.x1, vp.zeroY);
         }
 
         ctx.closePath();

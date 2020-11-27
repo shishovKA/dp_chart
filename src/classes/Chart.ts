@@ -117,7 +117,7 @@ export class Chart {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
                     // @ts-ignore
-                    plot.drawPlot(canvas.ctx, series.plotDataArr);
+                    plot.drawPlot(canvas.ctx, series.plotDataArr, canvas.viewport);
                 };
             })   
         this.tooltipsDraw(true);
@@ -305,7 +305,7 @@ export class Chart {
                                     // @ts-ignore
                                     tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordXY.x, tooltipCoordXY.y), pointData, tt_ind);
                                     // @ts-ignore
-                                    if (plot.type == 'unicode') plot.drawPlot(this.canvasTT.ctx, [tooltipCoordXY], true);
+                                    if (plot.type == 'unicode') plot.drawPlot(this.canvasTT.ctx, [tooltipCoordXY], this.canvasTT.viewport, true);
                                     break;
 
                                 default:

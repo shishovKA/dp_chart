@@ -210,6 +210,7 @@ export class Axis {
             const axisVp = this.axisViewport;
             
             if (this.display) this.drawAxis();
+            
             this.ticks.draw(ctx, this.canvas.viewport);
             this.customTicks.forEach((ticks) => {
                 ticks.draw(ctx, this.canvas.viewport);

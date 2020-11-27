@@ -12,7 +12,6 @@ export function createChart(container, data) {
     // @ts-ignore
     chart = new Chart(container, [0, 900], [0, 2000]);
 
-    let xLabels, cbh5, cbh1, zeroSeries;
     [xLabels, cbh5, cbh1, zeroSeries] = [...data];
 
     chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
@@ -132,6 +131,7 @@ export function prepareDataforCbh(star5: number[], star1: number[], fromIndex: n
     }
     return { serie5star, area5starTop, area5starBottom, serie1star, area1starTop, area1starBottom };
 }
+
 
 // перевод из абсолютных величин в %
 function calculateDeviations(rowData: number[], fromIndex: number) {
