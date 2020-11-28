@@ -1,6 +1,7 @@
 import { Point } from "./Point";
 import { Rectangle } from "./Rectangle";
 import { Tooltip } from "./Tooltip";
+import { Label } from "./Label";
 
 interface plotOptions {
     lineWidth: number;
@@ -9,6 +10,7 @@ interface plotOptions {
     mainSize: number;
     fontSize: number;
     char: string;
+
 }
 
 //описание класса
@@ -19,6 +21,7 @@ export class Plot {
     type: string;
     _options: plotOptions;
     tooltips: Tooltip[];
+    label: Label;
 
     constructor(id: string, type: string, ...options: any) {
 
@@ -36,6 +39,9 @@ export class Plot {
 
         this.setOptions(options);
         this.tooltips = [];
+
+        this.label = new Label(this.type);
+        return this;
     }
 
 
@@ -73,9 +79,8 @@ export class Plot {
                 break;
 
             case 'text':
-                this._options.fontSize = options[0];
-                this._options.brushColor = options[1];
-                this._options.char = options[2];
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
                 break;
         }
     }
@@ -86,7 +91,7 @@ export class Plot {
 
 
 
-    drawPlot(ctx: CanvasRenderingContext2D, plotData: Point[], vp: Rectangle, highlighted?: boolean) {
+    drawPlot(ctx: CanvasRenderingContext2D, plotData: Point[], vp: Rectangle, labels: string[], highlighted?: boolean) {
 
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
@@ -115,7 +120,7 @@ export class Plot {
                 break;
 
             case 'text':
-                this.drawText(ctx, plotData, highlighted);
+                this.drawText(ctx, plotData, labels);
                 break;
         }
 
@@ -151,25 +156,21 @@ export class Plot {
     }
 
 
-    drawText(ctx: CanvasRenderingContext2D, plotData: Point[], highlighted?: boolean) {
-        ctx.font = `${this._options.fontSize}px serif`;
-        ctx.textBaseline = 'middle';
+    drawText(ctx: CanvasRenderingContext2D, plotData: Point[], labels: string[]) {
 
-        const text = ctx.measureText(this._options.char);
         for (let i = 0; i < plotData.length; i++) {
+            let printText = labels[i];
+            if (!printText) printText = '';
             ctx.globalAlpha = 1;
-            ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
+            
+            ctx.beginPath();
+            ctx.setLineDash([]);
+            ctx.moveTo(plotData[i].x, plotData[i].y - 10);
+            ctx.lineTo(plotData[i].x, plotData[i].y - 40)
+            ctx.stroke();
 
-            ctx.fillText('Text some text', plotData[i].x - text.width * 0.5, plotData[i].y - 50);
-            if (highlighted) {
-                ctx.lineWidth = 7;
-                ctx.globalAlpha = 0.3;
-                ctx.strokeText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
-                ctx.globalAlpha = 1;
-                ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
-            }
+            this.label.draw(ctx, plotData[i], printText);
         }
-
 
     }
 

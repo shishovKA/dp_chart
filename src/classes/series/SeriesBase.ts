@@ -17,6 +17,8 @@ export class SeriesBase implements Series {
     animationDuration: number = 300;
     canvas: Canvas;
     extremes: number[];
+    
+
     timeFunc: (time: number) => number = function (time) {
         return time;
       };
@@ -35,6 +37,7 @@ export class SeriesBase implements Series {
         this.plotData = [];
         this.canvas = new Canvas(container);
         this.canvas.canvas.style.zIndex = "0";
+
         return this
     }
 
@@ -109,24 +112,6 @@ export class SeriesBase implements Series {
     getDataRange(type:string, min:number, max:number): number[][] {
         const data: number[][] = []
  
-     /*   
-        let arrInd: number = 0;
-
-        switch (type) {
-            case 'ind':
-                arrInd = 0;
-            break;
-
-            case 'val':
-                arrInd = 1;
-            break;
-
-            default:
-                arrInd = 0;
-            break;
-        }
-        */
-
         for (let i = 0; i < this.seriesData.length; i = i + 2) {
             const ind: number[] = [];
             const val: number[] = [];
@@ -215,8 +200,8 @@ export class SeriesBase implements Series {
     updatePlotData(axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean) {
         
         const plotData = this.generatePlotData(axisRect, vp);
+        
         //если нужна анимация графиков
-     
         if (noAnimation) {
             this.plotData = plotData;
             this.onPlotDataChanged.dispatch(this);
@@ -236,7 +221,7 @@ export class SeriesBase implements Series {
                 toData.push(fromTo[1]);
             }
         
-            this.сoordAnimation(fromData, toData, this.animationDuration);
+            this.сoordAnimation(fromData, toData, this.animationDuration, plotData);
 
         }
 
@@ -279,7 +264,7 @@ export class SeriesBase implements Series {
 
 
     // Метод анимации изменение набора координат
-    сoordAnimation(fromData: Point[][], toData:Point[][], duration: number) {
+    сoordAnimation(fromData: Point[][], toData:Point[][], duration: number, finalData:Point[][]) {
 
         let start = performance.now();
 
@@ -309,7 +294,7 @@ export class SeriesBase implements Series {
             if (tekTime < 1) {
                 requestAnimationFrame(animate);
             } else {
-                this.plotData = toData;
+                this.plotData = finalData;
                 this.onPlotDataChanged.dispatch(this);
             }
 

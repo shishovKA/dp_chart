@@ -1,10 +1,12 @@
 // рукописная загрузка из CSV
 export function customLoadDataFromCsv(filePath: string) {
     return fetch(filePath).then((response) => {
+        console.log(filePath);
         var contentType = response.headers.get("content-type");
         if (contentType && (contentType.includes("text/csv") || contentType.includes("application/octet-stream"))) {
             return response.ok ? response.text() : Promise.reject(response.status);
         }
+        console.log('ERROr',filePath);
         throw new TypeError("Oops, we haven't got CSV!");
     })
 }

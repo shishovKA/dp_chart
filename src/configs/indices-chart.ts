@@ -187,11 +187,11 @@ function calculateDeviations(rowData: number[], fromIndex: number) {
   
   //функция вешает слушатели на панель ranges
   (function prepareRangesMenu() {
-    let ranges = document.querySelectorAll('.ranges li');
+    let ranges = document.querySelectorAll('.ranges_indices li');
     ranges.forEach((item) => {
       item.addEventListener('click', () => {
         // @ts-ignore
-        document.querySelector('.ranges li.selected').classList.remove('selected');
+        document.querySelector('.ranges_indices li.selected').classList.remove('selected');
         item.classList.add('selected');
         const lastLb = xLabels[xLabels.length - 1];
         let maxDate = lastLb,

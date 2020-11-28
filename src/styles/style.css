@@ -34,9 +34,7 @@ body {
 }
 
 .chart__title {
-    display: flex;
-    align-items: center;
-    margin: 0px 0px 5px 0px;
+    margin: 5px 0px 5px 0px;
     width: 100%;
     font-size: 20px;
     text-align: center;
@@ -44,19 +42,34 @@ body {
 
 
 .chart__container {
-    width: 49%;
-    max-width: 1024px;
-    min-height: 600px;
-    overflow: visible;
-    display: flex;
-    justify-content: center;
-    background-color: white;
-}
-
-.chart__container_full {
+    box-sizing: border-box;
     width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
+.chart__container_half {
+    width: 49%;
+}
+
+.chart {
+    background-color: white;
+    min-height: 500px;
+}
+
+.ranges_black {
+    width: 100%;
+    display: flex;
+}
+
+.ranges_black li{
+    width: 100px;
+    margin-left: 20px;
+    border: solid 1px;
+    cursor: pointer;
+}
+
+/*
 .datawidget {
     box-sizing: border-box;
     margin: 0px;
@@ -64,7 +77,6 @@ body {
     padding: 5px;
     width: 100%;
     align-self: flex-start;
-
     display: flex;
     justify-content: center;
 }
@@ -104,11 +116,4 @@ body {
     font-weight: bold;
     text-align: center;
 }
-
-
-
-@media screen and (max-width: 780px) {
-    .chart__container {
-        max-height: 500px;
-    }
-  }
+*/

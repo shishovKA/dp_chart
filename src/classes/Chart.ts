@@ -117,7 +117,7 @@ export class Chart {
                 const plot: Plot | null = this.findPlotById(plotId);
                 if (plot) {
                     // @ts-ignore
-                    plot.drawPlot(canvas.ctx, series.plotDataArr, canvas.viewport);
+                    plot.drawPlot(canvas.ctx, series.plotDataArr, canvas.viewport, series.plotLabels);
                 };
             })   
         this.tooltipsDraw(true);
@@ -162,6 +162,7 @@ export class Chart {
     addPlot(id: string, type: string, ...options: any) {
         const plot = new Plot(id, type, ...options);
         this.plots.push(plot);
+        return plot;
     }
 
 
@@ -174,8 +175,8 @@ export class Chart {
     }
 
 
-    addSeries(id: string, seriesData: number[][]) {
-        const newSeries: Series = new SeriesXY(id, this.container, seriesData);
+    addSeries(id: string, seriesData: number[][], labels?:string[]) {
+        const newSeries: Series = new SeriesXY(id, this.container, seriesData, labels);
         this.data.seriesStorage.push(newSeries);
         newSeries.canvas.setPaddings(this.canvasTT.top, this.canvasTT.right, this.canvasTT.bottom, this.canvasTT.left);
         newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);

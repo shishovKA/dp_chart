@@ -37,7 +37,7 @@ export function createChart(container, data) {
     chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0);
     chart.addPlot('zero_line', 'line', 1, '#000000', '#000000', 1);
 
-    chart.addPlot('uni_circles', 'text', 20, '#454e56', '●');
+    chart.addPlot('uni_circles', 'text', 1, '#000000', '#000000').label.setOptions(true, 'black', 'top', 50, ['18', '"Transcript Pro"']);
 
     let seriesRow = calculateDeviations(cbhRow, 0);
     let seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[0])];
@@ -47,7 +47,7 @@ export function createChart(container, data) {
     chart.addSeriesRow('cyberHedge_line', [seriesRow]).setPlotsIds('black_line');
     chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
 
-    chart.addSeries('portfolio', seriesL).setPlotsIds('uni_circles');
+    chart.addSeries('portfolio', seriesL, seriesText).setPlotsIds('uni_circles');
 
     //настраиваем параметры осей
     chart.yAxis.ticks.setOptions(true, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
@@ -103,48 +103,14 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
 
 // подключение слушателей к разметке как на cbh
 
-//функция вешает слушатели на панель nav - USA / EU
-(function prepareCsvLoadMenu() {
-    let zoneItems = document.querySelectorAll('.index .zones li');
-    zoneItems.forEach((item) => {
-      item.addEventListener('click', () => {
-        let link = item.querySelector('a');
-        // @ts-ignore
-        document.querySelector('.index .zones li.selected').classList.remove('selected');
-        item.classList.add('selected');
-  
-        const rangeSelected = document.querySelector('.ranges li.selected');
-  
-        // @ts-ignore
-        customLoadDataFromCsv(link.href).then((data) => {
-          // @ts-ignore
-          let chartData = csvToCols(data);
-
-          cbhRow = chartData[1].slice(1).map((el) => { return +el });
-          xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
-          zeroSeries = cbhRow.map(() => 0);
-  
-          setLastUpdateDate(xLabels[xLabels.length - 1]);
-  
-          const max = xLabels.length - 1;
-          const min = 0;
-          reorganizeChart(cbhRow, min, max, false);
-          // @ts-ignore
-          rangeSelected.click(rangeSelected);
-        })
-  
-      });
-    });
-  
-  }());
   
   //функция вешает слушатели на панель ranges
   (function prepareRangesMenu() {
-    let ranges = document.querySelectorAll('.ranges li');
+    let ranges = document.querySelectorAll('.ranges_black li');
     ranges.forEach((item) => {
       item.addEventListener('click', () => {
         // @ts-ignore
-        document.querySelector('.ranges li.selected').classList.remove('selected');
+        document.querySelector('.ranges_black li.selected').classList.remove('selected');
         item.classList.add('selected');
         const lastLb = xLabels[xLabels.length - 1];
         let maxDate = lastLb,

@@ -23,9 +23,10 @@ import { prepareData } from "./configs/square-chart"
 
 //подгрузка CSV файла
 const sqrData = require('./data/cbhVulnerability_test.csv');
+const EU = './src/data/cbhPlotData_EU.csv';
+const EU_Labels = require('./data/cbhPlotData_EU_labeled.csv');
 
-const startCSVurl = './src/data/cbhPlotData_EU.csv';
-const csvLabels = require('./data/cbhPlotData_EU_labeled.csv');
+const startCSVurl = './src/data/cbhPlotData_US.csv';
 
 //объявляем используемые переменные
 //let chart: Chart;
@@ -40,9 +41,9 @@ WebFont.load({
   active: function () {
 
     // черно-белый график
-    customLoadDataFromCsv(startCSVurl).then((data) => {
+    customLoadDataFromCsv(EU).then((data) => {
 
-      customLoadDataFromCsv(csvLabels).then((dataLables) => {
+      customLoadDataFromCsv(EU_Labels).then((dataLables) => {
         
         const chartContainer = document.getElementById('indexChart_0');
         // @ts-ignore
@@ -65,7 +66,7 @@ WebFont.load({
     })
       .catch((err) => {
         console.log(err);
-      })
+      });
 
 
     //загружает стартовый файл
