@@ -22,9 +22,9 @@ import { createChart as createChartSQR } from "./configs/square-chart"
 import { prepareData } from "./configs/square-chart"
 
 //подгрузка CSV файла
-const sqrData = require('./data/cbhVulnerability_test.csv');
+const sqrData = './src/data/cbhVulnerability_test.csv';
 const EU = './src/data/cbhPlotData_EU.csv';
-const EU_Labels = require('./data/cbhPlotData_EU_labeled.csv');
+const EU_Labels = './src/data/cbhPlotData_EU_labeled.csv';
 
 const startCSVurl = './src/data/cbhPlotData_US.csv';
 
@@ -44,7 +44,6 @@ WebFont.load({
     customLoadDataFromCsv(EU).then((data) => {
 
       customLoadDataFromCsv(EU_Labels).then((dataLables) => {
-        
         const chartContainer = document.getElementById('indexChart_0');
         // @ts-ignore
         let chartData = csvToCols(data);
@@ -83,7 +82,6 @@ WebFont.load({
       createChart_ind(chartContainer, [xLabels, cbh5, cbh1, zeroSeries]);
       //chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
       //chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
-      chartIND.tooltipsDraw(true);
     })
       .catch((err) => {
         console.log(err);
@@ -97,6 +95,7 @@ WebFont.load({
       //разбираем CSV по рядам
       chartData = prepareData(chartData);
       //создаем chart
+
       createChartSQR(chartContainer, [...chartData]);
     })
       .catch((err) => {

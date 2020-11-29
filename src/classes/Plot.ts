@@ -6,6 +6,7 @@ import { Label } from "./Label";
 interface plotOptions {
     lineWidth: number;
     lineColor: string;
+    lineDash: number[];
     brushColor: string;
     mainSize: number;
     fontSize: number;
@@ -35,6 +36,7 @@ export class Plot {
             mainSize: 1,
             fontSize: 10,
             char: '1',
+            lineDash: [],
         };
 
         this.setOptions(options);
@@ -58,6 +60,7 @@ export class Plot {
             case 'line':
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
+                this._options.lineDash = options[2];
                 break;
 
             case 'area':
@@ -159,25 +162,35 @@ export class Plot {
     drawText(ctx: CanvasRenderingContext2D, plotData: Point[], labels: string[]) {
 
         for (let i = 0; i < plotData.length; i++) {
-            let printText = labels[i];
-            if (!printText) printText = '';
+
             ctx.globalAlpha = 1;
-            
             ctx.beginPath();
             ctx.setLineDash([]);
             ctx.moveTo(plotData[i].x, plotData[i].y - 10);
             ctx.lineTo(plotData[i].x, plotData[i].y - 40)
             ctx.stroke();
+            
+        }
 
-            this.label.draw(ctx, plotData[i], printText);
+        for (let i = 0; i < plotData.length; i++) {
+
+            let printText = labels[i]
+            if (!printText) printText = '';
+            let printTextArr = printText.split('\\n');
+
+            printTextArr.forEach((row, ind, mas)=> {
+                const coord: Point = new Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1)*this.label.fontSize)
+                this.label.draw(ctx, coord, row);
+            });
+            
         }
 
     }
 
     drawLine(ctx: CanvasRenderingContext2D, plotData: Point[]) {
 
+        ctx.setLineDash(this._options.lineDash);
         ctx.beginPath();
-        ctx.setLineDash([]);
         ctx.moveTo(plotData[0].x, plotData[0].y);
 
         for (let i = 1; i < plotData.length; i++) {

@@ -29,11 +29,11 @@ export function createChart(container, data) {
     chart.yAxis.ticks.label.setOptions(true, '#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
 
     // создаем Plots
-    chart.addPlot('red_line', 'line', 1, '#FF2222', '#FF2222');
+    chart.addPlot('red_line', 'line', 1, '#FF2222', []);
     chart.addPlot('red_area', 'area', 0, '#FFE5E5', '#FFE5E5', 0);
-    chart.addPlot('blue_line', 'line', 1, '#0070FF', '#0070FF', 1);
+    chart.addPlot('blue_line', 'line', 1, '#0070FF', []);
     chart.addPlot('blue_area', 'area', 0, '#D9EAFF', '#D9EAFF', 0);
-    chart.addPlot('black_line', 'line', 1, '#000000', '#000000', 1);
+    chart.addPlot('black_line', 'line', 1, '#000000', []);
 
     // создаем Tooltipы
 
@@ -151,21 +151,23 @@ function calculateDeviations(rowData: number[], fromIndex: number) {
 //функция вешает слушатели на панель nav - USA / EU
 (function prepareCsvLoadMenu() {
     let zoneItems = document.querySelectorAll('.index .zones li');
+    
     zoneItems.forEach((item) => {
       item.addEventListener('click', () => {
         let link = item.querySelector('a');
+
+        console.log(link);
         // @ts-ignore
         document.querySelector('.index .zones li.selected').classList.remove('selected');
         item.classList.add('selected');
   
-        const rangeSelected = document.querySelector('.ranges li.selected');
+        const rangeSelected = document.querySelector('.ranges_indices li.selected');
   
         // @ts-ignore
         customLoadDataFromCsv(link.href).then((data) => {
           // @ts-ignore
           let chartData = csvToCols(data);
 
-  
           cbh1 = chartData[2].slice(1).map((el) => { return +el });
           cbh5 = chartData[1].slice(1).map((el) => { return +el });
           xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });

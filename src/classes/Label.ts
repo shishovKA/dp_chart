@@ -2,6 +2,11 @@ import { Point } from "./Point";
 import { Signal } from "signals"
 import { Rectangle } from "./Rectangle";
 
+interface labelOutline {
+    width: number;
+    color: string;
+}
+
 export class Label {
     display: boolean = true;
 
@@ -16,6 +21,10 @@ export class Label {
     rotationAngle: number = 0;
     offsetX?: number;
     offsetY?: number;
+    isUpperCase: boolean = false;
+
+    hasOutline: boolean = false;
+    outlineOptions?: labelOutline;
 
     onOptionsSetted: Signal;
 
@@ -53,6 +62,12 @@ export class Label {
         }
 
         this.onOptionsSetted.dispatch();
+        return this;
+    }
+
+    setOutline(options: labelOutline) {
+        this.hasOutline = true;
+        this.outlineOptions = options;
     }
 
     setOffset(x: number, y: number) {
@@ -100,13 +115,14 @@ export class Label {
         }
 
         ctx.font = this.font;
-
         ctx.textBaseline = 'middle';
+        
+        if ((this.isUpperCase) && (typeof labeltext == 'string')) {
+            labeltext = labeltext.toUpperCase();
+        }
 
         const text = ctx.measureText(labeltext);
-
         const labelCoord = new Point(coord.x - text.width * 0.5, coord.y);
-
         this.addOffset(labelCoord);
 
 
@@ -122,8 +138,24 @@ export class Label {
 
             ctx.restore();
         } else {
+
+            if (this.hasOutline) {
+                this.drawOutline(ctx, labelCoord, printText);
+            }
+
             ctx.fillText(printText, labelCoord.x, labelCoord.y);
         }
+
+    }
+
+    drawOutline(ctx: CanvasRenderingContext2D, coord: Point, text: string) {
+        
+        if (this.outlineOptions) {   
+            ctx.lineWidth = this.outlineOptions.width;     
+            ctx.strokeStyle = this.outlineOptions.color;
+            ctx.strokeText(text, coord.x, coord.y);
+        }
+
     }
 
     getlabelRect(ctx: CanvasRenderingContext2D, coord: Point, labeltext: string): Rectangle {
@@ -131,9 +163,7 @@ export class Label {
         const text = ctx.measureText(labeltext);
 
         const labelCoord = new Point(coord.x - text.width * 0.5, coord.y);
-
         this.addOffset(labelCoord);
-
         let textYgap = 0;
 
         if (this.font.indexOf('Transcript Pro') !== -1) {
@@ -141,7 +171,6 @@ export class Label {
         }
 
         const labelRect = new Rectangle(labelCoord.x, labelCoord.y - this.fontSize * 0.5, labelCoord.x + text.width, labelCoord.y + this.fontSize * 0.5 - textYgap);
-
         return labelRect;
     }
 

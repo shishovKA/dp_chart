@@ -236,6 +236,9 @@ export class Axis {
     }
 
     addCustomTicks(ticks: Ticks) {
+        ticks.onCoordsChanged.add(() => {
+            this.draw();
+        });
         this.customTicks.push(ticks);
         this.onCustomTicksAdded.dispatch();
     }
