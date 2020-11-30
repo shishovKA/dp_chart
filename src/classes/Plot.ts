@@ -167,7 +167,7 @@ export class Plot {
             ctx.beginPath();
             ctx.setLineDash([]);
             ctx.moveTo(plotData[i].x, plotData[i].y - 10);
-            ctx.lineTo(plotData[i].x, plotData[i].y - 40)
+            ctx.lineTo(plotData[i].x, plotData[i].y - 25)
             ctx.stroke();
             
         }

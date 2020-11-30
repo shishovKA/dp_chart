@@ -25,6 +25,7 @@ export function createChart(container, data) {
 
   // ось X
   chart.xAxis.setOptions('start', 0.5, 'black');
+  // @ts-ignore
   chart.xAxis.ticks.setCustomLabels(xLabels);
   chart.xAxis.display = true;
   chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);

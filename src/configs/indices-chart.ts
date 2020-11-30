@@ -8,6 +8,7 @@ let xLabels: Date[] = [];
 let zeroSeries: number[] = [];
 const gapY: number = 0.08;
 
+// @ts-ignore
 export function createChart(container, data) {
   // @ts-ignore
   chart = new Chart(container, [0, 900], [0, 2000]);
@@ -86,7 +87,7 @@ export function createChart(container, data) {
   //настраиваем параметры осей
   chart.yAxis.ticks.setOptions(false, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
   chart.yAxis.ticks.label.units = '%';
-
+  // @ts-ignore
   chart.xAxis.ticks.setCustomLabels(xLabels);
   chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
   chart.xAxis.display = true;
@@ -160,7 +161,7 @@ function calculateDeviations(rowData: number[], fromIndex: number) {
     item.addEventListener('click', () => {
       let link = item.querySelector('a');
 
-      
+
       // @ts-ignore
       document.querySelector('.index .zones li.selected').classList.remove('selected');
       item.classList.add('selected');

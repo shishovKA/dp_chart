@@ -13,6 +13,7 @@ const gapY: number = 0.08;
 const bezier = require('bezier-easing');
 const easing = bezier(0.65, 0, 0.35, 1);
 
+// @ts-ignore
 export function createChart(container, data) {
 
   // @ts-ignore
@@ -22,7 +23,11 @@ export function createChart(container, data) {
 
   // ось X
   chart.xAxis.setOptions('start', 0.5, 'black');
+  chart.xAxis.display = true;
   chart.xAxis.ticks.display = true;
+  // @ts-ignore
+  chart.xAxis.ticks.setCustomLabels(xLabels);
+  chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
   chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
   chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"'])
   chart.xAxis.ticks.label.isUpperCase = true;
@@ -32,9 +37,11 @@ export function createChart(container, data) {
   chart.yAxis.setOptions('end', 1, '#B2B2B2', [1, 2]);
   chart.yAxis.display = true;
   chart.yAxis.position = 'end';
+  chart.yAxis.ticks.setOptions(true, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
   chart.yAxis.ticks.settickDrawOptions(-50, 1, '#B2B2B2', [1, 2]);
   chart.yAxis.ticks.label.setOptions(true, '#B2B2B2', 'right', 0, ['12', '"Transcript Pro"']);
   chart.yAxis.ticks.label.setOffset(30, 10);
+  chart.yAxis.ticks.label.units = '%';
   chart.yAxis.grid.setOptions(true, '#B2B2B2', 1, [1, 2]);
 
   //добавляем custom ticks для Y
@@ -57,8 +64,8 @@ export function createChart(container, data) {
   chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
   chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
   chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
-    .label.setOptions(true, 'black', 'top', 50, ['18', '"Transcript Pro"'])
-      .setOutline({width: 5, color: 'white'})
+    .label.setOptions(true, 'black', 'top', 10+15+10, ['18', '"Transcript Pro"'])
+    .setOutline({ width: 5, color: 'white' })
 
   let seriesRow = calculateDeviationsVal(cbhRow, cbhRow[0]);
   let seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[0])];
@@ -69,20 +76,12 @@ export function createChart(container, data) {
   chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
   chart.addSeries('cyberHedge_labels', seriesL, seriesText).setPlotsIds('labeled');
 
-  //настраиваем параметры осей
-  chart.yAxis.ticks.setOptions(true, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
-  chart.yAxis.ticks.label.units = '%';
 
-  chart.xAxis.ticks.setCustomLabels(xLabels);
-  chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
-  chart.xAxis.display = true;
 
   // настраиваем Min Max осей
-
-  chart.xAxis.setMinMax(chart.data.findExtremes('val'), true); //по экстремумам оси X
-  chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), true); //scale to fit по Y
-  chart.yAxis.setMinMax([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], true); //добавляем по отступам как на сайте
-
+  chart.xAxis.setMinMax(chart.data.findExtremes('val'), false); //по экстремумам оси X
+  chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), false); //scale to fit по Y
+  chart.yAxis.setMinMax([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], false); //добавляем по отступам как на сайте
 
 
   //включаем анимацию
@@ -104,7 +103,6 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
   }
   return chartDataVariation;
 }
-
 
 
 // подключение слушателей к разметке как на cbh
