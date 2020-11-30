@@ -1,6 +1,5 @@
 import { Chart } from "../classes/Chart"
 import { Ticks } from "../classes/Ticks"
-import { customLoadDataFromCsv, csvToCols } from "../scripts/helpers";
 
 export let chart: Chart;
 let cbhRow: number[] = [];
@@ -27,7 +26,6 @@ export function createChart(container, data) {
   chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
   chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"'])
   chart.xAxis.ticks.label.isUpperCase = true;
-
   chart.xAxis.grid.setOptions(true, '#B2B2B2', 1, [1, 2]);
 
   // ось Y
@@ -55,21 +53,21 @@ export function createChart(container, data) {
   chart.yAxis.addCustomTicks(minTick);
 
   // создаем Plots
-  chart.addPlot('black_line', 'line', 1, '#000000', []);
-  chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0);
-  chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]);
-  chart.addPlot('labeled', 'text', 1, '#000000', '#000000')
+  chart.addPlot('black_line', 'line', 1, '#000000', []); //черная линия
+  chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
+  chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
+  chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
     .label.setOptions(true, 'black', 'top', 50, ['18', '"Transcript Pro"'])
       .setOutline({width: 5, color: 'white'})
 
-  let seriesRow = calculateDeviations(cbhRow, 0);
+  let seriesRow = calculateDeviationsVal(cbhRow, cbhRow[0]);
   let seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[0])];
 
-  // создаем Series
+  // создаем Series и привязвыаем к ним инструменты отрисовки Plots
   chart.addSeriesRow('cyberHedge_area', [seriesRow]).setPlotsIds('light_gray_area');
   chart.addSeriesRow('cyberHedge_line', [seriesRow]).setPlotsIds('black_line');
   chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
-  chart.addSeries('portfolio', seriesL, seriesText).setPlotsIds('labeled');
+  chart.addSeries('cyberHedge_labels', seriesL, seriesText).setPlotsIds('labeled');
 
   //настраиваем параметры осей
   chart.yAxis.ticks.setOptions(true, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
@@ -92,24 +90,12 @@ export function createChart(container, data) {
   chart.yAxis.ticks.switchAnimation(true, 300);
   chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
-
   chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
 
 }
 
 
-
-// перевод из абсолютных величин в %
-function calculateDeviations(rowData: number[], fromIndex: number) {
-  let chartDataVariation = [];
-  let zeroPoint = rowData[fromIndex];
-  chartDataVariation = [];
-  for (let j = 0, m = rowData.length; j < m; j++) {
-    chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
-  }
-  return chartDataVariation;
-}
-
+// преобразование данных ряда из абсолютных величин в % относительно zeroPoint
 function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
   let chartDataVariation = [];
   chartDataVariation = [];
@@ -181,8 +167,7 @@ function reorganizeChart(cbhRow, min, max, onlyData?: boolean) {
   chart.data.findSeriesById('cyberHedge_area')?.replaceSeriesData([seriesRow]);
   chart.data.findSeriesById('cyberHedge_line')?.replaceSeriesData([seriesRow]);
   chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
-
-  chart.data.findSeriesById('portfolio')?.replaceSeriesData(seriesL);
+  chart.data.findSeriesById('cyberHedge_labels')?.replaceSeriesData(seriesL);
 
   if (onlyData) {
     // @ts-ignore
