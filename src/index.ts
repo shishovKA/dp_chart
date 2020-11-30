@@ -1,4 +1,4 @@
-// browserify ./src/index.ts -p [ tsify --noImplicitAny ] > chartBlib.js
+// browserify ./src/index.ts -p [ tsify --noImplicitAny ] > chart-bundle.js
 
 // @ts-ignore
 
@@ -73,7 +73,7 @@ WebFont.load({
       let xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
       let zeroSeries = cbh1.map(() => 0);
 
-      
+      // вызов функции создания графика из конфига .src/configs/indices-chart-colored.ts
       createChart_ind_colored(chartContainer, [xLabels, cbh5, cbh1, zeroSeries]);
 
     })
