@@ -618,43 +618,90 @@ exports.Axis = void 0;
 var signals_1 = require("signals");
 var Rectangle_1 = require("./Rectangle");
 var Ticks_1 = require("./Ticks");
+var Canvas_1 = require("./Canvas");
+var Grid_1 = require("./Grid");
+var Label_1 = require("./Label");
+var Point_1 = require("./Point");
 //описание класса
 var Axis = /** @class */ (function () {
-    function Axis(MinMax, type) {
-        var options = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            options[_i - 2] = arguments[_i];
-        }
+    function Axis(MinMax, type, container) {
         this.display = false;
         this.position = 'start';
         this.gridOn = false;
+        this.customTicks = [];
+        this.legends = [];
         this.onOptionsSetted = new signals_1.Signal();
         this.onMinMaxSetted = new signals_1.Signal();
-        this.onCustomLabelsAdded = new signals_1.Signal();
-        this.onAnimated = new signals_1.Signal();
+        this.onCustomTicksAdded = new signals_1.Signal();
+        this.onNameSetted = new signals_1.Signal();
         this.min = 0;
         this.max = 0;
         this.setMinMax(MinMax);
         this.type = type;
-        this._options = {
+        this.label = new Label_1.Label(this.type);
+        this.canvas = new Canvas_1.Canvas(container);
+        this.canvas.canvas.style.zIndex = "2";
+        this.optionsDraw = {
             lineWidth: 1,
             lineColor: '#000000',
-            lineDash: [1, 0]
+            lineDash: []
         };
         this.ticks = new Ticks_1.Ticks(this.type);
-        this.setOptions.apply(this, options);
+        this.grid = new Grid_1.Grid(this.type);
         this.bindChildSignals();
+        this.bindSignals();
     }
+    Axis.prototype.bindSignals = function () {
+        var _this = this;
+        this.onMinMaxSetted.add(function () {
+            _this.createTicks();
+            _this.draw();
+        });
+        this.onOptionsSetted.add(function () {
+            _this.draw();
+        });
+        this.onCustomTicksAdded.add(function () {
+            _this.createTicks();
+            _this.draw();
+        });
+        this.onNameSetted.add(function () {
+            _this.draw();
+        });
+    };
     Axis.prototype.bindChildSignals = function () {
         var _this = this;
+        //canvas
+        this.canvas.resized.add(function () {
+            _this.createTicks(true);
+            _this.draw();
+        });
+        this.canvas.onPaddingsSetted.add(function () {
+            _this.createTicks();
+            _this.draw();
+        });
+        //ticks
         this.ticks.onOptionsSetted.add(function () {
-            _this.onOptionsSetted.dispatch();
+            _this.createTicks();
+            _this.draw();
         });
         this.ticks.onCustomLabelsAdded.add(function () {
-            _this.onCustomLabelsAdded.dispatch();
+            _this.createTicks();
+            _this.draw();
         });
-        this.ticks.onAnimated.add(function () {
-            _this.onAnimated.dispatch();
+        this.ticks.onCoordsChanged.add(function () {
+            _this.draw();
+        });
+        //label
+        this.label.onOptionsSetted.add(function () {
+            _this.draw();
+        });
+        //ticks.labels
+        this.ticks.label.onOptionsSetted.add(function () {
+            _this.draw();
+        });
+        //grid
+        this.grid.onOptionsSetted.add(function () {
+            _this.draw();
         });
     };
     Object.defineProperty(Axis.prototype, "length", {
@@ -664,30 +711,28 @@ var Axis = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
-    Axis.prototype.setOptions = function () {
-        var options = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            options[_i] = arguments[_i];
-        }
-        switch (options.length) {
-            case 1:
-                this._options.lineWidth = options[0];
-                break;
-            case 2:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                break;
-            case 3:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                this._options.lineDash = options[2];
-                break;
-        }
+    Axis.prototype.addLegend = function (newLegend) {
+        this.legends.push(newLegend);
+    };
+    Axis.prototype.setName = function (name, namePosition) {
+        this.name = name;
+        this.namePosition = namePosition;
+        return this;
+    };
+    Axis.prototype.setOptions = function (position, lineWidth, lineColor, lineDash) {
+        if (position)
+            this.position = position;
+        if (lineWidth)
+            this.optionsDraw.lineWidth = lineWidth;
+        if (lineColor)
+            this.optionsDraw.lineColor = lineColor;
+        if (lineDash)
+            this.optionsDraw.lineDash = lineDash;
         this.onOptionsSetted.dispatch();
     };
     Axis.prototype.setMinMax = function (MinMax, hasPlotAnimation) {
-        var to;
-        var from;
+        var to = [];
+        var from = [];
         from = [this.min, this.max];
         switch (MinMax.length) {
             case 0:
@@ -706,62 +751,152 @@ var Axis = /** @class */ (function () {
             return;
         }
         */
-        // @ts-ignore
         this.min = to[0];
-        // @ts-ignore
         this.max = to[1];
         this.onMinMaxSetted.dispatch(hasPlotAnimation);
     };
-    Axis.prototype.draw = function (ctx, viewport) {
-        var axisVp = this.getaxisViewport(viewport);
-        if (this.display)
-            this.drawAxis(ctx, axisVp);
-        this.ticks.draw(ctx, viewport);
-    };
-    Axis.prototype.getaxisViewport = function (vp) {
-        var axisVP;
-        switch (this.position) {
-            case 'start':
-                switch (this.type) {
-                    case 'vertical':
-                        axisVP = new Rectangle_1.Rectangle(vp.x1, vp.y1, vp.x1, vp.y2);
-                        break;
-                    case 'horizontal':
-                        axisVP = new Rectangle_1.Rectangle(vp.x1, vp.y2, vp.x2, vp.y2);
-                        break;
-                }
-                break;
-            case 'end':
-            case 'start':
-                switch (this.type) {
-                    case 'vertical':
-                        axisVP = new Rectangle_1.Rectangle(vp.x2, vp.y1, vp.x2, vp.y2);
-                        break;
-                    case 'horizontal':
-                        axisVP = new Rectangle_1.Rectangle(vp.x1, vp.y1, vp.x2, vp.y1);
-                        break;
-                }
-                break;
-                break;
+    Axis.prototype.draw = function () {
+        var _this = this;
+        var ctx = this.canvas.ctx;
+        if (ctx) {
+            this.canvas.clear();
+            var axisVp = this.axisViewport;
+            if (this.display)
+                this.drawAxis();
+            this.ticks.draw(ctx, this.canvas.viewport);
+            this.customTicks.forEach(function (ticks) {
+                ticks.draw(ctx, _this.canvas.viewport);
+            });
+            if (this.grid.display)
+                this.grid.draw(ctx, this.canvas.viewport, this.ticks.coords);
+            this.drawAxisName();
+            this.legends.forEach(function (legend) {
+                legend.draw(ctx, _this.canvas.viewport);
+            });
         }
-        // @ts-ignore
-        return axisVP;
     };
-    Axis.prototype.drawAxis = function (ctx, viewport) {
-        ctx.strokeStyle = this._options.lineColor;
-        ctx.lineWidth = this._options.lineWidth;
-        ctx.setLineDash(this._options.lineDash);
-        ctx.beginPath();
-        ctx.moveTo(viewport.x1, viewport.y1);
-        ctx.lineTo(viewport.x2, viewport.y2);
-        ctx.stroke();
-        ctx.setLineDash([]);
+    Axis.prototype.createTicks = function (noAnimate) {
+        var _this = this;
+        var ctx = this.canvas.ctx;
+        if (ctx) {
+            this.ticks.createTicks(this.min, this.max, this.axisViewport, ctx, noAnimate);
+            this.customTicks.forEach(function (ticks) {
+                ticks.createTicks(_this.min, _this.max, _this.axisViewport, ctx, noAnimate);
+            });
+        }
+    };
+    Axis.prototype.addCustomTicks = function (ticks) {
+        var _this = this;
+        ticks.onCoordsChanged.add(function () {
+            _this.draw();
+        });
+        this.customTicks.push(ticks);
+        this.onCustomTicksAdded.dispatch();
+    };
+    Object.defineProperty(Axis.prototype, "axisViewport", {
+        get: function () {
+            var vp = this.canvas.viewport;
+            var axisVP = new Rectangle_1.Rectangle(0, 0, 0, 0);
+            switch (this.position) {
+                case 'start':
+                    switch (this.type) {
+                        case 'vertical':
+                            axisVP = new Rectangle_1.Rectangle(vp.x1, vp.y1, vp.x1, vp.y2);
+                            break;
+                        case 'horizontal':
+                            axisVP = new Rectangle_1.Rectangle(vp.x1, vp.y2, vp.x2, vp.y2);
+                            break;
+                    }
+                    break;
+                case 'end':
+                case 'start':
+                    switch (this.type) {
+                        case 'vertical':
+                            axisVP = new Rectangle_1.Rectangle(vp.x2, vp.y1, vp.x2, vp.y2);
+                            break;
+                        case 'horizontal':
+                            axisVP = new Rectangle_1.Rectangle(vp.x1, vp.y1, vp.x2, vp.y1);
+                            break;
+                    }
+                    break;
+                    break;
+            }
+            return axisVP;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Axis.prototype.drawAxis = function () {
+        var ctx = this.canvas.ctx;
+        var viewport = this.axisViewport;
+        if (ctx) {
+            ctx.strokeStyle = this.optionsDraw.lineColor;
+            ctx.lineWidth = this.optionsDraw.lineWidth;
+            ctx.setLineDash(this.optionsDraw.lineDash);
+            ctx.beginPath();
+            ctx.moveTo(viewport.x1, viewport.y1);
+            ctx.lineTo(viewport.x2, viewport.y2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    };
+    Axis.prototype.drawAxisName = function () {
+        var ctx = this.canvas.ctx;
+        var viewport = this.canvas.viewport;
+        var xCoord = 0;
+        var yCoord = 0;
+        (this.type == 'horizontal') ? xCoord = viewport.midX : ((this.namePosition == 'start') ? xCoord = viewport.x1 : xCoord = viewport.x2);
+        (this.type == 'vertical') ? yCoord = viewport.midY : ((this.namePosition == 'start') ? yCoord = viewport.y2 : yCoord = viewport.y1);
+        var coord = new Point_1.Point(xCoord, yCoord);
+        if ((this.name) && (ctx)) {
+            this.label.draw(ctx, coord, this.name);
+        }
     };
     return Axis;
 }());
 exports.Axis = Axis;
 
-},{"./Rectangle":13,"./Ticks":15,"signals":3}],6:[function(require,module,exports){
+},{"./Canvas":7,"./Grid":10,"./Label":11,"./Point":14,"./Rectangle":15,"./Ticks":16,"signals":3}],6:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BackGround = void 0;
+var Canvas_1 = require("./Canvas");
+var BackGround = /** @class */ (function () {
+    function BackGround(type, container) {
+        this.type = 'default';
+        this.type = type;
+        this.canvas = new Canvas_1.Canvas(container);
+        this.canvas.canvas.style.zIndex = "1";
+    }
+    BackGround.prototype.draw = function (xCoord, yCoord) {
+        this.canvas.clear();
+        switch (this.type) {
+            case 'coloredGrid_cbh':
+                this.drawColoredGrid(xCoord, yCoord);
+                break;
+        }
+    };
+    BackGround.prototype.drawColoredGrid = function (xCoord, yCoord) {
+        var ctx = this.canvas.ctx;
+        if (ctx) {
+            ctx.globalAlpha = 0.1;
+            var colorPalette = ['#8CCB76', '#BED68D', '#E7D180', '#CC9263', '#CF5031'];
+            for (var i = 0; i < xCoord.length - 1; i++) {
+                ctx.fillStyle = colorPalette[i];
+                ctx.fillRect(xCoord[i].x, yCoord[0].y, xCoord[i + 1].x - xCoord[i].x, yCoord[yCoord.length - 1].y - yCoord[0].y);
+            }
+            for (var i = 0; i < yCoord.length - 1; i++) {
+                ctx.fillStyle = colorPalette[i];
+                ctx.fillRect(xCoord[0].x, yCoord[i].y, xCoord[xCoord.length - 1].x - xCoord[0].x, yCoord[i + 1].y - yCoord[i].y);
+            }
+            ctx.globalAlpha = 1;
+        }
+    };
+    return BackGround;
+}());
+exports.BackGround = BackGround;
+
+},{"./Canvas":7}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Canvas = void 0;
@@ -771,14 +906,19 @@ var Rectangle_1 = require("./Rectangle");
 var canvasDpiScaler = require('canvas-dpi-scaler');
 var Canvas = /** @class */ (function () {
     function Canvas(container) {
+        var _this = this;
         var paddings = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             paddings[_i - 1] = arguments[_i];
         }
-        this.changed = new signals_1.Signal();
+        this.isSquare = false;
+        this.lineWidth = 1;
+        this.color = 'black';
+        this.onPaddingsSetted = new signals_1.Signal();
         this.mouseMoved = new signals_1.Signal();
         this.mouseOuted = new signals_1.Signal();
         this.touchEnded = new signals_1.Signal();
+        this.resized = new signals_1.Signal();
         this.container = container;
         this.canvas = document.createElement('canvas');
         this.canvas.style.position = 'absolute';
@@ -786,10 +926,14 @@ var Canvas = /** @class */ (function () {
         this.right = 0;
         this.bottom = 0;
         this.left = 0;
-        this.setPaddings.apply(this, paddings);
         this.container.appendChild(this.canvas);
         this._ctx = this.canvas.getContext('2d');
+        //bind
         this.clear = this.clear.bind(this);
+        //listeners
+        window.addEventListener('resize', function () { _this.resize(); });
+        //call methods
+        this.setPaddings.apply(this, paddings);
         this.resize();
     }
     Canvas.prototype.turnOnListenres = function () {
@@ -882,7 +1026,7 @@ var Canvas = /** @class */ (function () {
                 break;
         }
         this.mouseCoords = new Point_1.Point(this.viewport.x2, this.viewport.zeroY);
-        this.changed.dispatch();
+        this.onPaddingsSetted.dispatch();
         return;
     };
     Object.defineProperty(Canvas.prototype, "ctx", {
@@ -892,16 +1036,31 @@ var Canvas = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(Canvas.prototype, "squareRes", {
+        set: function (res) {
+            this.isSquare = res;
+            this.resize();
+        },
+        enumerable: false,
+        configurable: true
+    });
     Canvas.prototype.resize = function () {
-        this.clear();
-        this.drawVp();
-        this.width = this.container.getBoundingClientRect().width;
-        this.height = this.container.getBoundingClientRect().height;
+        if (this.isSquare) {
+            var w = this.container.getBoundingClientRect().width;
+            var h = this.container.getBoundingClientRect().height;
+            this.width = Math.min(w, h);
+            this.height = Math.min(w, h);
+        }
+        else {
+            this.width = this.container.getBoundingClientRect().width;
+            this.height = this.container.getBoundingClientRect().height;
+        }
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         this.canvas.style.width = this.width.toString() + 'px';
         this.canvas.style.height = this.height.toString() + 'px';
         canvasDpiScaler(this.canvas, this._ctx, this.width, this.height);
+        this.resized.dispatch();
     };
     Canvas.prototype.clear = function () {
         if (this._ctx)
@@ -918,6 +1077,11 @@ var Canvas = /** @class */ (function () {
         var rect = this.viewport;
         // @ts-ignore
         this.ctx.rect(rect.x1, rect.y1, rect.width, rect.height);
+        if (this.ctx) {
+            this.ctx.strokeStyle = this.color;
+            this.ctx.fillStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+        }
         // @ts-ignore
         this.ctx.stroke();
     };
@@ -944,7 +1108,7 @@ var Canvas = /** @class */ (function () {
 }());
 exports.Canvas = Canvas;
 
-},{"./Point":12,"./Rectangle":13,"canvas-dpi-scaler":2,"signals":3}],7:[function(require,module,exports){
+},{"./Point":14,"./Rectangle":15,"canvas-dpi-scaler":2,"signals":3}],8:[function(require,module,exports){
 "use strict";
 var __spreadArrays = (this && this.__spreadArrays) || function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
@@ -962,76 +1126,57 @@ var Axis_1 = require("./Axis");
 var Transformer_1 = require("./Transformer");
 var Rectangle_1 = require("./Rectangle");
 var Point_1 = require("./Point");
-var Series_1 = require("./Series");
+var BackGround_1 = require("./BackGround");
 var signals_1 = require("signals");
+var SeriesBase_1 = require("./series/SeriesBase");
+var SeriesXY_1 = require("./series/SeriesXY");
 var Chart = /** @class */ (function () {
     function Chart(container, xMinMax, yMinMax) {
-        var _this = this;
+        this.hasBorder = false;
+        this.clipSeriesCanvas = false;
+        //signals
+        this.tooltipsDataIndexUpdated = new signals_1.Signal();
         this.container = container;
-        this.canvas = new Canvas_1.Canvas(container);
-        this.canvasA = new Canvas_1.Canvas(container);
         this.canvasTT = new Canvas_1.Canvas(container);
         this.canvasTT.turnOnListenres();
-        this.canvasTT.canvas.style.zIndex = "10";
-        this.canvasA.canvas.style.zIndex = "9";
+        this.canvasTT.canvas.style.zIndex = "4";
         this.data = new Data_1.Data();
         this.plots = [];
-        this.xAxis = new Axis_1.Axis(xMinMax, 'horizontal');
-        this.yAxis = new Axis_1.Axis(yMinMax, 'vertical');
+        this.xAxis = new Axis_1.Axis(xMinMax, 'horizontal', container);
+        this.yAxis = new Axis_1.Axis(yMinMax, 'vertical', container);
+        //bind
         this.tooltipsDraw = this.tooltipsDraw.bind(this);
         this.seriesReDraw = this.seriesReDraw.bind(this);
-        window.addEventListener('resize', function () { _this.reSize(); });
-        this.reSize();
+        //call methods
         this.bindChildSignals();
         this.tooltipsDraw(true);
-        this.tooltipsDataIndexUpdated = new signals_1.Signal();
     }
-    Chart.prototype.bindChildSignals = function () {
-        // axis
-        var _this = this;
-        this.xAxis.onOptionsSetted.add(function () {
-            // @ts-ignore
-            _this.xAxis.ticks.createTicks(_this.xAxis.min, _this.xAxis.max, _this.xAxis.getaxisViewport(_this.canvasA.viewport), _this.canvasA.ctx);
-            _this.axisReDraw();
+    Chart.prototype.switchResolution = function () {
+        this.xAxis.canvas.squareRes = true;
+        this.yAxis.canvas.squareRes = true;
+        this.canvasTT.squareRes = true;
+        if (this.background)
+            this.background.canvas.squareRes = true;
+        this.data.seriesStorage.forEach(function (series, ind) {
+            series.canvas.squareRes = true;
         });
+    };
+    Chart.prototype.bindChildSignals = function () {
+        var _this = this;
         //min max
         this.xAxis.onMinMaxSetted.add(function (hasPlotAnimation) {
             // @ts-ignore
-            _this.xAxis.ticks.createTicks(_this.xAxis.min, _this.xAxis.max, _this.xAxis.getaxisViewport(_this.canvasA.viewport), _this.canvasA.ctx);
+            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             if (hasPlotAnimation)
                 _this.seriesUpdatePlotData();
-            _this.axisReDraw();
             _this.tooltipsDraw(true);
-        });
-        this.xAxis.onCustomLabelsAdded.add(function () {
-            // @ts-ignore
-            _this.xAxis.ticks.createTicks(_this.xAxis.min, _this.xAxis.max, _this.xAxis.getaxisViewport(_this.canvasA.viewport), _this.canvasA.ctx);
-            _this.axisReDraw();
-        });
-        this.xAxis.onAnimated.add(function () {
-            _this.axisReDraw();
-        });
-        this.yAxis.onOptionsSetted.add(function () {
-            // @ts-ignore
-            _this.yAxis.ticks.createTicks(_this.yAxis.min, _this.yAxis.max, _this.yAxis.getaxisViewport(_this.canvasA.viewport), _this.canvasA.ctx);
-            _this.axisReDraw();
         });
         //min max
         this.yAxis.onMinMaxSetted.add(function (hasPlotAnimation) {
-            // @ts-ignore
-            _this.yAxis.ticks.createTicks(_this.yAxis.min, _this.yAxis.max, _this.yAxis.getaxisViewport(_this.canvasA.viewport), _this.canvasA.ctx);
-            _this.axisReDraw();
+            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             if (hasPlotAnimation)
                 _this.seriesUpdatePlotData();
             _this.tooltipsDraw(true);
-        });
-        this.yAxis.onCustomLabelsAdded.add(function () {
-            // @ts-ignore
-            _this.yAxis.ticks.createTicks(_this.yAxis.min, _this.yAxis.max, _this.yAxis.getaxisViewport(_this.canvasA.viewport), _this.canvasA.ctx);
-            _this.axisReDraw();
-        });
-        this.yAxis.onAnimated.add(function () {
-            _this.axisReDraw();
         });
         // canvas
         this.canvasTT.mouseMoved.add(this.tooltipsDraw);
@@ -1049,21 +1194,6 @@ var Chart = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
-    Chart.prototype.reSize = function () {
-        this.canvas.resize();
-        this.canvasA.resize();
-        this.canvasTT.resize();
-        this.data.seriesStorage.forEach(function (series, ind) {
-            series.canvas.resize();
-        });
-        this.seriesUpdatePlotData();
-        this.ticksCreate();
-        this.axisReDraw();
-    };
-    Chart.prototype.axisReDraw = function () {
-        this.canvasA.clear();
-        this.axisDraw();
-    };
     // генерируем PlotData у series
     Chart.prototype.seriesUpdatePlotData = function () {
         var _this = this;
@@ -1071,49 +1201,57 @@ var Chart = /** @class */ (function () {
             series.updatePlotData(_this.axisRect, series.canvas.viewport);
         });
     };
-    // генерируем тики у Осей
-    Chart.prototype.ticksCreate = function () {
-        // @ts-ignore
-        this.xAxis.ticks.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-        // @ts-ignore
-        this.yAxis.ticks.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
-    };
-    // отрисовываем Оси
-    Chart.prototype.axisDraw = function () {
-        // @ts-ignore
-        this.xAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
-        // @ts-ignore
-        this.yAxis.draw(this.canvasA.ctx, this.canvasA.viewport);
-    };
     // отрисовка одной серии
     Chart.prototype.seriesReDraw = function (series) {
         var _this = this;
         var canvas = series.canvas;
         canvas.clear();
-        canvas.clipCanvas();
+        if (this.clipSeriesCanvas)
+            canvas.clipCanvas();
         series.plots.forEach(function (plotId) {
             var plot = _this.findPlotById(plotId);
             if (plot) {
                 // @ts-ignore
-                plot.drawPlot(canvas.ctx, series.plotDataArr);
+                plot.drawPlot(canvas.ctx, series.plotDataArr, canvas.viewport, series.plotLabels);
             }
             ;
         });
         this.tooltipsDraw(true);
     };
     Chart.prototype.setCanvasPaddings = function () {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         var paddings = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             paddings[_i] = arguments[_i];
         }
-        (_a = this.canvas).setPaddings.apply(_a, paddings);
-        (_b = this.canvasTT).setPaddings.apply(_b, paddings);
-        (_c = this.canvasA).setPaddings.apply(_c, paddings);
+        (_a = this.canvasTT).setPaddings.apply(_a, paddings);
+        (_b = this.xAxis.canvas).setPaddings.apply(_b, paddings);
+        (_c = this.yAxis.canvas).setPaddings.apply(_c, paddings);
+        if (this.background)
+            (_d = this.background.canvas).setPaddings.apply(_d, paddings);
         this.data.seriesStorage.forEach(function (series, ind) {
             var _a;
             (_a = series.canvas).setPaddings.apply(_a, paddings);
         });
+    };
+    Chart.prototype.addBackGround = function (type) {
+        var _this = this;
+        this.background = new BackGround_1.BackGround(type, this.container);
+        //ticks
+        this.xAxis.ticks.onCoordsChanged.add(function () {
+            _this.backgroundDraw();
+        });
+        this.yAxis.ticks.onCoordsChanged.add(function () {
+            _this.backgroundDraw();
+        });
+        this.background.canvas.resized.add(function () {
+            _this.backgroundDraw();
+        });
+        this.backgroundDraw();
+    };
+    Chart.prototype.backgroundDraw = function () {
+        if (this.background)
+            this.background.draw(this.xAxis.ticks.coords, this.yAxis.ticks.coords);
     };
     Chart.prototype.addPlot = function (id, type) {
         var options = [];
@@ -1122,6 +1260,7 @@ var Chart = /** @class */ (function () {
         }
         var plot = new (Plot_1.Plot.bind.apply(Plot_1.Plot, __spreadArrays([void 0, id, type], options)))();
         this.plots.push(plot);
+        return plot;
     };
     Chart.prototype.findPlotById = function (id) {
         var plots = this.plots.filter(function (plot) {
@@ -1131,16 +1270,40 @@ var Chart = /** @class */ (function () {
             return plots[0];
         return null;
     };
-    Chart.prototype.addSeries = function (id) {
-        var seriesData = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            seriesData[_i - 1] = arguments[_i];
-        }
-        var newSeries = new (Series_1.Series.bind.apply(Series_1.Series, __spreadArrays([void 0, id, this.container], seriesData)))();
+    Chart.prototype.addSeries = function (id, seriesData, labels) {
+        var _this = this;
+        var newSeries = new SeriesXY_1.SeriesXY(id, this.container, seriesData, labels);
         this.data.seriesStorage.push(newSeries);
-        newSeries.canvas.setPaddings(this.canvas.top, this.canvas.right, this.canvas.bottom, this.canvas.left);
+        newSeries.canvas.setPaddings(this.canvasTT.top, this.canvasTT.right, this.canvasTT.bottom, this.canvasTT.left);
         newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
         newSeries.onPlotDataChanged.add(this.seriesReDraw);
+        newSeries.onSeriesDataChanged.add(function (series) {
+            series.updatePlotData(_this.axisRect, series.canvas.viewport);
+        });
+        newSeries.canvas.resized.add(function () {
+            newSeries.updatePlotData(_this.axisRect, newSeries.canvas.viewport, true);
+        });
+        newSeries.canvas.onPaddingsSetted.add(function () {
+            newSeries.updatePlotData(_this.axisRect, newSeries.canvas.viewport, true);
+        });
+        return newSeries;
+    };
+    Chart.prototype.addSeriesRow = function (id, seriesData) {
+        var _this = this;
+        var newSeries = new SeriesBase_1.SeriesBase(id, this.container, seriesData);
+        this.data.seriesStorage.push(newSeries);
+        newSeries.canvas.setPaddings(this.canvasTT.top, this.canvasTT.right, this.canvasTT.bottom, this.canvasTT.left);
+        newSeries.updatePlotData(this.axisRect, newSeries.canvas.viewport, true);
+        newSeries.onPlotDataChanged.add(this.seriesReDraw);
+        newSeries.onSeriesDataChanged.add(function (series) {
+            series.updatePlotData(_this.axisRect, series.canvas.viewport);
+        });
+        newSeries.canvas.resized.add(function () {
+            newSeries.updatePlotData(_this.axisRect, newSeries.canvas.viewport, true);
+        });
+        newSeries.canvas.onPaddingsSetted.add(function () {
+            newSeries.updatePlotData(_this.axisRect, newSeries.canvas.viewport, true);
+        });
         return newSeries;
     };
     Chart.prototype.switchDataAnimation = function (hasAnimation, duration) {
@@ -1162,10 +1325,13 @@ var Chart = /** @class */ (function () {
         var data_y_end_buf = [];
         this.data.seriesStorage.forEach(function (series) {
             var seriesX = _this.xAxis.min + mouseXY.x * (_this.xAxis.length) / _this.canvasTT.viewport.width;
-            var pointData = series.getClosestPoint(seriesX);
-            var tooltipCoord = series.getClosestPlotPoint(mouseXY.x + _this.canvasTT.left);
+            var seriesY = _this.yAxis.max - mouseXY.y * (_this.yAxis.length) / _this.canvasTT.viewport.height;
+            var sriesP = new Point_1.Point(seriesX, seriesY);
+            var _a = series.getClosestDataPointX(sriesP), pointData = _a[0], tt_ind = _a[1];
+            var tooltipCoordX = series.getClosestPlotPointX(new Point_1.Point(mouseXY.x + _this.canvasTT.left, mouseXY.y + _this.canvasTT.top));
+            var tooltipCoordXY = series.getClosestPlotPointXY(new Point_1.Point(mouseXY.x + _this.canvasTT.left, mouseXY.y + _this.canvasTT.top));
             _this.tooltipsDataIndexUpdated.dispatch(pointData.x);
-            //const tooltipCoord = transformer.getVeiwportCoord(this.axisRect, this.canvasTT.viewport, pointData);
+            var tooltipCoord = transformer.getVeiwportCoord(_this.axisRect, _this.canvasTT.viewport, pointData);
             series.plots.forEach(function (plotId) {
                 var plot = _this.findPlotById(plotId);
                 if (plot) {
@@ -1173,11 +1339,11 @@ var Chart = /** @class */ (function () {
                         if (drawLast) {
                             switch (tooltip.type) {
                                 case 'data_y_end':
-                                    data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
+                                    data_y_end_buf.push([tooltip, tooltipCoordX, pointData]);
                                     break;
                                 case 'circle_series':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoordX.x, tooltipCoordX.y), pointData);
                                     break;
                             }
                         }
@@ -1186,10 +1352,10 @@ var Chart = /** @class */ (function () {
                                 case 'delta_abs':
                                     if (delta_abs_buf.length == 0) {
                                         delta_abs_buf.push(pointData);
-                                        delta_abs_buf_coord.push(tooltipCoord);
+                                        delta_abs_buf_coord.push(tooltipCoordX);
                                     }
                                     else {
-                                        var ttCoord = (delta_abs_buf_coord[0].y < tooltipCoord.y) ? delta_abs_buf_coord[0] : tooltipCoord;
+                                        var ttCoord = (delta_abs_buf_coord[0].y < tooltipCoordX.y) ? delta_abs_buf_coord[0] : tooltipCoordX;
                                         var absData = new Point_1.Point(Math.abs(pointData.x - delta_abs_buf[0].x), Math.abs(pointData.y - delta_abs_buf[0].y));
                                         // @ts-ignore
                                         tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, ttCoord, absData);
@@ -1198,19 +1364,26 @@ var Chart = /** @class */ (function () {
                                     }
                                     break;
                                 case 'data_y_end':
-                                    data_y_end_buf.push([tooltip, tooltipCoord, pointData]);
+                                    data_y_end_buf.push([tooltip, tooltipCoordX, pointData]);
                                     break;
                                 case 'label_x_start':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasA.viewport, new Point_1.Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoordX.x, tooltipCoordX.y), pointData, tt_ind);
                                     break;
                                 case 'line_vertical_full':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasA.viewport, new Point_1.Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoordX.x, tooltipCoordX.y), pointData);
+                                    break;
+                                case 'data_label':
+                                    // @ts-ignore
+                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoordXY.x, tooltipCoordXY.y), pointData, tt_ind);
+                                    // @ts-ignore
+                                    if (plot.type == 'unicode')
+                                        plot.drawPlot(_this.canvasTT.ctx, [tooltipCoordXY], _this.canvasTT.viewport, true);
                                     break;
                                 default:
                                     // @ts-ignore
-                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoord.x, tooltipCoord.y), pointData);
+                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoordX.x, tooltipCoordX.y), pointData);
                                     break;
                             }
                         }
@@ -1224,9 +1397,9 @@ var Chart = /** @class */ (function () {
         data_y_end_buf.sort(function (a, b) { return a[1].y - b[1].y; });
         for (var i = 0; i < data_y_end_buf.length - 1; i++) {
             // @ts-ignore
-            var rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], false);
+            var rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
             // @ts-ignore
-            var rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], false);
+            var rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
             if (rect1.y2 > rect2.y1) {
                 var abs = Math.abs(rect1.y2 - rect2.y1);
                 var abs1 = -abs * 0.5;
@@ -1247,14 +1420,14 @@ var Chart = /** @class */ (function () {
         }
         // @ts-ignore
         data_y_end_buf.forEach(function (ttRow) {
-            ttRow[0].drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, ttRow[1], ttRow[2], true);
+            ttRow[0].drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, ttRow[1], ttRow[2], 0, true);
         });
     };
     return Chart;
 }());
 exports.Chart = Chart;
 
-},{"./Axis":5,"./Canvas":6,"./Data":8,"./Plot":11,"./Point":12,"./Rectangle":13,"./Series":14,"./Transformer":17,"signals":3}],8:[function(require,module,exports){
+},{"./Axis":5,"./BackGround":6,"./Canvas":7,"./Data":9,"./Plot":13,"./Point":14,"./Rectangle":15,"./Transformer":18,"./series/SeriesBase":19,"./series/SeriesXY":20,"signals":3}],9:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Data = void 0;
@@ -1311,7 +1484,7 @@ var Data = /** @class */ (function () {
 }());
 exports.Data = Data;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Grid = void 0;
@@ -1325,7 +1498,8 @@ var Grid = /** @class */ (function () {
         this.color = 'black';
         this.lineDash = [1, 0];
     }
-    Grid.prototype.setOptions = function (color, width, lineDash) {
+    Grid.prototype.setOptions = function (display, color, width, lineDash) {
+        this.display = display;
         this.width = width;
         this.color = color;
         this.lineDash = lineDash;
@@ -1358,7 +1532,7 @@ var Grid = /** @class */ (function () {
 }());
 exports.Grid = Grid;
 
-},{"signals":3}],10:[function(require,module,exports){
+},{"signals":3}],11:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Label = void 0;
@@ -1369,10 +1543,14 @@ var Label = /** @class */ (function () {
     function Label(type) {
         this.display = true;
         this.color = 'black';
+        this.color_counter = 0;
         this.font = '16px serif';
         this.fontSize = 16;
         this.position = 'bottom';
-        this.offset = 15;
+        this.offset = 0;
+        this.rotationAngle = 0;
+        this.isUpperCase = false;
+        this.hasOutline = false;
         this.onOptionsSetted = new signals_1.Signal();
         switch (type) {
             case 'vertical':
@@ -1383,59 +1561,100 @@ var Label = /** @class */ (function () {
                 break;
         }
     }
-    Label.prototype.setOptions = function (color, position, offset, fontOptions) {
+    Label.prototype.setOptions = function (display, color, position, offset, fontOptions, colorArr) {
         this.color = color || 'black';
         this.position = position || 'bottom';
         this.offset = offset || 0;
+        this.display = display;
+        if (colorArr) {
+            this.colorArr = colorArr;
+            this.color_counter = 0;
+        }
         if (fontOptions) {
             this.font = fontOptions[0] + "px " + fontOptions[1];
             this.fontSize = +fontOptions[0];
         }
         this.onOptionsSetted.dispatch();
+        return this;
+    };
+    Label.prototype.setOutline = function (options) {
+        this.hasOutline = true;
+        this.outlineOptions = options;
+    };
+    Label.prototype.setOffset = function (x, y) {
+        this.offsetX = x;
+        this.offsetY = y;
+        this.onOptionsSetted.dispatch();
+    };
+    Label.prototype.addOffset = function (labelCoord) {
+        if (this.offsetX && this.offsetY) {
+            labelCoord.y = labelCoord.y - this.offsetY;
+            labelCoord.x = labelCoord.x + this.offsetX;
+        }
+        else
+            switch (this.position) {
+                case 'top':
+                    labelCoord.y = labelCoord.y - this.offset - this.fontSize * 0.5;
+                    break;
+                case 'bottom':
+                    labelCoord.y = labelCoord.y + this.offset + this.fontSize * 0.5;
+                    break;
+                case 'left':
+                    labelCoord.x = labelCoord.x - this.offset;
+                    break;
+                case 'right':
+                    labelCoord.x = labelCoord.x + this.offset;
+                    break;
+            }
     };
     Label.prototype.draw = function (ctx, coord, labeltext) {
-        ctx.fillStyle = this.color;
+        if (this.colorArr) {
+            ctx.fillStyle = this.colorArr[this.color_counter];
+            this.color_counter = this.color_counter + 1;
+            if (this.color_counter == this.colorArr.length)
+                this.color_counter = 0;
+        }
+        else {
+            ctx.fillStyle = this.color;
+        }
         ctx.font = this.font;
         ctx.textBaseline = 'middle';
+        if ((this.isUpperCase) && (typeof labeltext == 'string')) {
+            labeltext = labeltext.toUpperCase();
+        }
         var text = ctx.measureText(labeltext);
         var labelCoord = new Point_1.Point(coord.x - text.width * 0.5, coord.y);
-        switch (this.position) {
-            case 'top':
-                labelCoord.y = labelCoord.y - this.offset - this.fontSize * 0.5;
-                break;
-            case 'bottom':
-                labelCoord.y = labelCoord.y + this.offset + this.fontSize * 0.5;
-                break;
-            case 'left':
-                labelCoord.x = labelCoord.x - this.offset;
-                break;
-            case 'right':
-                labelCoord.x = labelCoord.x + this.offset;
-                break;
-        }
+        this.addOffset(labelCoord);
         var printText = labeltext;
         if (this.units)
             printText = labeltext + this.units;
-        ctx.fillText(printText, labelCoord.x, labelCoord.y);
+        if (this.rotationAngle !== 0) {
+            ctx.save();
+            ctx.translate(labelCoord.x + text.width * 0.5, labelCoord.y + this.fontSize * 0.5);
+            ctx.rotate((Math.PI / 180) * this.rotationAngle);
+            ctx.translate(-labelCoord.x - text.width * 0.5, -labelCoord.y - this.fontSize * 0.5);
+            ctx.fillText(printText, labelCoord.x, labelCoord.y);
+            ctx.restore();
+        }
+        else {
+            if (this.hasOutline) {
+                this.drawOutline(ctx, labelCoord, printText);
+            }
+            ctx.fillText(printText, labelCoord.x, labelCoord.y);
+        }
+    };
+    Label.prototype.drawOutline = function (ctx, coord, text) {
+        if (this.outlineOptions) {
+            ctx.lineWidth = this.outlineOptions.width;
+            ctx.strokeStyle = this.outlineOptions.color;
+            ctx.strokeText(text, coord.x, coord.y);
+        }
     };
     Label.prototype.getlabelRect = function (ctx, coord, labeltext) {
         ctx.font = this.font;
         var text = ctx.measureText(labeltext);
         var labelCoord = new Point_1.Point(coord.x - text.width * 0.5, coord.y);
-        switch (this.position) {
-            case 'top':
-                labelCoord.y = labelCoord.y - this.offset - this.fontSize * 0.5;
-                break;
-            case 'bottom':
-                labelCoord.y = labelCoord.y + this.offset + this.fontSize * 0.5;
-                break;
-            case 'left':
-                labelCoord.x = labelCoord.x - this.offset;
-                break;
-            case 'right':
-                labelCoord.x = labelCoord.x + this.offset;
-                break;
-        }
+        this.addOffset(labelCoord);
         var textYgap = 0;
         if (this.font.indexOf('Transcript Pro') !== -1) {
             textYgap = 2;
@@ -1447,7 +1666,31 @@ var Label = /** @class */ (function () {
 }());
 exports.Label = Label;
 
-},{"./Point":12,"./Rectangle":13,"signals":3}],11:[function(require,module,exports){
+},{"./Point":14,"./Rectangle":15,"signals":3}],12:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Legend = void 0;
+var Label_1 = require("./Label");
+var Legend = /** @class */ (function () {
+    function Legend(text, getCoord) {
+        this.text = text;
+        this.label = new Label_1.Label();
+        this.getCoord = getCoord;
+        return this;
+    }
+    Legend.prototype.draw = function (ctx, vp) {
+        var _this = this;
+        var coord = this.getCoord(vp);
+        this.text.forEach(function (textrow) {
+            _this.label.draw(ctx, coord, textrow);
+            coord.y = coord.y + _this.label.fontSize;
+        });
+    };
+    return Legend;
+}());
+exports.Legend = Legend;
+
+},{"./Label":11}],13:[function(require,module,exports){
 "use strict";
 var __spreadArrays = (this && this.__spreadArrays) || function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
@@ -1458,7 +1701,9 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Plot = void 0;
+var Point_1 = require("./Point");
 var Tooltip_1 = require("./Tooltip");
+var Label_1 = require("./Label");
 //описание класса
 var Plot = /** @class */ (function () {
     function Plot(id, type) {
@@ -1466,8 +1711,6 @@ var Plot = /** @class */ (function () {
         for (var _i = 2; _i < arguments.length; _i++) {
             options[_i - 2] = arguments[_i];
         }
-        this.hasAnimation = false;
-        this.animationDuration = 300;
         this._id = id;
         this.type = type;
         this._options = {
@@ -1475,29 +1718,46 @@ var Plot = /** @class */ (function () {
             lineColor: '#000000',
             brushColor: '#000000',
             mainSize: 1,
+            fontSize: 10,
+            char: '1',
+            lineDash: [],
         };
         this.setOptions(options);
         this.tooltips = [];
+        this.label = new Label_1.Label(this.type);
+        return this;
     }
     Plot.prototype.setOptions = function (options) {
-        switch (options.length) {
-            case 1:
-                this._options.lineWidth = options[0];
-                break;
-            case 2:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                break;
-            case 3:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                this._options.brushColor = options[2];
-                break;
-            case 4:
+        switch (this.type) {
+            case 'dotted':
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
                 this._options.brushColor = options[2];
                 this._options.mainSize = options[3];
+                break;
+            case 'line':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.lineDash = options[2];
+                break;
+            case 'area':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.brushColor = options[2];
+                break;
+            case 'area_bottom':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.brushColor = options[2];
+                break;
+            case 'unicode':
+                this._options.fontSize = options[0];
+                this._options.brushColor = options[1];
+                this._options.char = options[2];
+                break;
+            case 'text':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
                 break;
         }
     };
@@ -1508,7 +1768,7 @@ var Plot = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
-    Plot.prototype.drawPlot = function (ctx, plotData) {
+    Plot.prototype.drawPlot = function (ctx, plotData, vp, labels, highlighted) {
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.globalAlpha = 1;
@@ -1521,12 +1781,21 @@ var Plot = /** @class */ (function () {
                 this.drawLine(ctx, plotData);
                 break;
             case 'area':
-                this.drawArea(ctx, plotData);
+                this.drawArea(ctx, plotData, vp);
+                break;
+            case 'area_bottom':
+                this.drawArea(ctx, plotData, vp);
+                break;
+            case 'unicode':
+                this.drawUnicode(ctx, plotData, highlighted);
+                break;
+            case 'text':
+                this.drawText(ctx, plotData, labels);
                 break;
         }
     };
     Plot.prototype.drawDotted = function (ctx, plotData) {
-        for (var i = 1; i < plotData.length; i++) {
+        for (var i = 0; i < plotData.length; i++) {
             ctx.beginPath();
             ctx.arc(plotData[i].x, plotData[i].y, this._options.mainSize, 0, Math.PI * 2, true);
             ctx.closePath();
@@ -1534,20 +1803,67 @@ var Plot = /** @class */ (function () {
             ctx.stroke();
         }
     };
+    Plot.prototype.drawUnicode = function (ctx, plotData, highlighted) {
+        ctx.font = this._options.fontSize + "px serif";
+        ctx.textBaseline = 'middle';
+        var text = ctx.measureText(this._options.char);
+        for (var i = 0; i < plotData.length; i++) {
+            ctx.globalAlpha = 1;
+            ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
+            if (highlighted) {
+                ctx.lineWidth = 7;
+                ctx.globalAlpha = 0.3;
+                ctx.strokeText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
+                ctx.globalAlpha = 1;
+                ctx.fillText(this._options.char, plotData[i].x - text.width * 0.5, plotData[i].y);
+            }
+        }
+    };
+    Plot.prototype.drawText = function (ctx, plotData, labels) {
+        var _this = this;
+        for (var i = 0; i < plotData.length; i++) {
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            ctx.setLineDash([]);
+            ctx.moveTo(plotData[i].x, plotData[i].y - 10);
+            ctx.lineTo(plotData[i].x, plotData[i].y - 25);
+            ctx.stroke();
+        }
+        var _loop_1 = function (i) {
+            var printText = labels[i];
+            if (!printText)
+                printText = '';
+            var printTextArr = printText.split('\\n');
+            printTextArr.forEach(function (row, ind, mas) {
+                var coord = new Point_1.Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1) * _this.label.fontSize);
+                _this.label.draw(ctx, coord, row);
+            });
+        };
+        for (var i = 0; i < plotData.length; i++) {
+            _loop_1(i);
+        }
+    };
     Plot.prototype.drawLine = function (ctx, plotData) {
+        ctx.setLineDash(this._options.lineDash);
         ctx.beginPath();
-        ctx.setLineDash([]);
         ctx.moveTo(plotData[0].x, plotData[0].y);
         for (var i = 1; i < plotData.length; i++) {
             ctx.lineTo(plotData[i].x, plotData[i].y);
         }
         ctx.stroke();
     };
-    Plot.prototype.drawArea = function (ctx, plotData) {
+    Plot.prototype.drawArea = function (ctx, plotData, vp) {
         ctx.beginPath();
+        if (this.type == 'area_bottom') {
+            ctx.lineTo(vp.x1, vp.zeroY);
+        }
         ctx.lineTo(plotData[0].x, plotData[0].y);
         for (var i = 1; i < plotData.length; i++) {
             ctx.lineTo(plotData[i].x, plotData[i].y);
+        }
+        if (this.type == 'area_bottom') {
+            ctx.lineTo(vp.x2, vp.zeroY);
+            //ctx.lineTo(vp.x1, vp.zeroY);
         }
         ctx.closePath();
         ctx.fill();
@@ -1574,7 +1890,7 @@ var Plot = /** @class */ (function () {
 }());
 exports.Plot = Plot;
 
-},{"./Tooltip":16}],12:[function(require,module,exports){
+},{"./Label":11,"./Point":14,"./Tooltip":17}],14:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Point = void 0;
@@ -1597,7 +1913,7 @@ var Point = /** @class */ (function () {
 }());
 exports.Point = Point;
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Rectangle = void 0;
@@ -1637,6 +1953,20 @@ var Rectangle = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(Rectangle.prototype, "midX", {
+        get: function () {
+            return this.x1 + Math.abs(this.x2 - this.x1) * 0.5;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Rectangle.prototype, "midY", {
+        get: function () {
+            return this.y1 + Math.abs(this.y2 - this.y1) * 0.5;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Rectangle.prototype.updateCoords = function (x1, y1, x2, y2) {
         this.x1 = x1;
         this.y1 = y1;
@@ -1664,308 +1994,7 @@ var Rectangle = /** @class */ (function () {
 }());
 exports.Rectangle = Rectangle;
 
-},{}],14:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Series = void 0;
-var signals_1 = require("signals");
-var Canvas_1 = require("./Canvas");
-var Point_1 = require("./Point");
-var Rectangle_1 = require("./Rectangle");
-var Transformer_1 = require("./Transformer");
-var Series = /** @class */ (function () {
-    function Series(id, container) {
-        var seriesData = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            seriesData[_i - 2] = arguments[_i];
-        }
-        this.hasAnimation = false;
-        this.animationDuration = 300;
-        this.timeFunc = function (time) {
-            return time;
-        };
-        this.onPlotDataChanged = new signals_1.Signal();
-        this.id = id;
-        this.seriesData = this.getInitialData(seriesData);
-        this.extremes = this.findExtremes();
-        this.plots = [];
-        this.plotData = [];
-        this.canvas = new Canvas_1.Canvas(container);
-        return this;
-    }
-    Series.prototype.getInitialData = function (initialData) {
-        var resultData = [];
-        initialData.forEach(function (dataRow) {
-            var ind = [];
-            var val = [];
-            dataRow.forEach(function (element, index) {
-                ind.push(index);
-                val.push(element);
-            });
-            resultData.push(ind);
-            resultData.push(val);
-        });
-        return resultData;
-    };
-    Series.prototype.setPlotsIds = function () {
-        var plotIds = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            plotIds[_i] = arguments[_i];
-        }
-        this.plots = plotIds;
-    };
-    Series.prototype.findExtremes = function (data) {
-        var seriesData = [];
-        if (data)
-            seriesData = data;
-        if (!data)
-            seriesData = this.seriesData.slice();
-        var xMin = seriesData[0][0];
-        var xMax = seriesData[0][0];
-        var yMin = seriesData[1][0];
-        var yMax = seriesData[1][0];
-        seriesData.forEach(function (dataRow, ind) {
-            dataRow.forEach(function (element) {
-                switch (ind % 2) {
-                    case 0:
-                        if (element < xMin)
-                            xMin = element;
-                        if (element > xMax)
-                            xMax = element;
-                        break;
-                    case 1:
-                        if (element < yMin)
-                            yMin = element;
-                        if (element > yMax)
-                            yMax = element;
-                        break;
-                }
-            });
-        });
-        return [xMin, xMax, yMin, yMax];
-    };
-    Object.defineProperty(Series.prototype, "dataRect", {
-        get: function () {
-            var extremes = this.extremes;
-            return new Rectangle_1.Rectangle(extremes[0], extremes[2], extremes[1], extremes[3]);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Series.prototype.getDataRange = function (type, min, max) {
-        var data = [];
-        var _loop_1 = function (i) {
-            var ind = [];
-            var val = [];
-            var dataRowInd = this_1.seriesData[i].slice();
-            var dataRowVal = this_1.seriesData[i + 1].slice();
-            if (i == 2) {
-                dataRowInd = dataRowInd.slice();
-                dataRowVal = dataRowVal.slice();
-            }
-            dataRowInd.forEach(function (el, i) {
-                if ((el >= min) && (el <= max)) {
-                    ind.push(dataRowInd[i]);
-                    val.push(dataRowVal[i]);
-                }
-            });
-            data.push(ind);
-            data.push(val);
-        };
-        var this_1 = this;
-        /*
-           let arrInd: number = 0;
-   
-           switch (type) {
-               case 'ind':
-                   arrInd = 0;
-               break;
-   
-               case 'val':
-                   arrInd = 1;
-               break;
-   
-               default:
-                   arrInd = 0;
-               break;
-           }
-           */
-        for (var i = 0; i < this.seriesData.length; i = i + 2) {
-            _loop_1(i);
-        }
-        return data;
-    };
-    Series.prototype.replaceSeriesData = function (seriesData_to) {
-        this.seriesData = this.getInitialData(seriesData_to);
-        this.extremes = this.findExtremes();
-    };
-    Series.prototype.getClosestPoint = function (x) {
-        var ind = this.seriesData[0].reduce(function (prev, curr, i) {
-            var curDif = Math.abs(i - x);
-            var prevDif = Math.abs(prev - x);
-            if (curDif < prevDif)
-                return i;
-            return prev;
-        }, 0);
-        return new Point_1.Point(ind, this.seriesData[1][ind]);
-    };
-    Series.prototype.getClosestPlotPoint = function (x) {
-        var coord = this.plotDataArr.reduce(function (prev, curr, i) {
-            var curDif = Math.abs(curr.x - x);
-            var prevDif = Math.abs(prev.x - x);
-            if (curDif < prevDif)
-                return curr;
-            return prev;
-        }, this.plotDataArr[0]);
-        return new Point_1.Point(coord.x, coord.y);
-    };
-    Object.defineProperty(Series.prototype, "plotDataArr", {
-        get: function () {
-            var lineArr = [];
-            for (var i = 0; i < this.plotData.length; i++) {
-                var plotRow = this.plotData[i];
-                if (i == 1) {
-                    plotRow = plotRow.slice().reverse();
-                }
-                plotRow.forEach(function (element) {
-                    lineArr.push(element);
-                });
-            }
-            return lineArr;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Series.prototype.updatePlotData = function (axisRect, vp, noAnimation) {
-        var plotData = this.generatePlotData(axisRect, vp);
-        //если нужна анимация графиков
-        if (noAnimation) {
-            this.plotData = plotData;
-            this.onPlotDataChanged.dispatch(this);
-            return this;
-        }
-        if (this.hasAnimation) {
-            var fromData = [];
-            var toData = [];
-            for (var i = 0; i < this.plotData.length; i++) {
-                var plotRow = this.plotData[i];
-                var fromTo = this.makeFromPointArr(plotRow.slice(), plotData[i].slice());
-                fromData.push(fromTo[0]);
-                toData.push(fromTo[1]);
-            }
-            this.сoordAnimation(fromData, toData, this.animationDuration);
-        }
-        this.plotData = plotData;
-        this.onPlotDataChanged.dispatch(this);
-        return this;
-    };
-    Series.prototype.generatePlotData = function (axisRect, vp) {
-        var seriesData = this.getDataRange('ind', axisRect.x1, axisRect.x2);
-        // const seriesData = this.seriesData.slice();
-        var plotData = [];
-        var transformer = new Transformer_1.Transformer();
-        var _loop_2 = function (i) {
-            var plotDataRow = [];
-            var dataRowInd = seriesData[i];
-            var dataRowVal = seriesData[i + 1];
-            dataRowInd.forEach(function (element, ind) {
-                var seriesPoint = new Point_1.Point(dataRowInd[ind], dataRowVal[ind]);
-                var plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
-                plotDataRow.push(new Point_1.Point(Math.round(plotPoint.x), Math.round(plotPoint.y)));
-            });
-            plotData.push(plotDataRow);
-        };
-        for (var i = 0; i < seriesData.length; i = i + 2) {
-            _loop_2(i);
-        }
-        return plotData;
-    };
-    // Метод анимации изменение набора координат
-    Series.prototype.сoordAnimation = function (fromData, toData, duration) {
-        var _this = this;
-        var start = performance.now();
-        var animate = function (time) {
-            var tekTime = (time - start) / duration;
-            var timeFraction = _this.timeFunc(tekTime);
-            if (tekTime > 1)
-                tekTime = 1;
-            var tekData = [];
-            fromData.forEach(function (fromRow, ind) {
-                var tekRow = fromRow.map(function (el, i) {
-                    return new Point_1.Point(Math.round(fromRow[i].x + (toData[ind][i].x - fromRow[i].x) * timeFraction), Math.round(fromRow[i].y + (toData[ind][i].y - fromRow[i].y) * timeFraction));
-                });
-                tekData.push(tekRow);
-            });
-            _this.plotData = tekData;
-            _this.onPlotDataChanged.dispatch(_this);
-            if (tekTime < 1) {
-                requestAnimationFrame(animate);
-            }
-            else {
-                _this.plotData = toData;
-                _this.onPlotDataChanged.dispatch(_this);
-            }
-        };
-        requestAnimationFrame(animate);
-    };
-    Series.prototype.makeFromPointArr = function (from, to) {
-        var resultArr = [];
-        if (from.length == 0)
-            return resultArr;
-        var fromResult = [];
-        var toResult = [];
-        var toArr = to.slice();
-        var fromArr = from.slice();
-        // если from < to
-        if (fromArr.length < toArr.length) {
-            var capacity = Math.floor(toArr.length / fromArr.length);
-            var fromInd = 0;
-            var roomCount = 0;
-            while (fromInd < fromArr.length) {
-                fromResult.push(fromArr[fromInd]);
-                toArr.shift();
-                roomCount = roomCount + 1;
-                if (roomCount == capacity) {
-                    fromInd = fromInd + 1;
-                    roomCount = 0;
-                }
-            }
-            while (toArr.length !== 0) {
-                fromResult.push(fromArr[fromArr.length - 1]);
-                toArr.shift();
-            }
-            resultArr.push(fromResult);
-            resultArr.push(to);
-            return resultArr;
-        }
-        // если from > to
-        else {
-            var capacity = Math.floor(fromArr.length / toArr.length);
-            var toInd = 0;
-            var roomCount = 0;
-            while (toInd < toArr.length) {
-                toResult.push(toArr[toInd]);
-                fromArr.shift();
-                roomCount = roomCount + 1;
-                if (roomCount == capacity) {
-                    toInd = toInd + 1;
-                    roomCount = 0;
-                }
-            }
-            while (fromArr.length !== 0) {
-                toResult.push(toArr[toArr.length - 1]);
-                fromArr.shift();
-            }
-            resultArr.push(from);
-            resultArr.push(toResult);
-            return resultArr;
-        }
-    };
-    return Series;
-}());
-exports.Series = Series;
-
-},{"./Canvas":6,"./Point":12,"./Rectangle":13,"./Transformer":17,"signals":3}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ticks = void 0;
@@ -1973,7 +2002,6 @@ var signals_1 = require("signals");
 var Point_1 = require("./Point");
 var Rectangle_1 = require("./Rectangle");
 var Label_1 = require("./Label");
-var Grid_1 = require("./Grid");
 var Transformer_1 = require("./Transformer");
 var Ticks = /** @class */ (function () {
     function Ticks(axistype) {
@@ -1981,19 +2009,22 @@ var Ticks = /** @class */ (function () {
         this.hasCustomLabels = false;
         this.hasAnimation = false;
         this.animationDuration = 300;
+        this.timeFunc = function (time) {
+            return time;
+        };
         // параметры отрисовки тика
         this.linewidth = 2;
         this.tickSize = 5;
         this.color = 'black';
+        this.lineDash = [];
         this.onOptionsSetted = new signals_1.Signal();
         this.onCustomLabelsAdded = new signals_1.Signal();
-        this.onAnimated = new signals_1.Signal();
+        this.onCoordsChanged = new signals_1.Signal();
         this.coords = [];
         this.values = [];
         this.labels = [];
         this.type = axistype;
         this.label = new Label_1.Label(this.type);
-        this.grid = new Grid_1.Grid(this.type);
         this.distributionType = 'default';
         this.count = 5;
         this.step = 100;
@@ -2005,29 +2036,25 @@ var Ticks = /** @class */ (function () {
             this.animationDuration = duration;
     };
     Ticks.prototype.bindChildSignals = function () {
-        var _this = this;
-        this.label.onOptionsSetted.add(function () {
-            _this.onOptionsSetted.dispatch();
-        });
-        this.grid.onOptionsSetted.add(function () {
-            _this.onOptionsSetted.dispatch();
-        });
     };
     Ticks.prototype.setCustomLabels = function (labels) {
         this.hasCustomLabels = true;
         this.customLabels = labels;
         this.onCustomLabelsAdded.dispatch();
     };
-    Ticks.prototype.settickDrawOptions = function (length, width, color) {
+    Ticks.prototype.settickDrawOptions = function (length, width, color, lineDash) {
         this.linewidth = width;
         this.tickSize = length;
         this.color = color;
+        if (lineDash)
+            this.lineDash = lineDash;
     };
-    Ticks.prototype.setOptions = function (distributionType) {
+    Ticks.prototype.setOptions = function (display, distributionType) {
         var options = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            options[_i - 1] = arguments[_i];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            options[_i - 2] = arguments[_i];
         }
+        this.display = display;
         switch (distributionType) {
             case 'default':
                 this.distributionType = distributionType;
@@ -2051,10 +2078,20 @@ var Ticks = /** @class */ (function () {
                 if (options.length !== 0)
                     this.customTicksOptions = options[0];
                 break;
+            case 'midStep':
+                this.distributionType = distributionType;
+                this.count = options[0];
+                break;
+            case 'zero':
+                this.distributionType = distributionType;
+                break;
+            case 'min':
+                this.distributionType = distributionType;
+                break;
         }
         this.onOptionsSetted.dispatch();
     };
-    Ticks.prototype.createTicks = function (min, max, vp, ctx) {
+    Ticks.prototype.createTicks = function (min, max, vp, ctx, noAnimate) {
         var coords = [];
         switch (this.distributionType) {
             case 'default':
@@ -2072,19 +2109,113 @@ var Ticks = /** @class */ (function () {
             case 'niceCbhStep':
                 coords = this.generateNiceCbhTicks(min, max, vp);
                 break;
+            case 'midStep':
+                coords = this.generateMidStep(min, max, vp);
+                break;
+            case 'zero':
+                coords = this.generateOneTick(min, max, vp, 0);
+                break;
+            case 'min':
+                coords = this.generateOneTick(min, max, vp, min);
+                break;
         }
         //если нужна анимация тиков
-        if (this.hasAnimation) {
+        if ((this.hasAnimation) && (!noAnimate)) {
             var from = this.makeFromPointArr(this.coords, coords);
             if (from.length == 0) {
                 this.coords = coords;
+                this.onCoordsChanged.dispatch();
                 return this;
             }
             this.coords = from;
+            this.onCoordsChanged.dispatch();
             this.tickCoordAnimation(from, coords, this.animationDuration);
             return this;
         }
         this.coords = coords;
+        this.onCoordsChanged.dispatch();
+    };
+    Ticks.prototype.generateOneTick = function (min, max, vp, value) {
+        var coords = [];
+        this.values = [];
+        this.labels = [];
+        var rectXY = [];
+        var transformer = new Transformer_1.Transformer();
+        switch (this.type) {
+            case 'vertical':
+                rectXY = [0, min, 1, max];
+                break;
+            case 'horizontal':
+                rectXY = [min, 0, max, 1];
+                break;
+        }
+        var fromRect = new Rectangle_1.Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
+        var pointXY = [];
+        if (this.hasCustomLabels) {
+            // @ts-ignore
+            this.labels.push(this.customLabels[0]);
+        }
+        else {
+            this.labels.push(value.toFixed(2).toString());
+        }
+        switch (this.type) {
+            case 'vertical':
+                pointXY = [0, value];
+                break;
+            case 'horizontal':
+                pointXY = [value, 0];
+                break;
+        }
+        var valuePoint = new Point_1.Point(pointXY[0], pointXY[1]);
+        var coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+        coords.push(coordPoint);
+        this.values.push(value);
+        return coords;
+    };
+    Ticks.prototype.generateMidStep = function (min, max, vp) {
+        var coords = [];
+        this.values = [];
+        this.labels = [];
+        var stepCoord = 0;
+        var rectXY = [];
+        var transformer = new Transformer_1.Transformer();
+        var stepValue = Math.abs(max - min) / (this.count);
+        switch (this.type) {
+            case 'vertical':
+                stepCoord = vp.height / this.count;
+                rectXY = [0, min, 1, max];
+                break;
+            case 'horizontal':
+                stepCoord = vp.width / this.count;
+                rectXY = [min, 0, max, 1];
+                break;
+        }
+        var fromRect = new Rectangle_1.Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
+        for (var i = 0; i <= this.count - 1; i++) {
+            var pointXY = [];
+            var value = min + i * stepValue + stepValue * 0.5;
+            if (this.hasCustomLabels) {
+                //value = Math.round(value);
+                // @ts-ignore
+                this.labels.push(this.customLabels[0]);
+            }
+            else {
+                this.labels.push(value.toFixed(2).toString());
+            }
+            switch (this.type) {
+                case 'vertical':
+                    pointXY = [0, value];
+                    break;
+                case 'horizontal':
+                    pointXY = [value, 0];
+                    break;
+            }
+            var valuePoint = new Point_1.Point(pointXY[0], pointXY[1]);
+            var coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+            coords.push(coordPoint);
+            this.values.push(value);
+        }
+        return coords;
     };
     Ticks.prototype.generateFixedCountTicks = function (min, max, vp) {
         var coords = [];
@@ -2262,18 +2393,21 @@ var Ticks = /** @class */ (function () {
         var start = performance.now();
         // @ts-ignore 
         var animate = function (time) {
-            var timeFraction = (time - start) / duration;
-            if (timeFraction > 1)
-                timeFraction = 1;
+            var tekTime = (time - start) / duration;
+            var timeFraction = _this.timeFunc(tekTime);
+            if (tekTime > 1)
+                tekTime = 1;
             var tek = from.map(function (el, i) {
                 return new Point_1.Point(from[i].x + (to[i].x - from[i].x) * timeFraction, from[i].y + (to[i].y - from[i].y) * timeFraction);
             });
             _this.coords = tek;
-            _this.onAnimated.dispatch();
-            if (timeFraction < 1) {
+            _this.onCoordsChanged.dispatch();
+            if (tekTime < 1) {
                 requestAnimationFrame(animate);
             }
             else {
+                _this.coords = to;
+                _this.onCoordsChanged.dispatch();
             }
         };
         requestAnimationFrame(animate);
@@ -2418,18 +2552,17 @@ var Ticks = /** @class */ (function () {
             if (_this.label.display)
                 _this.label.draw(ctx, tickCoord, _this.labels[i]);
         });
-        if (this.grid.display)
-            this.grid.draw(ctx, viewport, this.coords);
     };
     Ticks.prototype.drawTick = function (ctx, tick) {
         ctx.beginPath();
         ctx.strokeStyle = this.color;
         ctx.lineWidth = this.linewidth;
+        ctx.setLineDash(this.lineDash);
         var r = this.tickSize;
         switch (this.type) {
             case 'vertical':
                 ctx.moveTo(tick.x - r, tick.y);
-                ctx.lineTo(tick.x + r, tick.y);
+                ctx.lineTo(tick.x, tick.y);
                 ctx.stroke();
                 break;
             case 'horizontal':
@@ -2443,7 +2576,7 @@ var Ticks = /** @class */ (function () {
 }());
 exports.Ticks = Ticks;
 
-},{"./Grid":9,"./Label":10,"./Point":12,"./Rectangle":13,"./Transformer":17,"signals":3}],16:[function(require,module,exports){
+},{"./Label":11,"./Point":14,"./Rectangle":15,"./Transformer":18,"signals":3}],17:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Tooltip = void 0;
@@ -2520,9 +2653,15 @@ var Tooltip = /** @class */ (function () {
                 this._options.brushColor = options[2];
                 this._options.mainSize = options[3];
                 break;
+            case 'data_label':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.brushColor = options[2];
+                this.labels = options[3];
+                break;
         }
     };
-    Tooltip.prototype.drawTooltip = function (ctx, vp, ttCoord, xyData, toDraw) {
+    Tooltip.prototype.drawTooltip = function (ctx, vp, ttCoord, xyData, ind, toDraw) {
         switch (this.type) {
             case 'circle_series':
                 this.drawCircleSeries(ctx, ttCoord);
@@ -2534,7 +2673,7 @@ var Tooltip = /** @class */ (function () {
                 this.drawLineHorizontalEnd(ctx, vp, ttCoord);
                 break;
             case 'label_x_start':
-                this.drawLabelXStart(ctx, vp, ttCoord, xyData);
+                this.drawLabelXStart(ctx, vp, ttCoord, xyData, ind);
                 break;
             case 'circle_y_end':
                 this.drawCircleYEnd(ctx, vp, ttCoord);
@@ -2544,7 +2683,53 @@ var Tooltip = /** @class */ (function () {
             case 'delta_abs':
                 this.drawDeltaAbs(ctx, vp, ttCoord, xyData);
                 break;
+            case 'data_label':
+                this.drawDataLabel(ctx, vp, ttCoord, xyData, ind);
+                break;
         }
+    };
+    Tooltip.prototype.drawDataLabel = function (ctx, vp, ttCoord, seriesData, ind) {
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.fillStyle = this._options.brushColor;
+        ctx.setLineDash(this._options.lineDash);
+        var labelCoord = new Point_1.Point(ttCoord.x, ttCoord.y);
+        //параметры начальные
+        this.label.position = 'top';
+        var lineX = ttCoord.x;
+        var rectPadding = 6;
+        // @ts-ignore
+        var labelText = this.labels[ind] + '; x: ' + (seriesData.x).toFixed(1) + '; y: ' + (seriesData.y).toFixed(1);
+        var cornersRadius = this._options.mainSize;
+        var labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+        var roundRect = new Rectangle_1.Rectangle(labelRect.x1 - rectPadding, labelRect.y1 - rectPadding, labelRect.x2 + rectPadding, labelRect.y2 + rectPadding);
+        /*
+                if (roundRect.x2 > vp.x2) {
+                    labelCoord.x = labelCoord.x - roundRect.x2 + vp.x2;
+                    roundRect.move(- roundRect.x2 + vp.x2, 0)
+                }
+        */
+        if (roundRect.x2 > vp.x2) {
+            labelCoord.x = labelCoord.x - Math.abs(roundRect.x2 - vp.x2) - rectPadding;
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+            roundRect = new Rectangle_1.Rectangle(labelRect.x1 - rectPadding, labelRect.y1 - rectPadding, labelRect.x2 + rectPadding, labelRect.y2 + rectPadding);
+        }
+        if (roundRect.x1 < vp.x1) {
+            labelCoord.x = labelCoord.x + Math.abs(roundRect.x1 - vp.x1) + rectPadding;
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+            roundRect = new Rectangle_1.Rectangle(labelRect.x1 - rectPadding, labelRect.y1 - rectPadding, labelRect.x2 + rectPadding, labelRect.y2 + rectPadding);
+        }
+        if (roundRect.y1 < vp.y1) {
+            this.label.position = 'bottom';
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+            roundRect = new Rectangle_1.Rectangle(labelRect.x1 - rectPadding, labelRect.y1 - rectPadding, labelRect.x2 + rectPadding, labelRect.y2 + rectPadding);
+            //labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
+            //roundRect.move(0, vp.y1 - roundRect.y1);
+        }
+        this.roundRect(ctx, roundRect.x1, roundRect.y1, roundRect.width, roundRect.height, cornersRadius);
+        ctx.fill();
+        ctx.stroke();
+        this.label.draw(ctx, labelCoord, labelText);
     };
     Tooltip.prototype.drawCircleSeries = function (ctx, ttCoord) {
         ctx.strokeStyle = this._options.lineColor;
@@ -2577,7 +2762,7 @@ var Tooltip = /** @class */ (function () {
         ctx.stroke();
         ctx.setLineDash([]);
     };
-    Tooltip.prototype.drawLabelXStart = function (ctx, vp, ttCoord, seriesData) {
+    Tooltip.prototype.drawLabelXStart = function (ctx, vp, ttCoord, seriesData, ind) {
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
@@ -2586,7 +2771,7 @@ var Tooltip = /** @class */ (function () {
         var rectPadding = 6;
         var rectWidth = 60;
         // @ts-ignore
-        var labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
+        var labelText = (this.labels[ind]).toLocaleDateString('en');
         var cornersRadius = this._options.mainSize;
         var labelCoord = new Point_1.Point(ttCoord.x, vp.zeroY);
         var labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
@@ -2672,6 +2857,7 @@ var Tooltip = /** @class */ (function () {
             ctx.stroke();
             this.label.draw(ctx, labelCoord, labelText);
         }
+        //console.log(labelCoord, labelText);
         return roundRect;
     };
     Tooltip.prototype.drawDeltaAbs = function (ctx, vp, ttCoord, seriesData) {
@@ -2722,7 +2908,7 @@ var Tooltip = /** @class */ (function () {
 }());
 exports.Tooltip = Tooltip;
 
-},{"./Label":10,"./Point":12,"./Rectangle":13}],17:[function(require,module,exports){
+},{"./Label":11,"./Point":14,"./Rectangle":15}],18:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Transformer = void 0;
@@ -2775,94 +2961,687 @@ var Transformer = /** @class */ (function () {
 }());
 exports.Transformer = Transformer;
 
-},{"./Point":12,"./Rectangle":13}],18:[function(require,module,exports){
+},{"./Point":14,"./Rectangle":15}],19:[function(require,module,exports){
 "use strict";
 // browserify ./src/index.ts -p [ tsify --noImplicitAny ] > chartBlib.js
 Object.defineProperty(exports, "__esModule", { value: true });
-// @ts-ignore
-// подключаем необходимые библиотеки
-var WebFont = require('webfontloader');
-var bezier = require('bezier-easing');
-var Chart_1 = require("./classes/Chart");
-//назначаем константы
-var easing = bezier(0.65, 0, 0.35, 1);
+exports.SeriesBase = void 0;
+var signals_1 = require("signals");
+var Canvas_1 = require("../Canvas");
+var Point_1 = require("../Point");
+var Rectangle_1 = require("../Rectangle");
+var Transformer_1 = require("../Transformer");
+var SeriesBase = /** @class */ (function () {
+    function SeriesBase(id, container, seriesData) {
+        this.hasAnimation = false;
+        this.animationDuration = 300;
+        this.timeFunc = function (time) {
+            return time;
+        };
+        this.onPlotDataChanged = new signals_1.Signal();
+        this.onSeriesDataChanged = new signals_1.Signal();
+        this.id = id;
+        this.seriesData = this.getInitialData(seriesData);
+        this.extremes = this.findExtremes();
+        this.plots = [];
+        this.plotData = [];
+        this.canvas = new Canvas_1.Canvas(container);
+        this.canvas.canvas.style.zIndex = "0";
+        return this;
+    }
+    SeriesBase.prototype.bindChildSignals = function () {
+        this.canvas.resized.add(function () {
+        });
+    };
+    SeriesBase.prototype.getInitialData = function (initialData) {
+        var resultData = [];
+        initialData.forEach(function (dataRow) {
+            var ind = [];
+            var val = [];
+            dataRow.forEach(function (element, index) {
+                ind.push(index);
+                val.push(element);
+            });
+            resultData.push(ind);
+            resultData.push(val);
+        });
+        return resultData;
+    };
+    SeriesBase.prototype.setPlotsIds = function () {
+        var plotIds = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            plotIds[_i] = arguments[_i];
+        }
+        this.plots = plotIds;
+    };
+    SeriesBase.prototype.findExtremes = function (data) {
+        var seriesData = [];
+        if (data)
+            seriesData = data;
+        if (!data)
+            seriesData = this.seriesData.slice();
+        var xMin = seriesData[0][0];
+        var xMax = seriesData[0][0];
+        var yMin = seriesData[1][0];
+        var yMax = seriesData[1][0];
+        seriesData.forEach(function (dataRow, ind) {
+            dataRow.forEach(function (element) {
+                switch (ind % 2) {
+                    case 0:
+                        if (element < xMin)
+                            xMin = element;
+                        if (element > xMax)
+                            xMax = element;
+                        break;
+                    case 1:
+                        if (element < yMin)
+                            yMin = element;
+                        if (element > yMax)
+                            yMax = element;
+                        break;
+                }
+            });
+        });
+        return [xMin, xMax, yMin, yMax];
+    };
+    Object.defineProperty(SeriesBase.prototype, "dataRect", {
+        get: function () {
+            var extremes = this.extremes;
+            return new Rectangle_1.Rectangle(extremes[0], extremes[2], extremes[1], extremes[3]);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SeriesBase.prototype.getDataRange = function (type, min, max) {
+        var data = [];
+        var _loop_1 = function (i) {
+            var ind = [];
+            var val = [];
+            var dataRowInd = this_1.seriesData[i].slice();
+            var dataRowVal = this_1.seriesData[i + 1].slice();
+            if (i == 2) {
+                dataRowInd = dataRowInd.slice();
+                dataRowVal = dataRowVal.slice();
+            }
+            dataRowInd.forEach(function (el, i) {
+                if ((el >= min) && (el <= max)) {
+                    ind.push(dataRowInd[i]);
+                    val.push(dataRowVal[i]);
+                }
+            });
+            data.push(ind);
+            data.push(val);
+        };
+        var this_1 = this;
+        for (var i = 0; i < this.seriesData.length; i = i + 2) {
+            _loop_1(i);
+        }
+        return data;
+    };
+    SeriesBase.prototype.replaceSeriesData = function (seriesData_to) {
+        this.seriesData = this.getInitialData(seriesData_to);
+        this.extremes = this.findExtremes();
+        //this.onSeriesDataChanged.dispatch(this);
+    };
+    SeriesBase.prototype.getClosestDataPointX = function (seriesPoint) {
+        var _this = this;
+        var ind = 0;
+        var resultPoint = this.seriesData[0].reduce(function (prev, curr, i) {
+            var curPoint = new Point_1.Point(curr, _this.seriesData[1][i]);
+            var curDif = seriesPoint.findDistX(curPoint);
+            var prevDif = seriesPoint.findDistX(prev);
+            if (curDif < prevDif) {
+                ind = i;
+                return curPoint;
+            }
+            return prev;
+        }, new Point_1.Point(this.seriesData[0][0], this.seriesData[1][0]));
+        return [resultPoint, ind];
+    };
+    SeriesBase.prototype.getClosestPlotPointX = function (coordPoint) {
+        var coord = this.plotDataArr.reduce(function (prev, curr, i) {
+            var curDif = coordPoint.findDistX(curr);
+            var prevDif = coordPoint.findDistX(prev);
+            if (curDif < prevDif)
+                return curr;
+            return prev;
+        }, this.plotDataArr[0]);
+        return new Point_1.Point(coord.x, coord.y);
+    };
+    SeriesBase.prototype.getClosestPlotPointXY = function (coordPoint) {
+        var coord = this.plotDataArr.reduce(function (prev, curr, i) {
+            var curDif = coordPoint.findDist(curr);
+            var prevDif = coordPoint.findDist(prev);
+            if (curDif < prevDif)
+                return curr;
+            return prev;
+        }, this.plotDataArr[0]);
+        return new Point_1.Point(coord.x, coord.y);
+    };
+    Object.defineProperty(SeriesBase.prototype, "plotDataArr", {
+        get: function () {
+            var lineArr = [];
+            for (var i = 0; i < this.plotData.length; i++) {
+                var plotRow = this.plotData[i];
+                if (i == 1) {
+                    plotRow = plotRow.slice().reverse();
+                }
+                plotRow.forEach(function (element) {
+                    lineArr.push(element);
+                });
+            }
+            return lineArr;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SeriesBase.prototype.updatePlotData = function (axisRect, vp, noAnimation) {
+        var plotData = this.generatePlotData(axisRect, vp);
+        //если нужна анимация графиков
+        if (noAnimation) {
+            this.plotData = plotData;
+            this.onPlotDataChanged.dispatch(this);
+            return this;
+        }
+        if (this.hasAnimation) {
+            var fromData = [];
+            var toData = [];
+            for (var i = 0; i < this.plotData.length; i++) {
+                var plotRow = this.plotData[i];
+                var fromTo = this.makeFromPointArr(plotRow.slice(), plotData[i].slice());
+                fromData.push(fromTo[0]);
+                toData.push(fromTo[1]);
+            }
+            this.сoordAnimation(fromData, toData, this.animationDuration, plotData);
+        }
+        this.plotData = plotData;
+        this.onPlotDataChanged.dispatch(this);
+        return this;
+    };
+    SeriesBase.prototype.generatePlotData = function (axisRect, vp) {
+        var seriesData = this.getDataRange('ind', axisRect.x1, axisRect.x2);
+        // const seriesData = this.seriesData.slice();
+        var plotData = [];
+        var transformer = new Transformer_1.Transformer();
+        var _loop_2 = function (i) {
+            var plotDataRow = [];
+            var dataRowInd = seriesData[i];
+            var dataRowVal = seriesData[i + 1];
+            dataRowInd.forEach(function (element, ind) {
+                var seriesPoint = new Point_1.Point(dataRowInd[ind], dataRowVal[ind]);
+                var plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
+                plotDataRow.push(new Point_1.Point(Math.round(plotPoint.x), Math.round(plotPoint.y)));
+            });
+            plotData.push(plotDataRow);
+        };
+        for (var i = 0; i < seriesData.length; i = i + 2) {
+            _loop_2(i);
+        }
+        return plotData;
+    };
+    // Метод анимации изменение набора координат
+    SeriesBase.prototype.сoordAnimation = function (fromData, toData, duration, finalData) {
+        var _this = this;
+        var start = performance.now();
+        var animate = function (time) {
+            var tekTime = (time - start) / duration;
+            var timeFraction = _this.timeFunc(tekTime);
+            if (tekTime > 1)
+                tekTime = 1;
+            var tekData = [];
+            fromData.forEach(function (fromRow, ind) {
+                var tekRow = fromRow.map(function (el, i) {
+                    return new Point_1.Point(Math.round(fromRow[i].x + (toData[ind][i].x - fromRow[i].x) * timeFraction), Math.round(fromRow[i].y + (toData[ind][i].y - fromRow[i].y) * timeFraction));
+                });
+                tekData.push(tekRow);
+            });
+            _this.plotData = tekData;
+            _this.onPlotDataChanged.dispatch(_this);
+            if (tekTime < 1) {
+                requestAnimationFrame(animate);
+            }
+            else {
+                _this.plotData = finalData;
+                _this.onPlotDataChanged.dispatch(_this);
+            }
+        };
+        requestAnimationFrame(animate);
+    };
+    SeriesBase.prototype.makeFromPointArr = function (from, to) {
+        var resultArr = [];
+        if (from.length == 0)
+            return resultArr;
+        var fromResult = [];
+        var toResult = [];
+        var toArr = to.slice();
+        var fromArr = from.slice();
+        // если from < to
+        if (fromArr.length < toArr.length) {
+            var capacity = Math.floor(toArr.length / fromArr.length);
+            var fromInd = 0;
+            var roomCount = 0;
+            while (fromInd < fromArr.length) {
+                fromResult.push(fromArr[fromInd]);
+                toArr.shift();
+                roomCount = roomCount + 1;
+                if (roomCount == capacity) {
+                    fromInd = fromInd + 1;
+                    roomCount = 0;
+                }
+            }
+            while (toArr.length !== 0) {
+                fromResult.push(fromArr[fromArr.length - 1]);
+                toArr.shift();
+            }
+            resultArr.push(fromResult);
+            resultArr.push(to);
+            return resultArr;
+        }
+        // если from > to
+        else {
+            var capacity = Math.floor(fromArr.length / toArr.length);
+            var toInd = 0;
+            var roomCount = 0;
+            while (toInd < toArr.length) {
+                toResult.push(toArr[toInd]);
+                fromArr.shift();
+                roomCount = roomCount + 1;
+                if (roomCount == capacity) {
+                    toInd = toInd + 1;
+                    roomCount = 0;
+                }
+            }
+            while (fromArr.length !== 0) {
+                toResult.push(toArr[toArr.length - 1]);
+                fromArr.shift();
+            }
+            resultArr.push(from);
+            resultArr.push(toResult);
+            return resultArr;
+        }
+    };
+    return SeriesBase;
+}());
+exports.SeriesBase = SeriesBase;
+
+},{"../Canvas":7,"../Point":14,"../Rectangle":15,"../Transformer":18,"signals":3}],20:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SeriesXY = void 0;
+var Point_1 = require("../Point");
+var Transformer_1 = require("../Transformer");
+var SeriesBase_1 = require("./SeriesBase");
+var SeriesXY = /** @class */ (function (_super) {
+    __extends(SeriesXY, _super);
+    function SeriesXY(id, container, seriesData, labels) {
+        var _this = _super.call(this, id, container, seriesData) || this;
+        _this.plotLabels = [];
+        _this.canvas.canvas.style.zIndex = "3";
+        if (labels)
+            _this.labels = labels;
+        return _this;
+    }
+    SeriesXY.prototype.getInitialData = function (initialData) {
+        var resultData = [];
+        var x = [];
+        var y = [];
+        initialData[0].forEach(function (element, index) {
+            x.push(element);
+            y.push(initialData[1][index]);
+        });
+        resultData.push(x);
+        resultData.push(y);
+        return resultData;
+    };
+    SeriesXY.prototype.generatePlotData = function (axisRect, vp) {
+        var seriesData = this.getDataRange('ind', axisRect.x1, axisRect.x2);
+        // const seriesData = this.seriesData.slice();
+        var plotData = [];
+        var transformer = new Transformer_1.Transformer();
+        var plotDataRow = [];
+        var dataRowX = seriesData[0];
+        var dataRowY = seriesData[1];
+        dataRowX.forEach(function (element, ind) {
+            var seriesPoint = new Point_1.Point(dataRowX[ind], dataRowY[ind]);
+            var plotPoint = transformer.getVeiwportCoord(axisRect, vp, seriesPoint);
+            plotDataRow.push(new Point_1.Point(Math.round(plotPoint.x), Math.round(plotPoint.y)));
+        });
+        plotData.push(plotDataRow);
+        return plotData;
+    };
+    SeriesXY.prototype.getDataRange = function (type, min, max) {
+        var _this = this;
+        var data = [];
+        this.plotLabels.splice(0, this.plotLabels.length);
+        var x = [];
+        var y = [];
+        var dataRowX = this.seriesData[0].slice();
+        var dataRowY = this.seriesData[1].slice();
+        dataRowX.forEach(function (el, i) {
+            if ((el >= min) && (el <= max)) {
+                x.push(dataRowX[i]);
+                y.push(dataRowY[i]);
+                if (_this.labels)
+                    _this.plotLabels.push(_this.labels[i]);
+            }
+        });
+        data.push(x);
+        data.push(y);
+        return data;
+    };
+    return SeriesXY;
+}(SeriesBase_1.SeriesBase));
+exports.SeriesXY = SeriesXY;
+
+},{"../Point":14,"../Transformer":18,"./SeriesBase":19}],21:[function(require,module,exports){
+"use strict";
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createChart = exports.chart = void 0;
+var Chart_1 = require("../classes/Chart");
+var Ticks_1 = require("../classes/Ticks");
+var cbhRow = [];
+var xLabels = [];
+var zeroSeries = [];
+var seriesLabeled;
+var seriesText;
 var gapY = 0.08;
+var bezier = require('bezier-easing');
+var easing = bezier(0.65, 0, 0.35, 1);
 // @ts-ignore
-var startCSVurl = document.querySelector('.index .zones li.selected').querySelector('a').href;
-//объявляем используемые переменные
-var chart;
+function createChart(container, data) {
+    var _a;
+    // @ts-ignore
+    exports.chart = new Chart_1.Chart(container, [0, 900], [0, 2000]);
+    _a = __spreadArrays(data), xLabels = _a[0], cbhRow = _a[1], zeroSeries = _a[2], seriesLabeled = _a[3], seriesText = _a[4];
+    // ось X
+    exports.chart.xAxis.setOptions('start', 0.5, 'black');
+    exports.chart.xAxis.display = true;
+    exports.chart.xAxis.ticks.display = true;
+    // @ts-ignore
+    exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+    exports.chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
+    exports.chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
+    exports.chart.xAxis.ticks.label.isUpperCase = true;
+    exports.chart.xAxis.grid.setOptions(true, '#B2B2B2', 1, [1, 2]);
+    // ось Y
+    exports.chart.yAxis.setOptions('end', 1, '#B2B2B2', [1, 2]);
+    exports.chart.yAxis.display = true;
+    exports.chart.yAxis.position = 'end';
+    exports.chart.yAxis.ticks.setOptions(true, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
+    exports.chart.yAxis.ticks.settickDrawOptions(-50, 1, '#B2B2B2', [1, 2]);
+    exports.chart.yAxis.ticks.label.setOptions(true, '#B2B2B2', 'right', 0, ['12', '"Transcript Pro"']);
+    exports.chart.yAxis.ticks.label.setOffset(30, 10);
+    exports.chart.yAxis.ticks.label.units = '%';
+    exports.chart.yAxis.grid.setOptions(true, '#B2B2B2', 1, [1, 2]);
+    //добавляем custom ticks для Y
+    var zeroTick = new Ticks_1.Ticks(exports.chart.yAxis.type);
+    zeroTick.setOptions(true, 'zero');
+    zeroTick.settickDrawOptions(-50, 1, '#000000', [2, 1]);
+    zeroTick.label.display = false;
+    zeroTick.hasAnimation = true;
+    zeroTick.timeFunc = easing;
+    exports.chart.yAxis.addCustomTicks(zeroTick);
+    var minTick = new Ticks_1.Ticks(exports.chart.yAxis.type);
+    minTick.setOptions(true, 'min');
+    minTick.settickDrawOptions(-50, 0.5, 'black', []);
+    minTick.label.display = false;
+    exports.chart.yAxis.addCustomTicks(minTick);
+    // создаем Plots
+    exports.chart.addPlot('black_line', 'line', 1, '#000000', []); //черная линия
+    exports.chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
+    exports.chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
+    exports.chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
+        .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"'])
+        .setOutline({ width: 5, color: 'white' });
+    var seriesRow = calculateDeviationsVal(cbhRow, cbhRow[0]);
+    var seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[0])];
+    // создаем Series и привязвыаем к ним инструменты отрисовки Plots
+    exports.chart.addSeriesRow('cyberHedge_area', [seriesRow]).setPlotsIds('light_gray_area');
+    exports.chart.addSeriesRow('cyberHedge_line', [seriesRow]).setPlotsIds('black_line');
+    exports.chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
+    exports.chart.addSeries('cyberHedge_labels', seriesL, seriesText).setPlotsIds('labeled');
+    // настраиваем Min Max осей
+    exports.chart.xAxis.setMinMax(exports.chart.data.findExtremes('val'), false); //по экстремумам оси X
+    exports.chart.yAxis.setMinMax(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max), false); //scale to fit по Y
+    exports.chart.yAxis.setMinMax([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], false); //добавляем по отступам как на сайте
+    //включаем анимацию
+    exports.chart.xAxis.ticks.switchAnimation(true, 300);
+    exports.chart.yAxis.ticks.switchAnimation(true, 300);
+    exports.chart.switchDataAnimation(true, 300);
+    exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
+    exports.chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
+}
+exports.createChart = createChart;
+// преобразование данных ряда из абсолютных величин в % относительно zeroPoint
+function calculateDeviationsVal(rowData, zeroPoint) {
+    var chartDataVariation = [];
+    chartDataVariation = [];
+    for (var j = 0, m = rowData.length; j < m; j++) {
+        chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
+    }
+    return chartDataVariation;
+}
+// подключение слушателей к разметке как на cbh
+//функция вешает слушатели на панель ranges
+(function prepareRangesMenu() {
+    var ranges = document.querySelectorAll('.ranges_black li');
+    ranges.forEach(function (item) {
+        item.addEventListener('click', function () {
+            // @ts-ignore
+            document.querySelector('.ranges_black li.selected').classList.remove('selected');
+            item.classList.add('selected');
+            var lastLb = xLabels[xLabels.length - 1];
+            var maxDate = lastLb, minDate, max = xLabels.length - 1, min = 0;
+            switch (item.innerHTML) {
+                case '6M':
+                    minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
+                    min = findDateInd(minDate);
+                    break;
+                case '1Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
+                    min = findDateInd(minDate);
+                    break;
+                case '2Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
+                    min = findDateInd(minDate);
+                    break;
+                case 'YTD':
+                    minDate = new Date(new Date(maxDate.getFullYear(), 0, 1).getTime()),
+                        min = findDateInd(minDate);
+                    break;
+            }
+            reorganizeChart(cbhRow, min, max, true);
+        });
+    });
+}());
+// настройка Chart
+// @ts-ignore
+function reorganizeChart(cbhRow, min, max, onlyData) {
+    var _a, _b, _c, _d;
+    var seriesRow = calculateDeviationsVal(cbhRow, cbhRow[min]);
+    var seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[min])];
+    // создаем Series
+    (_a = exports.chart.data.findSeriesById('cyberHedge_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([seriesRow]);
+    (_b = exports.chart.data.findSeriesById('cyberHedge_line')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([seriesRow]);
+    (_c = exports.chart.data.findSeriesById('zero_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([zeroSeries]);
+    (_d = exports.chart.data.findSeriesById('cyberHedge_labels')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData(seriesL);
+    if (onlyData) {
+        // @ts-ignore
+        exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+        exports.chart.xAxis.setMinMax([min, max], false);
+        var MinMaxY = exports.chart.data.findExtremes('ind', min, max);
+        var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
+        exports.chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+    }
+}
+//поиск индекса ближайщей даты
+function findDateInd(date) {
+    var ind = xLabels.reduce(function (prev, curr, i) {
+        // @ts-ignore
+        var curDif = Math.abs(curr - date);
+        // @ts-ignore
+        var prevDif = Math.abs(xLabels[prev] - date);
+        if (curDif < prevDif)
+            return i;
+        return prev;
+    }, 0);
+    return ind;
+}
+
+},{"../classes/Chart":8,"../classes/Ticks":16,"bezier-easing":1}],22:[function(require,module,exports){
+"use strict";
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createChart = exports.chart = void 0;
+var Chart_1 = require("../classes/Chart");
+var Ticks_1 = require("../classes/Ticks");
+var helpers_1 = require("../scripts/helpers");
 var cbh1 = [];
 var cbh5 = [];
 var xLabels = [];
 var zeroSeries = [];
-// рукописная загрузка из CSV
-function customLoadDataFromCsv(filePath) {
-    return fetch(filePath).then(function (response) {
-        var contentType = response.headers.get("content-type");
-        if (contentType && (contentType.includes("text/csv") || contentType.includes("application/octet-stream"))) {
-            return response.ok ? response.text() : Promise.reject(response.status);
-        }
-        throw new TypeError("Oops, we haven't got CSV!");
-    });
-}
-// csv to array
+var gapY = 0.08;
+var bezier = require('bezier-easing');
+var easing = bezier(0.65, 0, 0.35, 1);
 // @ts-ignore
-function csvToCols(strData, strDelimiter) {
-    strDelimiter = strDelimiter || ",";
-    var rowData = strData.split("\n");
-    var colResult = [];
-    for (var i = rowData[0].split(strDelimiter).length - 1; i >= 0; i--)
-        colResult.push([]);
-    for (var i = 0, l = rowData.length; i < l; i++) {
-        if (rowData[i].length) {
-            var row = rowData[i].split(strDelimiter);
-            // @ts-ignore
-            for (var j = row.length - 1; j >= 0; j--)
-                colResult[j].push(row[j]);
-        }
-    }
-    return colResult;
+function createChart(container, data) {
+    var _a;
+    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+    // @ts-ignore
+    exports.chart = new Chart_1.Chart(container, [0, 900], [0, 2000]);
+    _a = __spreadArrays(data), xLabels = _a[0], cbh5 = _a[1], cbh1 = _a[2], zeroSeries = _a[3];
+    setLastUpdateDate(xLabels[xLabels.length - 1]);
+    exports.chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
+    exports.chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
+    // ось X
+    exports.chart.xAxis.setOptions('start', 0.5, 'black');
+    // @ts-ignore
+    exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+    exports.chart.xAxis.display = true;
+    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+    exports.chart.xAxis.ticks.display = true;
+    exports.chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
+    exports.chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
+    exports.chart.xAxis.ticks.label.isUpperCase = true;
+    // ось Y
+    exports.chart.yAxis.setOptions('end', 1, '#B2B2B2', [1, 2]);
+    exports.chart.yAxis.display = true;
+    exports.chart.yAxis.position = 'end';
+    exports.chart.yAxis.ticks.settickDrawOptions(-50, 1, '#B2B2B2', [1, 2]);
+    exports.chart.yAxis.ticks.setOptions(true, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
+    exports.chart.yAxis.ticks.label.setOptions(true, '#B2B2B2', 'right', 0, ['12', '"Transcript Pro"']).setOffset(30, 10);
+    exports.chart.yAxis.ticks.label.units = '%';
+    exports.chart.yAxis.grid.setOptions(true, '#B2B2B2', 1, [1, 2]);
+    //добавляем custom ticks для Y
+    var zeroTick = new Ticks_1.Ticks(exports.chart.yAxis.type);
+    zeroTick.setOptions(true, 'zero');
+    zeroTick.settickDrawOptions(-50, 1, '#000000', [2, 1]);
+    zeroTick.label.display = false;
+    zeroTick.hasAnimation = true;
+    zeroTick.timeFunc = easing;
+    exports.chart.yAxis.addCustomTicks(zeroTick);
+    var minTick = new Ticks_1.Ticks(exports.chart.yAxis.type);
+    minTick.setOptions(true, 'min');
+    minTick.settickDrawOptions(-50, 0.5, 'black', []);
+    minTick.label.display = false;
+    exports.chart.yAxis.addCustomTicks(minTick);
+    // создаем Plots
+    exports.chart.addPlot('red_line', 'line', 1, '#FF2222', []);
+    exports.chart.addPlot('red_area', 'area_bottom', 0, '#FFE5E5', '#FFE5E5', 0);
+    exports.chart.addPlot('blue_line', 'line', 1, '#0070FF', []);
+    exports.chart.addPlot('blue_area', 'area_bottom', 0, '#D9EAFF', '#D9EAFF', 0);
+    exports.chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
+    // создаем Tooltipы
+    // lines
+    (_b = exports.chart.findPlotById('blue_line')) === null || _b === void 0 ? void 0 : _b.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
+    (_c = exports.chart.findPlotById('red_line')) === null || _c === void 0 ? void 0 : _c.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+    (_d = exports.chart.findPlotById('blue_line')) === null || _d === void 0 ? void 0 : _d.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+    // circles
+    (_e = exports.chart.findPlotById('blue_line')) === null || _e === void 0 ? void 0 : _e.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
+    (_f = exports.chart.findPlotById('red_line')) === null || _f === void 0 ? void 0 : _f.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
+    (_g = exports.chart.findPlotById('black_line')) === null || _g === void 0 ? void 0 : _g.addTooltip('ttId', 'circle_series', 3, '#ffffff', 'black', 4);
+    (_h = exports.chart.findPlotById('blue_line')) === null || _h === void 0 ? void 0 : _h.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
+    (_j = exports.chart.findPlotById('red_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
+    // labels
+    (_k = exports.chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions(true, 'black', 'bottom', 14, ['12', '"Transcript Pro"']);
+    // data
+    (_l = exports.chart.findPlotById('red_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
+    (_m = exports.chart.findPlotById('blue_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
+    // delta
+    (_o = exports.chart.findPlotById('red_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
+    (_p = exports.chart.findPlotById('blue_line')) === null || _p === void 0 ? void 0 : _p.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
+    // подготавливаем данные как на сайте CyberHedge
+    var serie5star = calculateDeviationsVal(cbh5, cbh5[0]);
+    var serie1star = calculateDeviationsVal(cbh1, cbh1[0]);
+    // создаем Series
+    exports.chart.addSeriesRow('cyberHedge5_area', [serie5star]).setPlotsIds('blue_area');
+    exports.chart.addSeriesRow('cyberHedge1_area', [serie1star]).setPlotsIds('red_area');
+    exports.chart.addSeriesRow('cyberHedge5_line', [serie5star]).setPlotsIds('blue_line');
+    exports.chart.addSeriesRow('cyberHedge1_line', [serie1star]).setPlotsIds('red_line');
+    exports.chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
+    // настраиваем Min Max осей
+    exports.chart.xAxis.setMinMax(exports.chart.data.findExtremes('val'), true); //по экстремумам оси X
+    exports.chart.yAxis.setMinMax(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max), true); //scale to fit по Y
+    exports.chart.yAxis.setMinMax([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], true); //добавляем по отступам как на сайте
+    //включаем анимацию
+    exports.chart.xAxis.ticks.switchAnimation(true, 300);
+    exports.chart.yAxis.ticks.switchAnimation(true, 300);
+    exports.chart.switchDataAnimation(true, 300);
+    exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
+    exports.chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
 }
-// проверка подгрузки шрифта
-WebFont.load({
-    custom: {
-        families: ['Transcript Pro']
-    },
-    active: function () {
-        //загружает стартовый файл
-        customLoadDataFromCsv(startCSVurl).then(function (data) {
-            // @ts-ignore
-            var chartData = csvToCols(data);
-            cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
-            cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
-            xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
-            zeroSeries = cbh1.map(function () { return 0; });
-            setLastUpdateDate(xLabels[xLabels.length - 1]);
-            chart = CbhChart(cbh1, cbh5, xLabels, zeroSeries);
-            chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
-            chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
-            chart.tooltipsDraw(true);
-        })
-            .catch(function (err) {
-            console.log(err);
-        });
-    },
-});
+exports.createChart = createChart;
+// преобразование данных ряда из абсолютных величин в % относительно zeroPoint
+function calculateDeviationsVal(rowData, zeroPoint) {
+    var chartDataVariation = [];
+    chartDataVariation = [];
+    for (var j = 0, m = rowData.length; j < m; j++) {
+        chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
+    }
+    return chartDataVariation;
+}
 // подключение слушателей к разметке как на cbh
 //функция вешает слушатели на панель nav - USA / EU
 (function prepareCsvLoadMenu() {
-    var zoneItems = document.querySelectorAll('.index .zones li');
+    var zoneItems = document.querySelectorAll('.zones_colored li');
     zoneItems.forEach(function (item) {
         item.addEventListener('click', function () {
             var link = item.querySelector('a');
             // @ts-ignore
-            document.querySelector('.index .zones li.selected').classList.remove('selected');
+            document.querySelector('.zones_colored li.selected').classList.remove('selected');
             item.classList.add('selected');
-            var rangeSelected = document.querySelector('.ranges li.selected');
+            var rangeSelected = document.querySelector('.ranges_сolored li.selected');
             // @ts-ignore
-            customLoadDataFromCsv(link.href).then(function (data) {
+            helpers_1.customLoadDataFromCsv(link.href).then(function (data) {
                 // @ts-ignore
-                var chartData = csvToCols(data);
+                var chartData = helpers_1.csvToCols(data);
                 cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
                 cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
                 xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
@@ -2879,11 +3658,249 @@ WebFont.load({
 }());
 //функция вешает слушатели на панель ranges
 (function prepareRangesMenu() {
-    var ranges = document.querySelectorAll('.ranges li');
+    var ranges = document.querySelectorAll('.ranges_сolored li');
     ranges.forEach(function (item) {
         item.addEventListener('click', function () {
             // @ts-ignore
-            document.querySelector('.ranges li.selected').classList.remove('selected');
+            document.querySelector('.ranges_сolored li.selected').classList.remove('selected');
+            item.classList.add('selected');
+            var lastLb = xLabels[xLabels.length - 1];
+            var maxDate = lastLb, minDate, max = xLabels.length - 1, min = 0;
+            switch (item.innerHTML) {
+                case '6M':
+                    minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
+                    min = findDateInd(minDate);
+                    break;
+                case '1Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
+                    min = findDateInd(minDate);
+                    break;
+                case '2Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
+                    min = findDateInd(minDate);
+                    break;
+                case 'YTD':
+                    minDate = new Date(new Date(maxDate.getFullYear(), 0, 1).getTime()),
+                        min = findDateInd(minDate);
+                    break;
+            }
+            reorganizeChart(cbh5, cbh1, min, max, true);
+        });
+    });
+}());
+//настройка виджетов для отображения данных Тултипов
+var redWidget = document.getElementById('cbhIdx1-val-colored');
+var blueWidget = document.getElementById('cbhIdx5-val-colored');
+function conncetRedWidget(index) {
+    if (redWidget)
+        redWidget.innerHTML = cbh1[index].toFixed(1);
+}
+function conncetBlueWidget(index) {
+    if (blueWidget)
+        blueWidget.innerHTML = cbh5[index].toFixed(1);
+}
+// настройка Chart
+// @ts-ignore
+function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
+    var _a, _b, _c, _d, _e;
+    // подготавливаем данные как на сайте CyberHedge
+    var serie5star = calculateDeviationsVal(cbh5, cbh5[min]);
+    var serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
+    (_a = exports.chart.data.findSeriesById('cyberHedge5_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([serie5star]);
+    (_b = exports.chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([serie1star]);
+    (_c = exports.chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star]);
+    (_d = exports.chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star]);
+    (_e = exports.chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
+    if (onlyData) {
+        // @ts-ignore
+        exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+        exports.chart.xAxis.setMinMax([min, max], false);
+        var MinMaxY = exports.chart.data.findExtremes('ind', min, max);
+        var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
+        exports.chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+    }
+}
+function setLastUpdateDate(lastDate) {
+    // NOTE: fill last update node
+    var lastUpdateNode = document.querySelector('.last-update-colored time');
+    // @ts-ignore
+    lastUpdateNode.datetime = lastDate.toISOString();
+    // @ts-ignore
+    lastUpdateNode.innerHTML = [lastDate.getDate(), lastDate.toLocaleString('en-US', { month: 'long' }), lastDate.getFullYear()].join(' ');
+}
+//поиск индекса ближайщей даты
+function findDateInd(date) {
+    var ind = xLabels.reduce(function (prev, curr, i) {
+        // @ts-ignore
+        var curDif = Math.abs(curr - date);
+        // @ts-ignore
+        var prevDif = Math.abs(xLabels[prev] - date);
+        if (curDif < prevDif)
+            return i;
+        return prev;
+    }, 0);
+    return ind;
+}
+
+},{"../classes/Chart":8,"../classes/Ticks":16,"../scripts/helpers":26,"bezier-easing":1}],23:[function(require,module,exports){
+"use strict";
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.prepareDataforCbh = exports.createChart = exports.chart = void 0;
+var Chart_1 = require("../classes/Chart");
+var helpers_1 = require("../scripts/helpers");
+var cbh1 = [];
+var cbh5 = [];
+var xLabels = [];
+var zeroSeries = [];
+var gapY = 0.08;
+// @ts-ignore
+function createChart(container, data) {
+    var _a;
+    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+    // @ts-ignore
+    exports.chart = new Chart_1.Chart(container, [0, 900], [0, 2000]);
+    _a = __spreadArrays(data), xLabels = _a[0], cbh5 = _a[1], cbh1 = _a[2], zeroSeries = _a[3];
+    setLastUpdateDate(xLabels[xLabels.length - 1]);
+    exports.chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
+    exports.chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
+    exports.chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
+    // ось X
+    exports.chart.xAxis.setOptions('start', 1, 'black');
+    exports.chart.xAxis.ticks.display = true;
+    exports.chart.xAxis.ticks.settickDrawOptions(6, 1, 'black');
+    exports.chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
+    // ось Y
+    exports.chart.yAxis.setOptions('end', 1, '#B2B2B2', [1, 2]);
+    exports.chart.yAxis.display = true;
+    exports.chart.yAxis.position = 'end';
+    exports.chart.yAxis.ticks.label.setOptions(true, '#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
+    // создаем Plots
+    exports.chart.addPlot('red_line', 'line', 1, '#FF2222', []);
+    exports.chart.addPlot('red_area', 'area', 0, '#FFE5E5', '#FFE5E5', 0);
+    exports.chart.addPlot('blue_line', 'line', 1, '#0070FF', []);
+    exports.chart.addPlot('blue_area', 'area', 0, '#D9EAFF', '#D9EAFF', 0);
+    exports.chart.addPlot('black_line', 'line', 1, '#000000', []);
+    // создаем Tooltipы
+    // lines
+    (_b = exports.chart.findPlotById('blue_line')) === null || _b === void 0 ? void 0 : _b.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
+    (_c = exports.chart.findPlotById('red_line')) === null || _c === void 0 ? void 0 : _c.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+    (_d = exports.chart.findPlotById('blue_line')) === null || _d === void 0 ? void 0 : _d.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+    // circles
+    (_e = exports.chart.findPlotById('blue_line')) === null || _e === void 0 ? void 0 : _e.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
+    (_f = exports.chart.findPlotById('red_line')) === null || _f === void 0 ? void 0 : _f.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
+    (_g = exports.chart.findPlotById('black_line')) === null || _g === void 0 ? void 0 : _g.addTooltip('ttId', 'circle_series', 3, '#ffffff', 'black', 4);
+    (_h = exports.chart.findPlotById('blue_line')) === null || _h === void 0 ? void 0 : _h.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
+    (_j = exports.chart.findPlotById('red_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
+    // labels
+    (_k = exports.chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions(true, 'black', 'bottom', 14, ['12', '"Transcript Pro"']);
+    // data
+    (_l = exports.chart.findPlotById('red_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
+    (_m = exports.chart.findPlotById('blue_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
+    // delta
+    (_o = exports.chart.findPlotById('red_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
+    (_p = exports.chart.findPlotById('blue_line')) === null || _p === void 0 ? void 0 : _p.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
+    // подготавливаем данные как на сайте CyberHedge
+    var dataNew = prepareDataforCbh(cbh5, cbh1, 0);
+    var serie5star = dataNew.serie5star, area5starTop = dataNew.area5starTop, area5starBottom = dataNew.area5starBottom, serie1star = dataNew.serie1star, area1starTop = dataNew.area1starTop, area1starBottom = dataNew.area1starBottom;
+    // создаем Series
+    exports.chart.addSeriesRow('cyberHedge5_area', [area5starTop, area5starBottom]).setPlotsIds('blue_area');
+    exports.chart.addSeriesRow('cyberHedge1_area', [area1starTop, area1starBottom]).setPlotsIds('red_area');
+    exports.chart.addSeriesRow('cyberHedge5_line', [serie5star]).setPlotsIds('blue_line');
+    exports.chart.addSeriesRow('cyberHedge1_line', [serie1star]).setPlotsIds('red_line');
+    exports.chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('black_line');
+    //настраиваем параметры осей
+    exports.chart.yAxis.ticks.setOptions(false, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
+    exports.chart.yAxis.ticks.label.units = '%';
+    // @ts-ignore
+    exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+    exports.chart.xAxis.display = true;
+    // настраиваем Min Max осей
+    exports.chart.xAxis.setMinMax(exports.chart.data.findExtremes('val'), true); //по экстремумам оси X
+    exports.chart.yAxis.setMinMax(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max), true); //scale to fit по Y
+    exports.chart.yAxis.setMinMax([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], true); //добавляем по отступам как на сайте
+    //включаем анимацию
+    var bezier = require('bezier-easing');
+    var easing = bezier(0.65, 0, 0.35, 1);
+    //включаем анимацию
+    exports.chart.xAxis.ticks.switchAnimation(true, 300);
+    exports.chart.yAxis.ticks.switchAnimation(true, 300);
+    exports.chart.switchDataAnimation(true, 300);
+    exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
+    exports.chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
+}
+exports.createChart = createChart;
+// подготоваливает данные для Chart
+function prepareDataforCbh(star5, star1, fromIndex) {
+    var arrLength = star5.length;
+    var serie5star = calculateDeviations(star5, fromIndex), serie1star = calculateDeviations(star1, fromIndex), area5starTop = [], area5starBottom = [], area1starTop = [], area1starBottom = [];
+    for (var i = 0, l = arrLength; i < l; i++) {
+        var item5star = serie5star[i], item1star = serie1star[i];
+        var elTop5 = (item5star > 0) ? ((item5star > item1star) ? item5star : item5star) : 0;
+        area5starTop.push(elTop5);
+        var elBot5 = (item5star > 0) ? ((item1star > 0) ? ((item1star > item5star) ? item5star : item1star) : 0) : item5star;
+        area5starBottom.push(elBot5);
+        var elTop1 = (item1star > 0) ? item1star : ((item5star > 0) ? 0 : ((item5star < item1star) ? item1star : item5star));
+        area1starTop.push(elTop1);
+        var elBot1 = (item1star > 0) ? 0 : ((item5star < item1star) ? item1star : item1star);
+        area1starBottom.push(elBot1);
+    }
+    return { serie5star: serie5star, area5starTop: area5starTop, area5starBottom: area5starBottom, serie1star: serie1star, area1starTop: area1starTop, area1starBottom: area1starBottom };
+}
+exports.prepareDataforCbh = prepareDataforCbh;
+// перевод из абсолютных величин в %
+function calculateDeviations(rowData, fromIndex) {
+    var chartDataVariation = [];
+    var zeroPoint = rowData[fromIndex];
+    chartDataVariation = [];
+    for (var j = 0, m = rowData.length; j < m; j++) {
+        chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
+    }
+    return chartDataVariation;
+}
+// подключение слушателей к разметке как на cbh
+//функция вешает слушатели на панель nav - USA / EU
+(function prepareCsvLoadMenu() {
+    var zoneItems = document.querySelectorAll('.index .zones li');
+    zoneItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            var link = item.querySelector('a');
+            // @ts-ignore
+            document.querySelector('.index .zones li.selected').classList.remove('selected');
+            item.classList.add('selected');
+            var rangeSelected = document.querySelector('.ranges_indices li.selected');
+            // @ts-ignore
+            helpers_1.customLoadDataFromCsv(link.href).then(function (data) {
+                // @ts-ignore
+                var chartData = helpers_1.csvToCols(data);
+                cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
+                cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
+                xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
+                zeroSeries = cbh1.map(function () { return 0; });
+                setLastUpdateDate(xLabels[xLabels.length - 1]);
+                var max = xLabels.length - 1;
+                var min = 0;
+                reorganizeChart(cbh5, cbh1, min, max, false);
+                // @ts-ignore
+                rangeSelected.click(rangeSelected);
+            });
+        });
+    });
+}());
+//функция вешает слушатели на панель ranges
+(function prepareRangesMenu() {
+    var ranges = document.querySelectorAll('.ranges_indices li');
+    ranges.forEach(function (item) {
+        item.addEventListener('click', function () {
+            // @ts-ignore
+            document.querySelector('.ranges_indices li.selected').classList.remove('selected');
             item.classList.add('selected');
             var lastLb = xLabels[xLabels.length - 1];
             var maxDate = lastLb, minDate, max = xLabels.length - 1, min = 0;
@@ -2926,18 +3943,18 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
     var _a, _b, _c, _d, _e;
     var data = prepareDataforCbh(cbh5, cbh1, min);
     var serie5star = data.serie5star, area5starTop = data.area5starTop, area5starBottom = data.area5starBottom, serie1star = data.serie1star, area1starTop = data.area1starTop, area1starBottom = data.area1starBottom;
-    (_a = chart.data.findSeriesById('cyberHedge5_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([area5starTop, area5starBottom]);
-    (_b = chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([area1starTop, area1starBottom]);
-    (_c = chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star]);
-    (_d = chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star]);
-    (_e = chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
+    (_a = exports.chart.data.findSeriesById('cyberHedge5_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([area5starTop, area5starBottom]);
+    (_b = exports.chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([area1starTop, area1starBottom]);
+    (_c = exports.chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star]);
+    (_d = exports.chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star]);
+    (_e = exports.chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
     if (onlyData) {
         // @ts-ignore
-        chart.xAxis.ticks.setCustomLabels(xLabels);
-        chart.xAxis.setMinMax([min, max], false);
-        var MinMaxY = chart.data.findExtremes('ind', min, max);
+        exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+        exports.chart.xAxis.setMinMax([min, max], false);
+        var MinMaxY = exports.chart.data.findExtremes('ind', min, max);
         var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
-        chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+        exports.chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
     }
 }
 function setLastUpdateDate(lastDate) {
@@ -2961,100 +3978,320 @@ function findDateInd(date) {
     }, 0);
     return ind;
 }
-// перевод из абсолютных величин в %
-function calculateDeviations(rowData, fromIndex) {
-    var chartDataVariation = [];
-    var zeroPoint = rowData[fromIndex];
-    chartDataVariation = [];
-    for (var j = 0, m = rowData.length; j < m; j++) {
-        chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
-    }
-    return chartDataVariation;
-}
-// подготоваливает данные для Chart
-function prepareDataforCbh(star5, star1, fromIndex) {
-    var arrLength = star5.length;
-    var serie5star = calculateDeviations(star5, fromIndex), serie1star = calculateDeviations(star1, fromIndex), area5starTop = [], area5starBottom = [], area1starTop = [], area1starBottom = [];
-    for (var i = 0, l = arrLength; i < l; i++) {
-        var item5star = serie5star[i], item1star = serie1star[i];
-        var elTop5 = (item5star > 0) ? ((item5star > item1star) ? item5star : item5star) : 0;
-        area5starTop.push(elTop5);
-        var elBot5 = (item5star > 0) ? ((item1star > 0) ? ((item1star > item5star) ? item5star : item1star) : 0) : item5star;
-        area5starBottom.push(elBot5);
-        var elTop1 = (item1star > 0) ? item1star : ((item5star > 0) ? 0 : ((item5star < item1star) ? item1star : item5star));
-        area1starTop.push(elTop1);
-        var elBot1 = (item1star > 0) ? 0 : ((item5star < item1star) ? item1star : item1star);
-        area1starBottom.push(elBot1);
-    }
-    return { serie5star: serie5star, area5starTop: area5starTop, area5starBottom: area5starBottom, serie1star: serie1star, area1starTop: area1starTop, area1starBottom: area1starBottom };
-}
-//функция создает и настраивает Chart как на сайте
-// @ts-ignore
-function CbhChart(cbh1, cbh5, xLabels, zeroSeries) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-    // @ts-ignore
-    var chart = new Chart_1.Chart(document.getElementById('indexChart'), [0, 900], [0, 2000]);
-    chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
-    // ось X
-    chart.xAxis.setOptions(1, 'black');
-    chart.xAxis.ticks.display = true;
-    chart.xAxis.ticks.settickDrawOptions(6, 1, 'black');
-    chart.xAxis.ticks.label.setOptions('#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
-    // ось Y
-    chart.yAxis.setOptions(1, '#B2B2B2', [1, 2]);
-    chart.yAxis.display = true;
-    chart.yAxis.position = 'end';
-    chart.yAxis.ticks.label.setOptions('#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
-    // создаем Plots
-    chart.addPlot('red_line', 'line', 1, '#FF2222', '#FF2222');
-    chart.addPlot('red_area', 'area', 0, '#FFE5E5', '#FFE5E5', 0);
-    chart.addPlot('blue_line', 'line', 1, '#0070FF', '#0070FF', 1);
-    chart.addPlot('blue_area', 'area', 0, '#D9EAFF', '#D9EAFF', 0);
-    chart.addPlot('black_line', 'line', 1, '#000000', '#000000', 1);
-    // создаем Tooltipы
-    // lines
-    (_a = chart.findPlotById('blue_line')) === null || _a === void 0 ? void 0 : _a.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
-    (_b = chart.findPlotById('red_line')) === null || _b === void 0 ? void 0 : _b.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
-    (_c = chart.findPlotById('blue_line')) === null || _c === void 0 ? void 0 : _c.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
-    // circles
-    (_d = chart.findPlotById('blue_line')) === null || _d === void 0 ? void 0 : _d.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
-    (_e = chart.findPlotById('red_line')) === null || _e === void 0 ? void 0 : _e.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
-    (_f = chart.findPlotById('black_line')) === null || _f === void 0 ? void 0 : _f.addTooltip('ttId', 'circle_series', 3, '#ffffff', 'black', 4);
-    (_g = chart.findPlotById('blue_line')) === null || _g === void 0 ? void 0 : _g.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
-    (_h = chart.findPlotById('red_line')) === null || _h === void 0 ? void 0 : _h.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
-    // labels
-    (_j = chart.findPlotById('red_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions('black', 'bottom', 14, ['12', '"Transcript Pro"']);
-    // data
-    (_k = chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions('white', 'right', 30, ['12', '"Transcript Pro"']);
-    (_l = chart.findPlotById('blue_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions('white', 'right', 30, ['12', '"Transcript Pro"']);
-    // delta
-    (_m = chart.findPlotById('red_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 35, ['12', '"Transcript Pro"']);
-    (_o = chart.findPlotById('blue_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions('black', 'right', 35, ['12', '"Transcript Pro"']);
-    // подготавливаем данные как на сайте CyberHedge
-    var data = prepareDataforCbh(cbh5, cbh1, 0);
-    var serie5star = data.serie5star, area5starTop = data.area5starTop, area5starBottom = data.area5starBottom, serie1star = data.serie1star, area1starTop = data.area1starTop, area1starBottom = data.area1starBottom;
-    // создаем Series
-    chart.addSeries('cyberHedge5_area', area5starTop, area5starBottom).setPlotsIds('blue_area');
-    chart.addSeries('cyberHedge1_area', area1starTop, area1starBottom).setPlotsIds('red_area');
-    chart.addSeries('cyberHedge5_line', serie5star).setPlotsIds('blue_line');
-    chart.addSeries('cyberHedge1_line', serie1star).setPlotsIds('red_line');
-    chart.addSeries('zero_line', zeroSeries).setPlotsIds('black_line');
-    //настраиваем параметры осей
-    chart.yAxis.ticks.setOptions('niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
-    chart.yAxis.ticks.label.units = '%';
-    chart.xAxis.ticks.setCustomLabels(xLabels);
-    chart.xAxis.ticks.setOptions('customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
-    chart.xAxis.display = true;
-    // настраиваем Min Max осей
-    chart.xAxis.setMinMax(chart.data.findExtremes('val'), true); //по экстремумам оси X
-    chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), true); //scale to fit по Y
-    chart.yAxis.setMinMax([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], true); //добавляем по отступам как на сайте
-    //включаем анимацию
-    chart.xAxis.ticks.switchAnimation(true, 300);
-    chart.yAxis.ticks.switchAnimation(true, 300);
-    chart.switchDataAnimation(true, 300);
-    chart.data.changeAllSeriesAnimationTimeFunction(easing);
-    return chart;
-}
 
-},{"./classes/Chart":7,"bezier-easing":1,"webfontloader":4}]},{},[18]);
+},{"../classes/Chart":8,"../scripts/helpers":26,"bezier-easing":1}],24:[function(require,module,exports){
+"use strict";
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reorganizeChart = exports.createChart = exports.prepareData = exports.chart = void 0;
+var Chart_1 = require("../classes/Chart");
+var Legend_1 = require("../classes/Legend");
+var Point_1 = require("../classes/Point");
+var Ticks_1 = require("../classes/Ticks");
+// @ts-ignore
+function prepareData(data) {
+    //разбираем CSV по рядам
+    var x, y, labels;
+    var oneX = [1.3];
+    var oneY = [2.5];
+    // @ts-ignore
+    x = data[0].slice(1).map(function (el) { return +el; });
+    // @ts-ignore
+    y = data[1].slice(1).map(function (el) { return +el; });
+    // @ts-ignore
+    labels = data[2].slice(1).map(function (el) { return el; });
+    return [x, y, oneX, oneY, labels];
+}
+exports.prepareData = prepareData;
+//функция создает и настраивает Chart квадратный
+// @ts-ignore
+function createChart(container, data) {
+    var _a;
+    var _b;
+    // @ts-ignore
+    exports.chart = new Chart_1.Chart(container, [0, 5], [0, 5]);
+    var x, y, oneX, oneY, labels;
+    _a = __spreadArrays(data), x = _a[0], y = _a[1], oneX = _a[2], oneY = _a[3], labels = _a[4];
+    // ось X
+    exports.chart.xAxis.setOptions('end', 1, 'black');
+    exports.chart.xAxis.ticks.setOptions(false, 'fixedCount', 5);
+    exports.chart.xAxis.ticks.label.setOptions(false, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
+    exports.chart.xAxis.grid.setOptions(true, 'black', 0.5, []);
+    exports.chart.xAxis.setName('Capital Managment', 'start').label.setOptions(true, 'black', 'top', -30, ['18', '"Transcript Pro"']);
+    //легенда для оси X
+    var lowRisk = new Legend_1.Legend(['Low', 'Risk'], function (vp) { return new Point_1.Point(vp.x1 - 25, vp.y2 + 25); });
+    lowRisk.label.setOptions(true, 'black', 'top', 0, ['14', '"Transcript Pro"']);
+    exports.chart.xAxis.addLegend(lowRisk);
+    var highRisk = new Legend_1.Legend(['High', 'Risk'], function (vp) { return new Point_1.Point(vp.x2 + 25, vp.y1 - 25); });
+    highRisk.label.setOptions(true, 'black', 'top', 0, ['14', '"Transcript Pro"']);
+    exports.chart.xAxis.addLegend(highRisk);
+    //добавляем custom ticks для X
+    var newTicks = new Ticks_1.Ticks(exports.chart.xAxis.type);
+    newTicks.setOptions(false, 'midStep', 5);
+    newTicks.label.setOptions(true, '#B2B2B2', 'top', 17, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
+    newTicks.setCustomLabels(['●']);
+    exports.chart.xAxis.addCustomTicks(newTicks);
+    // ось Y
+    exports.chart.yAxis.setOptions('end', 1, '#B2B2B2');
+    exports.chart.yAxis.ticks.setOptions(false, 'fixedCount', 5);
+    exports.chart.yAxis.ticks.label.setOptions(false, '#B2B2B2', 'right', 20, ['12', '"Transcript Pro"']);
+    exports.chart.yAxis.grid.setOptions(true, 'black', 0.5, []);
+    exports.chart.yAxis.setName('Vulnerability', 'start').label.setOptions(true, 'black', 'right', -10, ['18', '"Transcript Pro"']);
+    exports.chart.yAxis.label.rotationAngle = -90;
+    //добавляем custom ticks для Y
+    var newYTicks = new Ticks_1.Ticks(exports.chart.yAxis.type);
+    newYTicks.setOptions(false, 'midStep', 5);
+    newYTicks.label.setOptions(true, '#B2B2B2', 'right', 30, ['25', '"Transcript Pro"'], ['#60bb4c', '#accd5a', '#eed15c', '#ee9c58', '#e94f49']);
+    newYTicks.setCustomLabels(['●']);
+    exports.chart.yAxis.addCustomTicks(newYTicks);
+    // контур графика
+    exports.chart.hasBorder = true;
+    // создаем Plots
+    exports.chart.addPlot('uni_circles', 'unicode', 20, '#454e56', '●');
+    exports.chart.addPlot('uni_triangle', 'unicode', 20, '#454e56', '▼');
+    //tt
+    (_b = exports.chart.findPlotById('uni_circles')) === null || _b === void 0 ? void 0 : _b.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions(true, 'black', 'top', 15, ['12', '"Transcript Pro"']);
+    //chart.findPlotById('uni_triangle')?.addTooltip('ttId', 'data_label', 0.5, 'black', '#ebebeb', labels).label.setOptions('black', 'top', 15, ['12', '"Transcript Pro"']);
+    // создаем Series
+    exports.chart.addSeries('portfolio', [x, y]).setPlotsIds('uni_circles');
+    exports.chart.addSeries('portfolio_1', [oneX, oneY]).setPlotsIds('uni_triangle');
+    //включаем анимацию
+    var bezier = require('bezier-easing');
+    var easing = bezier(0.65, 0, 0.35, 1);
+    exports.chart.xAxis.ticks.switchAnimation(false, 300);
+    exports.chart.yAxis.ticks.switchAnimation(false, 300);
+    exports.chart.switchDataAnimation(true, 300);
+    exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
+    //обавляем фон
+    exports.chart.addBackGround('coloredGrid_cbh');
+    // делаем квадратное соотношение
+    exports.chart.switchResolution();
+    // задаем отступы для области отрисовки
+    exports.chart.setCanvasPaddings(60, 60, 60, 60);
+}
+exports.createChart = createChart;
+function reorganizeChart() {
+    var _a, _b, _c;
+    var x, y, oneX, oneY, labels;
+    x = [];
+    y = [];
+    labels = [];
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var charactersLength = characters.length;
+    var newLength = 1 + Math.round(Math.random() * 16);
+    for (var i = 0; i < newLength; i++) {
+        x.push(0.1 + Math.random() * 4.8);
+        y.push(0.1 + Math.random() * 4.8);
+        labels.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
+    }
+    oneX = [0.1 + Math.random() * 4.8];
+    oneY = [0.1 + Math.random() * 4.8];
+    (_a = exports.chart.data.findSeriesById('portfolio')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([x, y]);
+    (_b = exports.chart.data.findSeriesById('portfolio_1')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([oneX, oneY]);
+    // @ts-ignore
+    (_c = exports.chart.findPlotById('uni_circles')) === null || _c === void 0 ? void 0 : _c.findTooltipById('ttId').labels = labels;
+}
+exports.reorganizeChart = reorganizeChart;
+/* index.ts
+
+
+// @ts-ignore
+import WebFont from 'webfontloader';
+
+import { customLoadDataFromCsv, csvToCols } from "./scripts/helpers"
+import { Chart } from "./classes/Chart"
+
+// выбираем config
+import { prepareData, createChart, reorganizeChart } from "./configs/square-chart"
+
+//подгрузка CSV файла
+const sqrData = require('./data/cbhVulnerability_test.csv');
+
+
+//объявляем переменные
+let chart: Chart;
+const chartContainer = document.getElementById('indexChart');
+const fonts = ['Transcript Pro'];
+
+
+// проверка подгрузки шрифта
+const WebFont = require('webfontloader')
+
+WebFont.load({
+  custom: {
+    families: fonts,
+  },
+
+  active: function () {
+
+    customLoadDataFromCsv(sqrData).then((data) => {
+      // @ts-ignore
+      let chartData = csvToCols(data);
+      //разбираем CSV по рядам
+      chartData = prepareData(chartData);
+      //создаем chart
+      chart = createChart(chartContainer, [...chartData]);
+    })
+      .catch((err) => {
+        console.log(err);
+      })
+  },
+});
+
+// элементы управления
+const randBtn = document.getElementById('rand_btn');
+//@ts-ignore
+randBtn.addEventListener('click', () => {
+  reorganizeChart(chart);
+})
+
+
+
+
+*/ 
+
+},{"../classes/Chart":8,"../classes/Legend":12,"../classes/Point":14,"../classes/Ticks":16,"bezier-easing":1}],25:[function(require,module,exports){
+"use strict";
+// browserify ./src/index.ts -p [ tsify --noImplicitAny ] > chartBlib.js
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+// @ts-ignore
+// @ts-ignore
+var webfontloader_1 = __importDefault(require("webfontloader"));
+// helpers
+var helpers_1 = require("./scripts/helpers");
+// config cbh-indicies-black
+var indices_chart_black_1 = require("./configs/indices-chart-black");
+// config cbh-indicies-colored
+var indices_chart_colored_1 = require("./configs/indices-chart-colored");
+// config cbh-indicies
+var indices_chart_1 = require("./configs/indices-chart");
+// config square-chart
+var square_chart_1 = require("./configs/square-chart");
+var square_chart_2 = require("./configs/square-chart");
+//пути до CSV файлов
+var sqrData = './src/data/cbhVulnerability_test.csv';
+var EU = './src/data/cbhPlotData_EU.csv';
+var EU_Labels = './src/data/cbhPlotData_EU_labeled.csv';
+var startCSVurl = './src/data/cbhPlotData_US.csv';
+// проверка подгрузки шрифта
+webfontloader_1.default.load({
+    custom: {
+        families: ['Transcript Pro']
+    },
+    active: function () {
+        // черно-белый график
+        helpers_1.customLoadDataFromCsv(EU).then(function (data) {
+            helpers_1.customLoadDataFromCsv(EU_Labels).then(function (dataLables) {
+                var chartContainer = document.getElementById('indexChart_0');
+                // @ts-ignore
+                var chartData = helpers_1.csvToCols(data);
+                var cbh = chartData[1].slice(1).map(function (el) { return +el; });
+                var xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
+                var zeroSeries = cbh.map(function () { return 0; });
+                // @ts-ignore
+                var chartLables = helpers_1.csvToCols(dataLables);
+                var x = chartLables[0].slice(1).map(function (el) { return +el; });
+                var y = chartLables[1].slice(1).map(function (el) { return +el; });
+                var texts = chartLables[2].slice(1).map(function (el) { return el; });
+                indices_chart_black_1.createChart(chartContainer, [xLabels, cbh, zeroSeries, [x, y], texts]); //кастомная функция создания и настройки объекта Chart
+            });
+        })
+            .catch(function (err) {
+            console.log(err);
+        });
+        // цветной график CBH-indices-colored
+        helpers_1.customLoadDataFromCsv(startCSVurl).then(function (data) {
+            var chartContainer = document.getElementById('indexChart_1');
+            // @ts-ignore
+            var chartData = helpers_1.csvToCols(data);
+            var cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
+            var cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
+            var xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
+            var zeroSeries = cbh1.map(function () { return 0; });
+            indices_chart_colored_1.createChart(chartContainer, [xLabels, cbh5, cbh1, zeroSeries]);
+        })
+            .catch(function (err) {
+            console.log(err);
+        });
+        // старый график CBH-indices
+        helpers_1.customLoadDataFromCsv(startCSVurl).then(function (data) {
+            var chartContainer = document.getElementById('indexChart_2');
+            // @ts-ignore
+            var chartData = helpers_1.csvToCols(data);
+            var cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
+            var cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
+            var xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
+            var zeroSeries = cbh1.map(function () { return 0; });
+            indices_chart_1.createChart(chartContainer, [xLabels, cbh5, cbh1, zeroSeries]);
+        })
+            .catch(function (err) {
+            console.log(err);
+        });
+        // квадратный график
+        helpers_1.customLoadDataFromCsv(sqrData).then(function (data) {
+            var chartContainer = document.getElementById('indexChart_3');
+            // @ts-ignore
+            var chartData = helpers_1.csvToCols(data);
+            //разбираем CSV по рядам
+            chartData = square_chart_2.prepareData(chartData);
+            //создаем chart
+            square_chart_1.createChart(chartContainer, __spreadArrays(chartData));
+        })
+            .catch(function (err) {
+            console.log(err);
+        });
+    },
+});
+
+},{"./configs/indices-chart":23,"./configs/indices-chart-black":21,"./configs/indices-chart-colored":22,"./configs/square-chart":24,"./scripts/helpers":26,"webfontloader":4}],26:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.csvToCols = exports.customLoadDataFromCsv = void 0;
+// рукописная загрузка из CSV
+function customLoadDataFromCsv(filePath) {
+    return fetch(filePath).then(function (response) {
+        var contentType = response.headers.get("content-type");
+        if (contentType && (contentType.includes("text/csv") || contentType.includes("application/octet-stream"))) {
+            return response.ok ? response.text() : Promise.reject(response.status);
+        }
+        throw new TypeError("Oops, we haven't got CSV!");
+    });
+}
+exports.customLoadDataFromCsv = customLoadDataFromCsv;
+// csv to array
+// @ts-ignore
+function csvToCols(strData, strDelimiter) {
+    strDelimiter = strDelimiter || ",";
+    var rowData = strData.split("\n");
+    var colResult = [];
+    for (var i = rowData[0].split(strDelimiter).length - 1; i >= 0; i--)
+        colResult.push([]);
+    for (var i = 0, l = rowData.length; i < l; i++) {
+        if (rowData[i].length) {
+            var row = rowData[i].split(strDelimiter);
+            // @ts-ignore
+            for (var j = row.length - 1; j >= 0; j--)
+                colResult[j].push(row[j]);
+        }
+    }
+    return colResult;
+}
+exports.csvToCols = csvToCols;
+
+},{}]},{},[25]);

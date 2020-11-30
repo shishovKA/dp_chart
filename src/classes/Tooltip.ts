@@ -17,7 +17,7 @@ export class Tooltip {
     _id: string;
     type: string;
     _options: tooltipOptions;
-    labels?: Date[];
+    labels?: any[];
     label: Label;
 
     constructor(id: string, type: string, ...options: any) {
@@ -93,11 +93,18 @@ export class Tooltip {
                 this._options.mainSize = options[3];
                 break;
 
+            case 'data_label':
+                this._options.lineWidth = options[0];
+                this._options.lineColor = options[1];
+                this._options.brushColor = options[2];
+                this.labels = options[3];
+                break;
+
         }
     }
 
 
-    drawTooltip(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, xyData: Point, toDraw?: boolean) {
+    drawTooltip(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, xyData: Point, ind: number, toDraw?: boolean) {
         switch (this.type) {
 
             case 'circle_series':
@@ -113,7 +120,7 @@ export class Tooltip {
                 break;
 
             case 'label_x_start':
-                this.drawLabelXStart(ctx, vp, ttCoord, xyData);
+                this.drawLabelXStart(ctx, vp, ttCoord, xyData, ind);
                 break;
 
             case 'circle_y_end':
@@ -126,8 +133,89 @@ export class Tooltip {
             case 'delta_abs':
                 this.drawDeltaAbs(ctx, vp, ttCoord, xyData);
                 break;
+            
+            case 'data_label':
+                this.drawDataLabel(ctx, vp, ttCoord, xyData, ind);
+                break;
 
         }
+    }
+
+    drawDataLabel(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, seriesData: Point, ind: number) {
+        ctx.strokeStyle = this._options.lineColor;
+        ctx.lineWidth = this._options.lineWidth;
+        ctx.fillStyle = this._options.brushColor;
+        ctx.setLineDash(this._options.lineDash);
+
+        const labelCoord = new Point(ttCoord.x, ttCoord.y);
+
+        //параметры начальные
+        this.label.position = 'top';
+        const lineX = ttCoord.x;
+
+        const rectPadding = 6;
+
+        // @ts-ignore
+        const labelText = this.labels[ind] + '; x: ' + (seriesData.x).toFixed(1) + '; y: '+ (seriesData.y).toFixed(1);
+        const cornersRadius = this._options.mainSize;
+
+        let labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+
+        let roundRect: Rectangle = new Rectangle(labelRect.x1 - rectPadding,
+            labelRect.y1 - rectPadding,
+            labelRect.x2 + rectPadding,
+            labelRect.y2 + rectPadding);
+        
+/*
+        if (roundRect.x2 > vp.x2) {
+            labelCoord.x = labelCoord.x - roundRect.x2 + vp.x2;
+            roundRect.move(- roundRect.x2 + vp.x2, 0)
+        }
+*/
+
+        if (roundRect.x2 > vp.x2) {
+            labelCoord.x = labelCoord.x - Math.abs(roundRect.x2 - vp.x2) - rectPadding;
+
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+
+            roundRect = new Rectangle(labelRect.x1 - rectPadding,
+                labelRect.y1 - rectPadding,
+                labelRect.x2 + rectPadding,
+                labelRect.y2 + rectPadding);
+        }
+
+        if (roundRect.x1 < vp.x1) {
+            labelCoord.x = labelCoord.x + Math.abs(roundRect.x1 - vp.x1) + rectPadding;
+            
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+
+            roundRect = new Rectangle(labelRect.x1 - rectPadding,
+                labelRect.y1 - rectPadding,
+                labelRect.x2 + rectPadding,
+                labelRect.y2 + rectPadding);
+        }
+
+
+        if (roundRect.y1 < vp.y1) {
+            this.label.position = 'bottom';
+            labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
+
+            roundRect = new Rectangle(labelRect.x1 - rectPadding,
+                labelRect.y1 - rectPadding,
+                labelRect.x2 + rectPadding,
+                labelRect.y2 + rectPadding);
+
+            //labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
+            //roundRect.move(0, vp.y1 - roundRect.y1);
+
+        }
+
+        this.roundRect(ctx, roundRect.x1, roundRect.y1, roundRect.width, roundRect.height, cornersRadius);
+
+        ctx.fill();
+        ctx.stroke();
+
+        this.label.draw(ctx, labelCoord, labelText);
     }
 
 
@@ -136,7 +224,6 @@ export class Tooltip {
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
         ctx.setLineDash(this._options.lineDash);
-
         ctx.beginPath();
         ctx.arc(ttCoord.x, ttCoord.y, this._options.mainSize, 0, Math.PI * 2, true);
         ctx.closePath();
@@ -167,7 +254,7 @@ export class Tooltip {
     }
 
 
-    drawLabelXStart(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, seriesData: Point) {
+    drawLabelXStart(ctx: CanvasRenderingContext2D, vp: Rectangle, ttCoord: Point, seriesData: Point, ind: number) {
         ctx.strokeStyle = this._options.lineColor;
         ctx.lineWidth = this._options.lineWidth;
         ctx.fillStyle = this._options.brushColor;
@@ -178,7 +265,7 @@ export class Tooltip {
         const rectWidth = 60;
 
         // @ts-ignore
-        const labelText = (this.labels[seriesData.x]).toLocaleDateString('en');
+        const labelText = (this.labels[ind]).toLocaleDateString('en');
         const cornersRadius = this._options.mainSize;
 
         const labelCoord = new Point(ttCoord.x, vp.zeroY);
@@ -274,14 +361,14 @@ export class Tooltip {
         const labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
 
         let labelStart = new Point(labelRect.x1, labelRect.y1);
-        let labelCenter = new Point(labelRect.x1 + labelRect.width * 0.5, labelCoord.y);
+        let labelCenter = new Point(labelRect.x1 + labelRect.width*0.5, labelCoord.y);
 
         const roundRectWidth = 40;
 
-        let roundRect: Rectangle = new Rectangle(labelCenter.x - roundRectWidth * 0.5,
+        let roundRect: Rectangle = new Rectangle(labelCenter.x - roundRectWidth*0.5,
             labelStart.y - rectPadding,
-            labelCenter.x + roundRectWidth * 0.5,
-            labelStart.y + labelRect.height + rectPadding);
+            labelCenter.x + roundRectWidth*0.5,
+            labelStart.y  + labelRect.height + rectPadding);
 
         /*
         let roundRect: Rectangle = new Rectangle(vp.x2 + 11 - rectPadding + 3,
@@ -289,7 +376,7 @@ export class Tooltip {
             vp.x2 + rectPadding + 35 + 3,
             labelStart.y  + labelRect.height + rectPadding);
         */
-
+        
 
         if (roundRect.y1 < vp.y1) {
             labelCoord.y = labelCoord.y + vp.y1 - roundRect.y1;
@@ -313,6 +400,7 @@ export class Tooltip {
             this.label.draw(ctx, labelCoord, labelText);
         }
 
+        //console.log(labelCoord, labelText);
         return roundRect
     }
 
@@ -327,7 +415,7 @@ export class Tooltip {
 
         //параметры начальные
         this.label.position = 'right';
-
+    
         const lineX = ttCoord.x;
         labelCoord.y = labelCoord.y - 25;
         const rectPadding = 6;
@@ -337,14 +425,14 @@ export class Tooltip {
         let labelRect = this.label.getlabelRect(ctx, labelCoord, labelText);
         let labelStart = new Point(labelRect.x1, labelRect.y1);
 
-        let labelCenter = new Point(labelRect.x1 + labelRect.width * 0.5, labelCoord.y);
+        let labelCenter = new Point(labelRect.x1 + labelRect.width*0.5, labelCoord.y);
 
         const roundRectWidth = 52;
 
-        let roundRect: Rectangle = new Rectangle(labelCenter.x - roundRectWidth * 0.5,
+        let roundRect: Rectangle = new Rectangle(labelCenter.x - roundRectWidth*0.5,
             labelStart.y - rectPadding,
-            labelCenter.x + roundRectWidth * 0.5,
-            labelStart.y + labelRect.height + rectPadding);
+            labelCenter.x + roundRectWidth*0.5,
+            labelStart.y  + labelRect.height + rectPadding);
 
         /*
         let roundRect: Rectangle = new Rectangle(labelStart.x - rectPadding,

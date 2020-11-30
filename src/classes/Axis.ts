@@ -1,7 +1,11 @@
 import { Signal } from "signals"
 import { Rectangle } from "./Rectangle";
 import { Ticks } from "./Ticks";
-
+import { Canvas } from "./Canvas";
+import { Grid } from "./Grid";
+import { Label } from "./Label";
+import { Point } from "./Point";
+import { Legend } from "./Legend";
 
 interface axisOptions  {
     lineWidth: number;
@@ -13,57 +17,128 @@ interface axisOptions  {
 
 export class Axis {
 
+    canvas: Canvas;
+
+    name?: string;
+    namePosition?: string;
+
+    label: Label;
+
     display: boolean = false;
     position: string = 'start'
 
     min: number;
     max: number;
     type: string;
-    _options: axisOptions;
+    optionsDraw: axisOptions;
     gridOn: boolean = false;
 
     ticks: Ticks;
+    customTicks: Ticks[] = [];
+    legends: Legend[] = [];
+
+    grid: Grid;
 
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
-    onCustomLabelsAdded: Signal;
-    onAnimated: Signal;
+    onCustomTicksAdded: Signal;
+    onNameSetted: Signal;
     
-    constructor( MinMax: number[], type: string, ...options: any) {
+    constructor( MinMax: number[], type: string, container: HTMLElement) {
         
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
-        this.onCustomLabelsAdded = new Signal();
-        this.onAnimated = new Signal();
+        this.onCustomTicksAdded = new Signal();
+        this.onNameSetted = new Signal();
+        
 
         this.min = 0;
         this.max = 0;
         this.setMinMax(MinMax);
+
         this.type = type;
 
-        this._options = {
+        this.label = new Label(this.type);
+
+        this.canvas = new Canvas(container);
+        this.canvas.canvas.style.zIndex = "2";
+
+        this.optionsDraw = {
             lineWidth: 1,
             lineColor: '#000000',
-            lineDash: [1,0]
+            lineDash: []
         };
 
         this.ticks = new Ticks(this.type);
-        
-        this.setOptions(...options);
+        this.grid = new Grid(this.type);
+
         this.bindChildSignals();
+        this.bindSignals();
+    }
+
+    bindSignals() {
+        
+        this.onMinMaxSetted.add(() => {
+            this.createTicks();
+            this.draw();
+        })
+
+        this.onOptionsSetted.add(() => {
+            this.draw();
+        })
+
+        this.onCustomTicksAdded.add(()=>{
+            this.createTicks();
+            this.draw();
+        })
+
+        this.onNameSetted.add(() => {
+            this.draw();
+        })
+
     }
 
     bindChildSignals() {
+
+        //canvas
+        this.canvas.resized.add(() => {
+            this.createTicks(true);
+            this.draw();
+        });
+
+        this.canvas.onPaddingsSetted.add(() => {
+            this.createTicks();
+            this.draw();
+        });
+
+        //ticks
         this.ticks.onOptionsSetted.add(() => {
-            this.onOptionsSetted.dispatch();
+            this.createTicks();
+            this.draw();
         });
 
         this.ticks.onCustomLabelsAdded.add(() => {
-            this.onCustomLabelsAdded.dispatch();
+            this.createTicks();
+            this.draw();
         });
 
-        this.ticks.onAnimated.add(() => {
-            this.onAnimated.dispatch();
+        this.ticks.onCoordsChanged.add(() => {
+            this.draw();
+        });
+
+        //label
+        this.label.onOptionsSetted.add(() => {
+            this.draw();
+        });
+
+        //ticks.labels
+        this.ticks.label.onOptionsSetted.add(() => {
+            this.draw();
+        });
+
+        //grid
+        this.grid.onOptionsSetted.add(()=>{
+            this.draw();
         });
 
     }
@@ -72,32 +147,28 @@ export class Axis {
         return Math.abs(this.max-this.min);
     }
 
-    setOptions(...options: any[]) {
+    addLegend(newLegend: Legend) {
+        this.legends.push(newLegend);
+    }
 
-        switch(options.length) {
-            case 1:
-                this._options.lineWidth = options[0];
-            break;
-          
-            case 2:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-            break;
+    setName(name:string, namePosition:string) {
+        this.name = name;
+        this.namePosition = namePosition;
+        return this;
+    }
 
-            case 3:
-                this._options.lineWidth = options[0];
-                this._options.lineColor = options[1];
-                this._options.lineDash = options[2];
-            break;
-        }
-
+    setOptions(position?: string, lineWidth?: number, lineColor?: string, lineDash?: number[]) {
+        if (position) this.position = position;
+        if (lineWidth) this.optionsDraw.lineWidth = lineWidth;
+        if (lineColor) this.optionsDraw.lineColor = lineColor;
+        if (lineDash) this.optionsDraw.lineDash = lineDash;
         this.onOptionsSetted.dispatch();
     }
 
 
     setMinMax(MinMax: number[], hasPlotAnimation?:boolean) {
-        let to:number[];
-        let from:number[];
+        let to:number[] = [];
+        let from:number[] = [];
 
         from = [this.min, this.max];
 
@@ -121,23 +192,60 @@ export class Axis {
             return;
         }
         */
-    // @ts-ignore
+   
         this.min = to[0];
-        // @ts-ignore
+        
         this.max = to[1];
         
         this.onMinMaxSetted.dispatch(hasPlotAnimation);
 
     }
 
-    draw(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        const axisVp = this.getaxisViewport(viewport);
-        if (this.display) this.drawAxis(ctx, axisVp);
-        this.ticks.draw(ctx, viewport);
+    draw() {
+        const ctx = this.canvas.ctx;
+
+        if (ctx) {
+
+            this.canvas.clear();
+            const axisVp = this.axisViewport;
+            
+            if (this.display) this.drawAxis();
+            
+            this.ticks.draw(ctx, this.canvas.viewport);
+            this.customTicks.forEach((ticks) => {
+                ticks.draw(ctx, this.canvas.viewport);
+            })
+            if (this.grid.display) this.grid.draw(ctx, this.canvas.viewport, this.ticks.coords);
+            
+            this.drawAxisName();
+
+            this.legends.forEach((legend) => {
+                legend.draw(ctx, this.canvas.viewport);
+            })
+        }
     }
 
-    getaxisViewport(vp: Rectangle): Rectangle {
-        let axisVP;
+    createTicks(noAnimate?: boolean) {
+        const ctx = this.canvas.ctx;
+        if (ctx) {
+            this.ticks.createTicks(this.min, this.max, this.axisViewport, ctx, noAnimate);
+            this.customTicks.forEach((ticks) => {
+                ticks.createTicks(this.min, this.max, this.axisViewport, ctx, noAnimate);
+            })
+        }
+    }
+
+    addCustomTicks(ticks: Ticks) {
+        ticks.onCoordsChanged.add(() => {
+            this.draw();
+        });
+        this.customTicks.push(ticks);
+        this.onCustomTicksAdded.dispatch();
+    }
+
+    get axisViewport(): Rectangle {
+        const vp: Rectangle = this.canvas.viewport;
+        let axisVP: Rectangle = new Rectangle(0, 0, 0, 0);
         switch(this.position) {
             case 'start':
                 switch(this.type) {
@@ -164,23 +272,43 @@ export class Axis {
                     }
                 break;
             break;
+
         }
 
-        // @ts-ignore
-        return axisVP
+        return axisVP;
     }
 
-    drawAxis(ctx: CanvasRenderingContext2D, viewport: Rectangle) {
-        
-        ctx.strokeStyle = this._options.lineColor;
-        ctx.lineWidth = this._options.lineWidth;
-        ctx.setLineDash(this._options.lineDash);
+    drawAxis() {
+        const ctx = this.canvas.ctx;
+        const viewport = this.axisViewport;
 
-        ctx.beginPath();
-        ctx.moveTo(viewport.x1, viewport.y1);
-        ctx.lineTo(viewport.x2, viewport.y2);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        if (ctx) {
+            ctx.strokeStyle = this.optionsDraw.lineColor;
+            ctx.lineWidth = this.optionsDraw.lineWidth;
+            ctx.setLineDash(this.optionsDraw.lineDash);
+            ctx.beginPath();
+            ctx.moveTo(viewport.x1, viewport.y1);
+            ctx.lineTo(viewport.x2, viewport.y2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    }
+
+    drawAxisName() {
+        const ctx = this.canvas.ctx;
+        const viewport = this.canvas.viewport;
+
+        let xCoord = 0;
+        let yCoord = 0;
+
+        (this.type == 'horizontal') ? xCoord = viewport.midX : ((this.namePosition == 'start') ? xCoord = viewport.x1 : xCoord = viewport.x2); 
+        (this.type == 'vertical') ? yCoord = viewport.midY : ((this.namePosition == 'start') ? yCoord = viewport.y2 : yCoord = viewport.y1);
+        
+        const coord = new Point(xCoord, yCoord);
+
+        if ((this.name) && (ctx)) {
+            this.label.draw(ctx, coord, this.name);
+        }
     }
 
 /*

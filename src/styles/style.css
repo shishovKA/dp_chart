@@ -8,55 +8,33 @@ body {
     align-items: flex-start;
     align-content: flex-start;
     width: 100%;
-    max-width: 1024px;
+    max-width: 1800px;
     flex-wrap: wrap;
 }
 
+.selected {
+    background-color: yellowgreen;
+}
 
 .section {
     margin: 10px 20px 0px 20px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .section_chart {
     width: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: space-between;
 }
 
-.section_widget {
-    width: 20%;
-    padding: 10px;
-    margin-right: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: solid 2px black;
-}
-
-.section_ranges {
-    width: 20%;
-    padding: 10px;
-    margin-right: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: solid 2px black;
-}
-
-.section_cbh {
-    width: 100%;
-    padding: 10px;
-    display: flex;
+.section_panel {
     flex-direction: row;
-    border: solid 2px black;
+    width: 100%;
 }
 
 .chart__title {
-    margin: 0px 0px 5px 0px;
+    margin: 5px 0px 5px 0px;
     width: 100%;
     font-size: 20px;
     text-align: center;
@@ -64,13 +42,34 @@ body {
 
 
 .chart__container {
+    box-sizing: border-box;
     width: 100%;
-    max-width: 1024px;
-    height: 450px;
-    border: solid 2px black;
-    overflow: visible;
+    display: flex;
+    flex-direction: column;
 }
 
+.chart__container_half {
+    width: 49%;
+}
+
+.chart {
+    background-color: white;
+    min-height: 500px;
+}
+
+.ranges_black {
+    width: 100%;
+    display: flex;
+}
+
+.ranges_black li{
+    width: 100px;
+    margin-left: 20px;
+    border: solid 1px;
+    cursor: pointer;
+}
+
+/*
 .datawidget {
     box-sizing: border-box;
     margin: 0px;
@@ -78,7 +77,6 @@ body {
     padding: 5px;
     width: 100%;
     align-self: flex-start;
-
     display: flex;
     justify-content: center;
 }
@@ -118,13 +116,4 @@ body {
     font-weight: bold;
     text-align: center;
 }
-
-.selected {
-    background-color: gray;
-}
-
-@media screen and (max-width: 780px) {
-    .chart__container {
-        height: 360px;
-    }
-  }
+*/

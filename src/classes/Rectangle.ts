@@ -29,6 +29,14 @@ export class Rectangle {
         return this.y2
     }
 
+    get midX(): number {
+        return this.x1 + Math.abs(this.x2 - this.x1)*0.5;
+    }
+
+    get midY(): number {
+        return this.y1 + Math.abs(this.y2 - this.y1)*0.5;
+    }
+
     updateCoords(x1: number, y1: number, x2: number, y2: number) {
         this.x1 = x1;
         this.y1 = y1;
