@@ -138,10 +138,10 @@ export class SeriesBase implements Series {
     }
 
 
-    replaceSeriesData(seriesData_to: number[][]) {
+    replaceSeriesData(seriesData_to: number[][], animate: boolean) {
         this.seriesData = this.getInitialData(seriesData_to);
         this.extremes = this.findExtremes();
-        //this.onSeriesDataChanged.dispatch(this);
+        if (animate) this.onSeriesDataChanged.dispatch(this);
     }
 
     
@@ -151,6 +151,21 @@ export class SeriesBase implements Series {
             let curPoint = new Point(curr, this.seriesData[1][i])
             const curDif = seriesPoint.findDistX(curPoint);
             const prevDif = seriesPoint.findDistX(prev);
+            if (curDif < prevDif) {
+                ind = i;
+                return curPoint
+            }
+            return prev
+              }, new Point(this.seriesData[0][0], this.seriesData[1][0]));
+        return [resultPoint, ind];
+    }
+
+    getClosestDataPointXY(seriesPoint: Point): [Point, number] {
+        let ind = 0;
+        const resultPoint =  this.seriesData[0].reduce((prev, curr, i) => {
+            let curPoint = new Point(curr, this.seriesData[1][i])
+            const curDif = seriesPoint.findDist(curPoint);
+            const prevDif = seriesPoint.findDist(prev);
             if (curDif < prevDif) {
                 ind = i;
                 return curPoint

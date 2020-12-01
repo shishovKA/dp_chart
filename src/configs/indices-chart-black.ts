@@ -162,10 +162,10 @@ function reorganizeChart(cbhRow, min, max, onlyData?: boolean) {
   let seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[min])];
 
   // создаем Series
-  chart.data.findSeriesById('cyberHedge_area')?.replaceSeriesData([seriesRow]);
-  chart.data.findSeriesById('cyberHedge_line')?.replaceSeriesData([seriesRow]);
-  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
-  chart.data.findSeriesById('cyberHedge_labels')?.replaceSeriesData(seriesL);
+  chart.data.findSeriesById('cyberHedge_area')?.replaceSeriesData([seriesRow], false);
+  chart.data.findSeriesById('cyberHedge_line')?.replaceSeriesData([seriesRow], false);
+  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries], false);
+  chart.data.findSeriesById('cyberHedge_labels')?.replaceSeriesData(seriesL, false);
 
   if (onlyData) {
     // @ts-ignore

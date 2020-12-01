@@ -19,11 +19,12 @@ export interface  Series  {
    
     updatePlotData(axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean): void;
     getClosestDataPointX(seriesPoint: Point): [Point, number];
+    getClosestDataPointXY(seriesPoint: Point): [Point, number];
     getClosestPlotPointX(coordPoint: Point): Point;
     getClosestPlotPointXY(coordPoint: Point): Point;
 
     setPlotsIds(...plotIds: string[]): void;
-    replaceSeriesData(seriesData_to: number[][]): void;
+    replaceSeriesData(seriesData_to: number[][], animate: boolean): void;
 
     getDataRange(type:string, min:number, max:number): number[][];
     findExtremes(data?:number[][]): number[];

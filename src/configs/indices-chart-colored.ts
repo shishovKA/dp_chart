@@ -240,11 +240,11 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
   let serie5star = calculateDeviationsVal(cbh5, cbh5[min]);
   let serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
 
-  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star]);
-  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star]);
-  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
-  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
-  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
+  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star],false);
+  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star],false);
+  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star],false);
+  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star],false);
+  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries],false);
 
   if (onlyData) {
     // @ts-ignore

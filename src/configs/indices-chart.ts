@@ -264,11 +264,11 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
     area1starBottom
   } = data;
 
-  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([area5starTop, area5starBottom]);
-  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom]);
-  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star]);
-  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star]);
-  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries]);
+  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([area5starTop, area5starBottom],false);
+  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([area1starTop, area1starBottom],false);
+  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star],false);
+  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star],false);
+  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries],false);
 
   if (onlyData) {
     // @ts-ignore

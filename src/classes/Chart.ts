@@ -244,6 +244,7 @@ export class Chart {
             const sriesP = new Point(seriesX, seriesY);
             
             const [pointData, tt_ind] = series.getClosestDataPointX(sriesP);
+            const [pointDataXY, tt_ind_XY] = series.getClosestDataPointXY(sriesP);
             const tooltipCoordX = series.getClosestPlotPointX(new Point(mouseXY.x+this.canvasTT.left, mouseXY.y+this.canvasTT.top));
             const tooltipCoordXY = series.getClosestPlotPointXY(new Point(mouseXY.x+this.canvasTT.left, mouseXY.y+this.canvasTT.top));
 
@@ -304,9 +305,9 @@ export class Chart {
 
                                 case 'data_label':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordXY.x, tooltipCoordXY.y), pointData, tt_ind);
+                                    tooltip.drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, new Point(tooltipCoordXY.x, tooltipCoordXY.y), pointDataXY, tt_ind_XY);
                                     // @ts-ignore
-                                    if (plot.type == 'unicode') plot.drawPlot(this.canvasTT.ctx, [tooltipCoordXY], this.canvasTT.viewport, true);
+                                    if (plot.type == 'unicode') plot.drawPlot(this.canvasTT.ctx, [tooltipCoordXY], this.canvasTT.viewport, '', true);
                                     break;
 
                                 default:
