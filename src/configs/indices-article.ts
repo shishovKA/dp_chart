@@ -25,8 +25,8 @@ export function createChart(container, data) {
   console.log(seriesLabeled, seriesText)
 
   setLastUpdateDate(xLabels[xLabels.length - 1]);
-  chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
-  chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
+  //chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
+  //chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
 
   // ось X
   chart.xAxis.setOptions('start', 0.5, 'black');
@@ -78,6 +78,7 @@ export function createChart(container, data) {
 
   // создаем Tooltipы
 
+  
   // lines
   chart.findPlotById('blue_line')?.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
   chart.findPlotById('red_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
@@ -102,6 +103,8 @@ export function createChart(container, data) {
   chart.findPlotById('red_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
   chart.findPlotById('blue_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
 
+  
+
   // подготавливаем данные как на сайте CyberHedge
   let serie5star = calculateDeviationsVal(cbh5, cbh5[0]);
   let serie1star = calculateDeviationsVal(cbh1, cbh1[0]);
@@ -112,8 +115,8 @@ export function createChart(container, data) {
   chart.addSeriesRow('cyberHedge5_line', [serie5star]).setPlotsIds('blue_line');
   chart.addSeriesRow('cyberHedge1_line', [serie1star]).setPlotsIds('red_line');
   chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
+  
   chart.addSeries('cyberHedge_labels', seriesLabeled, seriesText).setPlotsIds('labeled');
-
 
   // настраиваем Min Max осей
   chart.xAxis.setMinMax(chart.data.findExtremes('val'), true); //по экстремумам оси X
@@ -149,17 +152,17 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
 
 //функция вешает слушатели на панель nav - USA / EU
 (function prepareCsvLoadMenu() {
-  let zoneItems = document.querySelectorAll('.zones_colored li');
+  let zoneItems = document.querySelectorAll('.zones_article li');
 
   zoneItems.forEach((item) => {
     item.addEventListener('click', () => {
       let link = item.querySelector('a');
 
       // @ts-ignore
-      document.querySelector('.zones_colored li.selected').classList.remove('selected');
+      document.querySelector('.zones_article li.selected').classList.remove('selected');
       item.classList.add('selected');
 
-      const rangeSelected = document.querySelector('.ranges_сolored li.selected');
+      const rangeSelected = document.querySelector('.ranges_article li.selected');
 
       // @ts-ignore
       customLoadDataFromCsv(link.href).then((data) => {
@@ -189,11 +192,11 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
 
 //функция вешает слушатели на панель ranges
 (function prepareRangesMenu() {
-  let ranges = document.querySelectorAll('.ranges_сolored li');
+  let ranges = document.querySelectorAll('.ranges_article li');
   ranges.forEach((item) => {
     item.addEventListener('click', () => {
       // @ts-ignore
-      document.querySelector('.ranges_сolored li.selected').classList.remove('selected');
+      document.querySelector('.ranges_article li.selected').classList.remove('selected');
       item.classList.add('selected');
       const lastLb = xLabels[xLabels.length - 1];
       let maxDate = lastLb,
@@ -272,7 +275,7 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
 
 function setLastUpdateDate(lastDate: Date) {
   // NOTE: fill last update node
-  let lastUpdateNode = document.querySelector('.last-update-colored time');
+  let lastUpdateNode = document.querySelector('.last-update-article time');
   // @ts-ignore
   lastUpdateNode.datetime = lastDate.toISOString();
   // @ts-ignore

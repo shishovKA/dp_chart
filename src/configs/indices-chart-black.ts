@@ -76,8 +76,6 @@ export function createChart(container, data) {
   chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
   chart.addSeries('cyberHedge_labels', seriesL, seriesText).setPlotsIds('labeled');
 
-
-
   // настраиваем Min Max осей
   chart.xAxis.setMinMax(chart.data.findExtremes('val'), false); //по экстремумам оси X
   chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), false); //scale to fit по Y

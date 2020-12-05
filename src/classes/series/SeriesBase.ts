@@ -182,16 +182,25 @@ export class SeriesBase implements Series {
             if (curDif < prevDif) return curr
             return prev
               }, this.plotDataArr[0]);
+
+        if (!coord) {
+            //console.log(coordPoint, this.plotDataArr, this.plotData, this.seriesData);
+            return new Point(0, 0);
+        }
         return new Point(coord.x, coord.y);
     }
 
     getClosestPlotPointXY(coordPoint: Point): Point {
-        const coord =  this.plotDataArr.reduce((prev, curr, i) => {
+        const coord = this.plotDataArr.reduce((prev, curr, i) => {
             const curDif = coordPoint.findDist(curr);
             const prevDif = coordPoint.findDist(prev);
             if (curDif < prevDif) return curr
             return prev
-              }, this.plotDataArr[0]);
+        }, this.plotDataArr[0]);
+        if (!coord) {
+            //console.log(coordPoint, this.plotDataArr, this.plotData, this.seriesData);
+            return new Point(0, 0);
+        }
         return new Point(coord.x, coord.y);
     }
 
@@ -215,6 +224,9 @@ export class SeriesBase implements Series {
     updatePlotData(axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean) {
         
         const plotData = this.generatePlotData(axisRect, vp);
+        if (plotData[0].length == 0) {
+            noAnimation = true;
+        }
         
         //если нужна анимация графиков
         if (noAnimation) {
