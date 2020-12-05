@@ -7,6 +7,8 @@ let cbh1: number[] = [];
 let cbh5: number[] = [];
 let xLabels: Date[] = [];
 let zeroSeries: number[] = [];
+let seriesLabeled: number[][];
+let seriesText: string[]
 const gapY: number = 0.08;
 
 const bezier = require('bezier-easing');
@@ -15,9 +17,12 @@ const easing = bezier(0.65, 0, 0.35, 1);
 // @ts-ignore
 export function createChart(container, data) {
   // @ts-ignore
-  chart = new Chart(container, [0, 900], [0, 2000]);
+  //chart = new Chart(container, [0, 900], [0, 2000]);
+  chart = new Chart(container, [0, 0], [0, 2000]);
 
-  [xLabels, cbh5, cbh1, zeroSeries] = [...data];
+  [xLabels, cbh5, cbh1, zeroSeries, seriesLabeled, seriesText] = [...data];
+
+  console.log(seriesLabeled, seriesText)
 
   setLastUpdateDate(xLabels[xLabels.length - 1]);
   chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
@@ -67,6 +72,9 @@ export function createChart(container, data) {
   chart.addPlot('blue_line', 'line', 1, '#0070FF', []);
   chart.addPlot('blue_area', 'area_bottom', 0, '#D9EAFF', '#D9EAFF', 0);
   chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
+  chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
+    .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"'])
+    .setOutline({ width: 5, color: 'white' })
 
   // создаем Tooltipы
 
@@ -104,6 +112,7 @@ export function createChart(container, data) {
   chart.addSeriesRow('cyberHedge5_line', [serie5star]).setPlotsIds('blue_line');
   chart.addSeriesRow('cyberHedge1_line', [serie1star]).setPlotsIds('red_line');
   chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
+  chart.addSeries('cyberHedge_labels', seriesLabeled, seriesText).setPlotsIds('labeled');
 
 
   // настраиваем Min Max осей
@@ -118,7 +127,7 @@ export function createChart(container, data) {
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
-
+  console.log(chart);
 }
 
 
@@ -130,7 +139,8 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
   for (let j = 0, m = rowData.length; j < m; j++) {
     chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
   }
-  return chartDataVariation;
+  //return chartDataVariation;
+  return rowData;
 }
 
 
@@ -160,7 +170,9 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
         cbh5 = chartData[1].slice(1).map((el) => { return +el });
         xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
         zeroSeries = cbh1.map(() => 0);
-
+        cbh1 = cbh1.reverse();
+        cbh5 = cbh5.reverse();
+        xLabels = xLabels.reverse();
         setLastUpdateDate(xLabels[xLabels.length - 1]);
 
         const max = xLabels.length - 1;
@@ -240,11 +252,11 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
   let serie5star = calculateDeviationsVal(cbh5, cbh5[min]);
   let serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
 
-  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star],false);
-  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star],false);
-  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star],false);
-  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star],false);
-  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries],false);
+  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star], false);
+  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star], false);
+  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star], false);
+  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star], false);
+  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries], false);
 
   if (onlyData) {
     // @ts-ignore

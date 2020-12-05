@@ -81,6 +81,8 @@ export class SeriesXY extends SeriesBase implements Series {
 
         return data;
     }
+
+
 }
 
 
