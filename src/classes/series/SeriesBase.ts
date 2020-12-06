@@ -224,9 +224,17 @@ export class SeriesBase implements Series {
     updatePlotData(axisRect: Rectangle, vp: Rectangle, noAnimation?: boolean) {
         
         const plotData = this.generatePlotData(axisRect, vp);
-        if (plotData[0].length == 0) {
+        
+        if (plotData[0].length === 0) {
             noAnimation = true;
         }
+
+        if (this.plotData.length === 0) {
+            noAnimation = true;
+        } else
+            if (this.plotData[0].length === 0) {
+                noAnimation = true;
+            }
         
         //если нужна анимация графиков
         if (noAnimation) {
@@ -247,7 +255,7 @@ export class SeriesBase implements Series {
                 fromData.push(fromTo[0]);
                 toData.push(fromTo[1]);
             }
-        
+
             this.сoordAnimation(fromData, toData, this.animationDuration, plotData);
 
         }

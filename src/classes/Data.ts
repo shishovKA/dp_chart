@@ -20,15 +20,16 @@ export class Data {
                 } else { dataRange = series.seriesData }
 
             const extremes = series.findExtremes(dataRange);
+            
             switch (type) {
                 case 'ind':
-                    minArr.push(extremes[2]);
-                    maxArr.push(extremes[3]);
+                    if (extremes[2] !== undefined) minArr.push(extremes[2]);
+                    if (extremes[3] !== undefined) maxArr.push(extremes[3]);
                 break;
     
                 case 'val':
-                    minArr.push(extremes[0]);
-                    maxArr.push(extremes[1]);
+                    if (extremes[0] !== undefined) minArr.push(extremes[0]);
+                    if (extremes[1] !== undefined) maxArr.push(extremes[1]);
                 break;
             }
         })

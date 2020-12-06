@@ -18,15 +18,19 @@ const easing = bezier(0.65, 0, 0.35, 1);
 export function createChart(container, data) {
   // @ts-ignore
   //chart = new Chart(container, [0, 900], [0, 2000]);
-  chart = new Chart(container, [0, 0], [0, 2000]);
+  chart = new Chart(container, [0, 900], [0, 2000]);
 
   [xLabels, cbh5, cbh1, zeroSeries, seriesLabeled, seriesText] = [...data];
 
-  console.log(seriesLabeled, seriesText)
+  // перевести данные в % если нужно (точка 0 = cbh5[0] и cbh1[0] соответсвенно)
+  //let serie5star = calculateDeviationsVal(cbh5, cbh5[0]);
+  //let serie1star = calculateDeviationsVal(cbh1, cbh1[0]);
 
+  // оставить исходные данные
+  let serie5star = cbh5;
+  let serie1star = cbh1;
+  
   setLastUpdateDate(xLabels[xLabels.length - 1]);
-  //chart.tooltipsDataIndexUpdated.add(conncetRedWidget);
-  //chart.tooltipsDataIndexUpdated.add(conncetBlueWidget);
 
   // ось X
   chart.xAxis.setOptions('start', 0.5, 'black');
@@ -76,8 +80,7 @@ export function createChart(container, data) {
     .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"'])
     .setOutline({ width: 5, color: 'white' })
 
-  // создаем Tooltipы
-
+  // создаем Tooltips
   
   // lines
   chart.findPlotById('blue_line')?.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
@@ -103,12 +106,6 @@ export function createChart(container, data) {
   chart.findPlotById('red_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
   chart.findPlotById('blue_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
 
-  
-
-  // подготавливаем данные как на сайте CyberHedge
-  let serie5star = calculateDeviationsVal(cbh5, cbh5[0]);
-  let serie1star = calculateDeviationsVal(cbh1, cbh1[0]);
-
   // создаем Series
   chart.addSeriesRow('cyberHedge5_area', [serie5star]).setPlotsIds('blue_area');
   chart.addSeriesRow('cyberHedge1_area', [serie1star]).setPlotsIds('red_area');
@@ -130,9 +127,7 @@ export function createChart(container, data) {
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
   chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
-  console.log(chart);
 }
-
 
 
 // преобразование данных ряда из абсолютных величин в % относительно zeroPoint
@@ -142,11 +137,8 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
   for (let j = 0, m = rowData.length; j < m; j++) {
     chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
   }
-  //return chartDataVariation;
-  return rowData;
+  return chartDataVariation;
 }
-
-
 
 // подключение слушателей к разметке как на cbh
 
@@ -180,6 +172,7 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
 
         const max = xLabels.length - 1;
         const min = 0;
+
         reorganizeChart(cbh5, cbh1, min, max, false);
         // @ts-ignore
         rangeSelected.click(rangeSelected);
@@ -234,26 +227,17 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
 }());
 
 
-
-//настройка виджетов для отображения данных Тултипов
-const redWidget = document.getElementById('cbhIdx1-val-colored');
-const blueWidget = document.getElementById('cbhIdx5-val-colored');
-
-function conncetRedWidget(index: number) {
-  if (redWidget) redWidget.innerHTML = cbh1[index].toFixed(1);
-}
-
-function conncetBlueWidget(index: number) {
-  if (blueWidget) blueWidget.innerHTML = cbh5[index].toFixed(1);
-}
-
-
 // настройка Chart
 // @ts-ignore
 function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
-  // подготавливаем данные как на сайте CyberHedge
-  let serie5star = calculateDeviationsVal(cbh5, cbh5[min]);
-  let serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
+  
+  // перевести данные в % если нужно (точка 0 = cbh5[0] и cbh1[0] соответсвенно)
+  // let serie5star = calculateDeviationsVal(cbh5, cbh5[min]);
+  // let serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
+
+  // оставить исходные данные
+  let serie5star = cbh5;
+  let serie1star = cbh1;
 
   chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star], false);
   chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star], false);

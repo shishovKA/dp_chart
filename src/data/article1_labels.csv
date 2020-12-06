@@ -1,4 +1,6 @@
 x,y,text
-30,22.4077,Label 30
-20,28.0446,Label 20
-40,28.1792,Label 40
+30,-8.8154,Label\n30\nBlue
+20,-5.5261,Label\n20\nBlue
+40,-8.0425,Label\n40\nBlue
+100,23.5156,Label\n100\nBlue
+150,32.8506,Label\n150\nBlue

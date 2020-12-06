@@ -154,12 +154,19 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
       // @ts-ignore
       customLoadDataFromCsv(link.href).then((data) => {
         // @ts-ignore
+        console.log(data);
+
+        // @ts-ignore
         let chartData = csvToCols(data);
+
+        console.log(chartData);
 
         cbh1 = chartData[2].slice(1).map((el) => { return +el });
         cbh5 = chartData[1].slice(1).map((el) => { return +el });
         xLabels = chartData[0].slice(1).map((el) => { return new Date(el) });
         zeroSeries = cbh1.map(() => 0);
+
+        //xLabels.sort();
 
         setLastUpdateDate(xLabels[xLabels.length - 1]);
 

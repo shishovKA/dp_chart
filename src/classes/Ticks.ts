@@ -628,11 +628,11 @@ export class Ticks {
                 break;
         }
 
-        for (let i = min + 1; i <= max; i++) {
-            //let curLabel = this.customLabels[i];
-            //let preLabel = this.customLabels[i-1];
-            //let curDate = dateParser(curLabel);
-            //let preDate = dateParser(preLabel);
+        // @ts-ignore
+        let last = (max > this.customLabels.length) ? this.customLabels.length : max;
+
+        for (let i = min + 1; i <= last - 1 ; i++) {
+
             // @ts-ignore
             let curDate: Date = this.customLabels[i];
             // @ts-ignore
