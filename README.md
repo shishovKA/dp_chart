@@ -11,7 +11,11 @@
 `npm run install`
 
 #### Запуск:
-`npm run srart` (for server running at http://localhost:1234)
+`npm run srart` (for server running at http://localhost:1234)  
+при запуске проекта в режиме разработки возможно потребуется вручую разместить CSV файлы из:  
+`src\data`
+в:  
+`dist\src\data`
 
 #### Инструкция по сборке:
 Для сборки проекта можно воспользоваться командой:  
