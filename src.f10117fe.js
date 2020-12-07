@@ -1144,6 +1144,8 @@ function () {
     this.offset = 0;
     this.rotationAngle = 0;
     this.isUpperCase = false;
+    this.fontSizeList = [];
+    this.queryList = [];
     this.hasOutline = false;
     this.onOptionsSetted = new signals_1.Signal();
 
@@ -1174,20 +1176,34 @@ function () {
       this.fontSize = +fontOptions[0];
 
       if (fontOptions[2] !== undefined) {
-        this.isScalebale = fontOptions[2];
-      }
+        if (fontOptions[3] !== undefined) {
+          this.fontSizeList = fontOptions[3];
+        }
 
-      if (fontOptions[3] !== undefined) {
-        this.fontTarget = fontOptions[3];
-      }
+        if (fontOptions[4] !== undefined) {
+          this.queryList = fontOptions[4];
+        }
 
-      if (fontOptions[4] !== undefined) {
-        this.fontBase = fontOptions[4];
+        this.turnOnMediaQueries();
       }
     }
 
     this.onOptionsSetted.dispatch();
     return this;
+  };
+
+  Label.prototype.turnOnMediaQueries = function () {
+    var _this = this;
+
+    console.log('turned on');
+    this.queryList.forEach(function (q, ind) {
+      var mediaQuery = window.matchMedia(q);
+      mediaQuery.addEventListener("change", function () {
+        if (mediaQuery.matches) {
+          _this.fontSize = _this.fontSizeList[ind];
+        }
+      });
+    });
   };
 
   Label.prototype.calculateFontSize = function (ctx) {
@@ -1220,7 +1236,6 @@ function () {
 
   Object.defineProperty(Label.prototype, "font", {
     get: function get() {
-      var size = this.fontSize;
       var fontString = this.fontSize + "px " + this.fontFamily;
       return fontString;
     },
@@ -1269,10 +1284,10 @@ function () {
       if (this.color_counter == this.colorArr.length) this.color_counter = 0;
     } else {
       ctx.fillStyle = this.color;
-    }
+    } //ctx.font = this.calculateFontSize(ctx);
 
-    ctx.font = this.calculateFontSize(ctx); //ctx.font = this.font;
 
+    ctx.font = this.font;
     ctx.textBaseline = 'middle';
 
     if (this.isUpperCase && typeof labeltext == 'string') {
@@ -4228,8 +4243,10 @@ function createChart(container, data) {
 
   exports.chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
 
+  var fontSizesList = [10, 14, 18];
+  var queryList = ['(min-width:320px) and (max-width:480px)', '(min-width:480px) and (max-width:768px)', '(min-width: 768px)'];
   exports.chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
-  .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"', true, 11, 320]).setOutline({
+  .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"', true, fontSizesList, queryList]).setOutline({
     width: 5,
     color: 'white'
   });
@@ -5686,7 +5703,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "2825" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "8661" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
