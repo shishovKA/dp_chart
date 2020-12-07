@@ -1135,8 +1135,11 @@ function () {
     this.display = true;
     this.color = 'black';
     this.color_counter = 0;
-    this.font = '16px serif';
+    this.fontFamily = 'serif';
     this.fontSize = 16;
+    this.isScalebale = false;
+    this.fontTarget = 12;
+    this.fontBase = 1000;
     this.position = 'bottom';
     this.offset = 0;
     this.rotationAngle = 0;
@@ -1167,13 +1170,63 @@ function () {
     }
 
     if (fontOptions) {
-      this.font = fontOptions[0] + "px " + fontOptions[1];
+      this.fontFamily = fontOptions[1];
       this.fontSize = +fontOptions[0];
+
+      if (fontOptions[2] !== undefined) {
+        this.isScalebale = fontOptions[2];
+      }
+
+      if (fontOptions[3] !== undefined) {
+        this.fontTarget = fontOptions[3];
+      }
+
+      if (fontOptions[4] !== undefined) {
+        this.fontBase = fontOptions[4];
+      }
     }
 
     this.onOptionsSetted.dispatch();
     return this;
   };
+
+  Label.prototype.calculateFontSize = function (ctx) {
+    if (this.isScalebale) {
+      var size = this.getRowHeight(ctx);
+      var fontString = size + "px " + this.fontFamily;
+      return fontString;
+    } else {
+      var fontString = this.fontSize + "px " + this.fontFamily;
+      return fontString;
+    }
+  };
+
+  Label.prototype.getRowHeight = function (ctx) {
+    if (this.isScalebale) {
+      var canvasWidth = ctx.canvas.clientWidth;
+      var ratio = this.fontTarget / this.fontBase; // calc ratio
+
+      var size = canvasWidth * ratio;
+
+      if (size > this.fontSize) {
+        size = this.fontSize;
+      }
+
+      return size;
+    } else {
+      return this.fontSize;
+    }
+  };
+
+  Object.defineProperty(Label.prototype, "font", {
+    get: function get() {
+      var size = this.fontSize;
+      var fontString = this.fontSize + "px " + this.fontFamily;
+      return fontString;
+    },
+    enumerable: false,
+    configurable: true
+  });
 
   Label.prototype.setOutline = function (options) {
     this.hasOutline = true;
@@ -1218,7 +1271,8 @@ function () {
       ctx.fillStyle = this.color;
     }
 
-    ctx.font = this.font;
+    ctx.font = this.calculateFontSize(ctx); //ctx.font = this.font;
+
     ctx.textBaseline = 'middle';
 
     if (this.isUpperCase && typeof labeltext == 'string') {
@@ -1841,7 +1895,7 @@ function () {
       if (!printText) printText = '';
       var printTextArr = printText.split('\\n');
       printTextArr.forEach(function (row, ind, mas) {
-        var coord = new Point_1.Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1) * _this.label.fontSize);
+        var coord = new Point_1.Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1) * _this.label.getRowHeight(ctx));
 
         _this.label.draw(ctx, coord, row);
       });
@@ -4175,7 +4229,7 @@ function createChart(container, data) {
   exports.chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
 
   exports.chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
-  .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"']).setOutline({
+  .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"', true, 11, 320]).setOutline({
     width: 5,
     color: 'white'
   });
@@ -5632,7 +5686,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "1462" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "2825" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
