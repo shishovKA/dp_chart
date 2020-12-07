@@ -90,7 +90,6 @@ export class Label {
 
 
     turnOnMediaQueries() {
-        console.log('turned on')
 
         this.queryList.forEach((q,ind)=>{
             const mediaQuery = window.matchMedia(q)
