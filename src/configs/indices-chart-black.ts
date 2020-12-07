@@ -63,8 +63,12 @@ export function createChart(container, data) {
   chart.addPlot('black_line', 'line', 1, '#000000', []); //черная линия
   chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
   chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
+
+  const fontSizesList = [10, 14, 18];
+  const queryList = ['(min-width:320px) and (max-width:480px)', '(min-width:480px) and (max-width:768px)', '(min-width: 768px)'];
+
   chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
-    .label.setOptions(true, 'black', 'top', 10+15+10, ['18', '"Transcript Pro"', true, 11, 320])
+    .label.setOptions(true, 'black', 'top', 10+15+10, ['18', '"Transcript Pro"', true, fontSizesList, queryList])
     .setOutline({ width: 5, color: 'white' })
 
   let seriesRow = calculateDeviationsVal(cbhRow, cbhRow[0]);

@@ -28,6 +28,9 @@ export class Label {
     offsetY?: number;
     isUpperCase: boolean = false;
 
+    fontSizeList: number[] = [];
+    queryList: string[] = []
+
     hasOutline: boolean = false;
     outlineOptions?: labelOutline;
 
@@ -64,19 +67,40 @@ export class Label {
         if (fontOptions) {
             this.fontFamily = fontOptions[1];
             this.fontSize = +fontOptions[0];
+            
             if (fontOptions[2] !== undefined) {
-                this.isScalebale = fontOptions[2];
+                
+                if (fontOptions[3] !== undefined) {
+                    this.fontSizeList = fontOptions[3];
+                }
+                if (fontOptions[4] !== undefined) {
+                    this.queryList = fontOptions[4];
+                }
+
+                this.turnOnMediaQueries();
+
             }
-            if (fontOptions[3] !== undefined) {
-                this.fontTarget = fontOptions[3];
-            }
-            if (fontOptions[4] !== undefined) {
-                this.fontBase = fontOptions[4];
-            }
+
+
         }
 
         this.onOptionsSetted.dispatch();
         return this;
+    }
+
+
+    turnOnMediaQueries() {
+        console.log('turned on')
+
+        this.queryList.forEach((q,ind)=>{
+            const mediaQuery = window.matchMedia(q)
+            mediaQuery.addEventListener("change", () => {
+                if (mediaQuery.matches) {
+                    this.fontSize = this.fontSizeList[ind];
+                }
+            });
+        })
+
     }
 
     calculateFontSize(ctx: CanvasRenderingContext2D): string {
@@ -105,7 +129,6 @@ export class Label {
     }
 
     get font(){
-        let size = this.fontSize;
         const fontString = `${this.fontSize}px ${this.fontFamily}`;
         return fontString
     }
@@ -159,8 +182,8 @@ export class Label {
             ctx.fillStyle = this.color;
         }
 
-        ctx.font = this.calculateFontSize(ctx);
-        //ctx.font = this.font;
+        //ctx.font = this.calculateFontSize(ctx);
+        ctx.font = this.font;
         ctx.textBaseline = 'middle';
         
         if ((this.isUpperCase) && (typeof labeltext == 'string')) {
