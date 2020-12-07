@@ -1,0 +1,27 @@
+@font-face {
+    font-family: 'Transcript Pro';
+    src: url('/TranscriptPro-Medium.ad2a07d1.woff2') format('woff2'),
+        url('/TranscriptPro-Medium.4aa5dda7.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Transcript Pro';
+    src: url('/TranscriptPro-Regular.c1549e78.woff2') format('woff2'),
+        url('/TranscriptPro-Regular.fdfee15c.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Transcript Pro';
+    src: url('/TranscriptPro-Light.dd6dbe1b.woff2') format('woff2'),
+        url('/TranscriptPro-Light.71d5f00d.woff') format('woff');
+    font-weight: 200;
+    font-style: normal;
+}
+
+/*# sourceMappingURL=/fonts.228ac311.css.map */
