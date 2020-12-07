@@ -89,7 +89,7 @@ export function createChart(container, data) {
   chart.yAxis.ticks.label.units = '%';
   // @ts-ignore
   chart.xAxis.ticks.setCustomLabels(xLabels);
-  chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+  chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', '5m', '3m', '2m', '1m', 'only year']);
   chart.xAxis.display = true;
 
   // настраиваем Min Max осей

@@ -37,7 +37,7 @@ export function createChart(container, data) {
   // @ts-ignore
   chart.xAxis.ticks.setCustomLabels(xLabels);
   chart.xAxis.display = true;
-  chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+  chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', '5m', '3m', '2m', '1m', 'only year']);
   chart.xAxis.ticks.display = true;
   chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
   chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"'])

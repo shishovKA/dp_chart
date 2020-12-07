@@ -580,12 +580,6 @@ export class Ticks {
 
     generateCustomDateTicksByOption(j: number, min: number, max: number, vp: Rectangle, ctx: CanvasRenderingContext2D): any[] {
 
-        function dateParser(myDate: string) {
-            const arr = myDate.split('.');
-            arr[2] = '20' + arr[2];
-            const date = new Date(+arr[2], +arr[1] - 1, +arr[0]);
-            return date;
-        }
 
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -615,17 +609,25 @@ export class Ticks {
         // @ts-ignore
         const partYear = this.customTicksOptions[j];
         switch (partYear) {
-            case 'half year':
+            case '5m':
                 yearDel = 2;
                 break;
 
-            case 'third year':
+            case '3m':
                 yearDel = 3;
                 break;
 
-            case 'quarter year':
+            case '2m':
                 yearDel = 4;
                 break;
+
+            case '1m':
+                yearDel = 6;
+                break;
+
+            case 'only year':
+                yearDel = 12;
+             break;
         }
 
         // @ts-ignore
@@ -718,7 +720,7 @@ export class Ticks {
         for (let i = 1; i < coords.length; i++) {
             const curRec = this.label.getlabelRect(ctx, coords[i], labels[i]);
             const preRec = this.label.getlabelRect(ctx, coords[i - 1], labels[i - 1]);
-            if (curRec.countDistBetweenRects(this.type, preRec) <= 0) return false;
+            if (curRec.countDistBetweenRects(this.type, preRec) <= 3) return false;
         }
         return true;
     }
