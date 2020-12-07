@@ -13,8 +13,13 @@ export class Label {
     color: string = 'black';
     colorArr?: string[];
     color_counter: number = 0;
-    font: string = '16px serif';
+
+    fontFamily: string = 'serif'
     fontSize: number = 16;
+    isScalebale: boolean = false;
+    fontTarget: number = 12;
+    fontBase: number = 1000;
+
     position: string = 'bottom';
     offset: number = 0;
     units?: string;
@@ -44,7 +49,7 @@ export class Label {
 
     }
 
-    setOptions(display: boolean, color?: string, position?: string, offset?: number, fontOptions?: string[], colorArr?: string[]) {
+    setOptions(display: boolean, color?: string, position?: string, offset?: number, fontOptions?: any[], colorArr?: string[]) {
         this.color = color || 'black';
         this.position = position || 'bottom';
         this.offset = offset || 0;
@@ -57,12 +62,52 @@ export class Label {
         }
 
         if (fontOptions) {
-            this.font = `${fontOptions[0]}px ${fontOptions[1]}`;
+            this.fontFamily = fontOptions[1];
             this.fontSize = +fontOptions[0];
+            if (fontOptions[2] !== undefined) {
+                this.isScalebale = fontOptions[2];
+            }
+            if (fontOptions[3] !== undefined) {
+                this.fontTarget = fontOptions[3];
+            }
+            if (fontOptions[4] !== undefined) {
+                this.fontBase = fontOptions[4];
+            }
         }
 
         this.onOptionsSetted.dispatch();
         return this;
+    }
+
+    calculateFontSize(ctx: CanvasRenderingContext2D): string {
+        if (this.isScalebale) {
+            const size = this.getRowHeight(ctx);
+            const fontString = `${size}px ${this.fontFamily}`;
+            return fontString
+        } else {
+            const fontString = `${this.fontSize}px ${this.fontFamily}`;
+            return fontString
+        }  
+    }
+
+    getRowHeight(ctx: CanvasRenderingContext2D): number {
+        if (this.isScalebale) {
+            const canvasWidth = ctx.canvas.clientWidth;
+            const ratio = this.fontTarget / this.fontBase;   // calc ratio
+            let size = canvasWidth * ratio;
+            if (size > this.fontSize) {
+                size = this.fontSize;
+            }
+            return size
+        } else {
+            return this.fontSize
+        } 
+    }
+
+    get font(){
+        let size = this.fontSize;
+        const fontString = `${this.fontSize}px ${this.fontFamily}`;
+        return fontString
     }
 
     setOutline(options: labelOutline) {
@@ -114,7 +159,8 @@ export class Label {
             ctx.fillStyle = this.color;
         }
 
-        ctx.font = this.font;
+        ctx.font = this.calculateFontSize(ctx);
+        //ctx.font = this.font;
         ctx.textBaseline = 'middle';
         
         if ((this.isUpperCase) && (typeof labeltext == 'string')) {

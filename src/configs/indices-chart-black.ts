@@ -64,7 +64,7 @@ export function createChart(container, data) {
   chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
   chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
   chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
-    .label.setOptions(true, 'black', 'top', 10+15+10, ['18', '"Transcript Pro"'])
+    .label.setOptions(true, 'black', 'top', 10+15+10, ['18', '"Transcript Pro"', true, 11, 320])
     .setOutline({ width: 5, color: 'white' })
 
   let seriesRow = calculateDeviationsVal(cbhRow, cbhRow[0]);

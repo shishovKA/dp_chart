@@ -179,7 +179,7 @@ export class Plot {
             let printTextArr = printText.split('\\n');
 
             printTextArr.forEach((row, ind, mas)=> {
-                const coord: Point = new Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1)*this.label.fontSize)
+                const coord: Point = new Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1)*this.label.getRowHeight(ctx))
                 this.label.draw(ctx, coord, row);
             });
             
