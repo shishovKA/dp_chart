@@ -60,7 +60,10 @@ export function createChart(container, data) {
   chart.yAxis.addCustomTicks(minTick);
 
   // создаем Plots
-  chart.addPlot('black_line', 'line', 1, '#000000', []); //черная линия
+
+  chart.addPlot('black_line', 'line', 1, '#000000', [], 'round') //черная линия
+  //chart.addPlot('black_line', 'line', 1, '#000000', [])._options.lineJoin = 'round';
+
   chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
   chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
 

@@ -11,7 +11,7 @@ interface plotOptions {
     mainSize: number;
     fontSize: number;
     char: string;
-
+    lineJoin: CanvasLineJoin;
 }
 
 //описание класса
@@ -37,6 +37,7 @@ export class Plot {
             fontSize: 10,
             char: '1',
             lineDash: [],
+            lineJoin: 'miter',
         };
 
         this.setOptions(options);
@@ -61,6 +62,7 @@ export class Plot {
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
                 this._options.lineDash = options[2];
+                this._options.lineJoin = options[3];
                 break;
 
             case 'area':
@@ -100,6 +102,7 @@ export class Plot {
         ctx.lineWidth = this._options.lineWidth;
         ctx.globalAlpha = 1;
         ctx.fillStyle = this._options.brushColor;
+        ctx.lineJoin = this._options.lineJoin;
 
         switch (this.type) {
             case 'dotted':
