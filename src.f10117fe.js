@@ -1796,7 +1796,7 @@ function () {
         this._options.lineWidth = options[0];
         this._options.lineColor = options[1];
         this._options.lineDash = options[2];
-        this._options.lineJoin = options[3];
+        if (options[3]) this._options.lineJoin = options[3];
         break;
 
       case 'area':
@@ -5706,7 +5706,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "10020" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "10976" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
