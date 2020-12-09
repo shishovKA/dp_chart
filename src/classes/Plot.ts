@@ -62,7 +62,7 @@ export class Plot {
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
                 this._options.lineDash = options[2];
-                this._options.lineJoin = options[3];
+                if (options[3]) this._options.lineJoin = options[3];
                 break;
 
             case 'area':
@@ -88,6 +88,7 @@ export class Plot {
                 this._options.lineColor = options[1];
                 break;
         }
+
     }
 
     get id(): string {
