@@ -1195,7 +1195,6 @@ function () {
   Label.prototype.turnOnMediaQueries = function () {
     var _this = this;
 
-    console.log('turned on');
     this.queryList.forEach(function (q, ind) {
       var mediaQuery = window.matchMedia(q);
       mediaQuery.addEventListener("change", function () {
@@ -1775,7 +1774,8 @@ function () {
       mainSize: 1,
       fontSize: 10,
       char: '1',
-      lineDash: []
+      lineDash: [],
+      lineJoin: 'miter'
     };
     this.setOptions(options);
     this.tooltips = [];
@@ -1796,6 +1796,7 @@ function () {
         this._options.lineWidth = options[0];
         this._options.lineColor = options[1];
         this._options.lineDash = options[2];
+        this._options.lineJoin = options[3];
         break;
 
       case 'area':
@@ -1836,6 +1837,7 @@ function () {
     ctx.lineWidth = this._options.lineWidth;
     ctx.globalAlpha = 1;
     ctx.fillStyle = this._options.brushColor;
+    ctx.lineJoin = this._options.lineJoin;
 
     switch (this.type) {
       case 'dotted':
@@ -4237,7 +4239,8 @@ function createChart(container, data) {
   minTick.label.display = false;
   exports.chart.yAxis.addCustomTicks(minTick); // создаем Plots
 
-  exports.chart.addPlot('black_line', 'line', 1, '#000000', []); //черная линия
+  exports.chart.addPlot('black_line', 'line', 1, '#000000', [], 'round'); //черная линия
+  //chart.addPlot('black_line', 'line', 1, '#000000', [])._options.lineJoin = 'round';
 
   exports.chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
 
@@ -5703,7 +5706,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "8661" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "10020" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
