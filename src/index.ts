@@ -49,6 +49,9 @@ WebFont.load({
       let chartData = csvToCols(data);
       let cbh1 = chartData[2].slice(1).map((el) => { return +el }).reverse();
       let cbh5 = chartData[1].slice(1).map((el) => { return +el }).reverse();
+
+      let cbh55 = chartData[1].slice(1).map((el) => { return (+el * -1) }).reverse();
+
       let xLabels = chartData[0].slice(1).map((el) => { return new Date(el) }).reverse();
       let zeroSeries = cbh1.map(() => 0);
 
@@ -59,9 +62,8 @@ WebFont.load({
       let texts = chartLables[2].slice(1).map((el) => { return el });
 
       
-
       // вызов функции создания графика из конфига .src/configs/indices-chart-colored.ts
-      createChart_article(chartContainer, [xLabels, cbh5, cbh1, zeroSeries, [x,y], texts]);
+      createChart_article(chartContainer, [xLabels, cbh5, cbh1, cbh55, zeroSeries, [x,y], texts]);
 
       })
     })

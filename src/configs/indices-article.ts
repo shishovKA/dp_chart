@@ -5,6 +5,9 @@ import { customLoadDataFromCsv, csvToCols } from "../scripts/helpers";
 export let chart: Chart;
 let cbh1: number[] = [];
 let cbh5: number[] = [];
+
+let cbh55: number[] = []; // additional serie
+
 let xLabels: Date[] = [];
 let zeroSeries: number[] = [];
 let seriesLabeled: number[][];
@@ -20,7 +23,7 @@ export function createChart(container, data) {
   //chart = new Chart(container, [0, 900], [0, 2000]);
   chart = new Chart(container, [0, 900], [0, 2000]);
 
-  [xLabels, cbh5, cbh1, zeroSeries, seriesLabeled, seriesText] = [...data];
+  [xLabels, cbh5, cbh1, cbh55, zeroSeries, seriesLabeled, seriesText] = [...data];
 
   // перевести данные в % если нужно (точка 0 = cbh5[0] и cbh1[0] соответсвенно)
   //let serie5star = calculateDeviationsVal(cbh5, cbh5[0]);
@@ -29,6 +32,7 @@ export function createChart(container, data) {
   // оставить исходные данные
   let serie5star = cbh5;
   let serie1star = cbh1;
+  let serie55star = cbh55;
   
   setLastUpdateDate(xLabels[xLabels.length - 1]);
 
@@ -75,6 +79,10 @@ export function createChart(container, data) {
   chart.addPlot('red_area', 'area_bottom', 0, '#FFE5E5', '#FFE5E5', 0);
   chart.addPlot('blue_line', 'line', 1, '#0070FF', []);
   chart.addPlot('blue_area', 'area_bottom', 0, '#D9EAFF', '#D9EAFF', 0);
+
+  chart.addPlot('green_line', 'line', 1, '#009e2f', []);
+  chart.addPlot('green_area', 'area_bottom', 0, '#75d993', '#75d993', 0);
+
   chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
   chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
     .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"'])
@@ -88,10 +96,11 @@ export function createChart(container, data) {
   chart.findPlotById('blue_line')?.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
 
   // circles
+  chart.findPlotById('green_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#009e2f', 4);
   chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
   chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
-  chart.findPlotById('black_line')?.addTooltip('ttId', 'circle_series', 3, '#ffffff', 'black', 4);
 
+  chart.findPlotById('green_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#009e2f', 4);
   chart.findPlotById('blue_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
   chart.findPlotById('red_line')?.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
 
@@ -99,6 +108,7 @@ export function createChart(container, data) {
   chart.findPlotById('red_line')?.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions(true, 'black', 'bottom', 14, ['12', '"Transcript Pro"']);
 
   // data
+  chart.findPlotById('green_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#009e2f', '#009e2f', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
   chart.findPlotById('red_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
   chart.findPlotById('blue_line')?.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
 
@@ -107,10 +117,14 @@ export function createChart(container, data) {
   chart.findPlotById('blue_line')?.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
 
   // создаем Series
+  chart.addSeriesRow('cyberHedge55_area', [serie55star]).setPlotsIds('green_area');
   chart.addSeriesRow('cyberHedge5_area', [serie5star]).setPlotsIds('blue_area');
   chart.addSeriesRow('cyberHedge1_area', [serie1star]).setPlotsIds('red_area');
+
+  chart.addSeriesRow('cyberHedge55_line', [serie55star]).setPlotsIds('green_line');
   chart.addSeriesRow('cyberHedge5_line', [serie5star]).setPlotsIds('blue_line');
   chart.addSeriesRow('cyberHedge1_line', [serie1star]).setPlotsIds('red_line');
+
   chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
   
   chart.addSeries('cyberHedge_labels', seriesLabeled, seriesText).setPlotsIds('labeled');
@@ -236,14 +250,16 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
   // let serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
 
   // оставить исходные данные
-  let serie5star = cbh5;
-  let serie1star = cbh1;
+  //let serie5star = cbh5;
+  //let serie1star = cbh1;
+  //let serie55star = cbh55;
 
-  chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star], false);
-  chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star], false);
-  chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star], false);
-  chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star], false);
-  chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries], false);
+  //chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star], false);
+  //chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star], false);
+  //chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star], false);
+  //chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star], false);
+  //chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star], false);
+  //chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries], false);
 
   if (onlyData) {
     // @ts-ignore

@@ -10,6 +10,7 @@ import { BackGround } from "./BackGround";
 import { Signal } from "signals";
 import { SeriesBase } from "./series/SeriesBase";
 import { SeriesXY } from "./series/SeriesXY";
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "constants";
 
 export class Chart {
 
@@ -326,37 +327,65 @@ export class Chart {
         })
 
         // рассталкиваем друг от друга боковые тултипы
+
+
+        
         // @ts-ignore
         data_y_end_buf.sort((a, b) => a[1].y - b[1].y);
 
-        for (let i = 0; i < data_y_end_buf.length - 1; i++) {
-            // @ts-ignore
-            const rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
-            // @ts-ignore
-            const rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
+        let hasOverlap = true;
+        let counter = 0;
 
-            if (rect1.y2 > rect2.y1) {
-
-                const abs = Math.abs(rect1.y2 - rect2.y1);
-
-                let abs1 = -abs * 0.5;
-                let abs2 = abs * 0.5;
-
-                if (Math.abs(rect1.y1 - this.canvasTT.viewport.y1) < Math.abs(abs1)) {
-                    abs1 = -Math.abs(rect1.y1 - this.canvasTT.viewport.y1);
-                    abs2 = (abs + abs1);
-                }
-
-                if (Math.abs(rect2.y2 - this.canvasTT.viewport.y2) < abs2) {
-                    abs2 = -Math.abs(rect1.y2 - this.canvasTT.viewport.y2);
-                    abs1 = -(abs - abs2);
-                }
+        while ((hasOverlap) && (counter < data_y_end_buf.length*data_y_end_buf.length)) {
+            // код
+            // также называемый "телом цикла"
+            
+            counter = counter + 1 ;
+            for (let i = 0; i < data_y_end_buf.length - 1; i++) {
                 // @ts-ignore
-                data_y_end_buf[i][1].y = data_y_end_buf[i][1].y + abs1;
+                const rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
                 // @ts-ignore
-                data_y_end_buf[i + 1][1].y = data_y_end_buf[i + 1][1].y + abs2;
+                const rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
+
+                if (rect1.y2 > rect2.y1) {
+
+                    const abs = Math.abs(rect1.y2 - rect2.y1);
+
+                    let abs1 = -abs * 0.5;
+                    let abs2 = abs * 0.5;
+
+                    if (Math.abs(rect1.y1 - this.canvasTT.viewport.y1) < Math.abs(abs1)) {
+                        abs1 = -Math.abs(rect1.y1 - this.canvasTT.viewport.y1);
+                        abs2 = (abs + abs1);
+                    }
+
+                    if (Math.abs(rect2.y2 - this.canvasTT.viewport.y2) < abs2) {
+                        abs2 = -Math.abs(rect1.y2 - this.canvasTT.viewport.y2);
+                        abs1 = -(abs - abs2);
+                    }
+                    // @ts-ignore
+                    data_y_end_buf[i][1].y = data_y_end_buf[i][1].y + abs1;
+                    // @ts-ignore
+                    data_y_end_buf[i + 1][1].y = data_y_end_buf[i + 1][1].y + abs2;
+                }
             }
+
+            hasOverlap = false;
+
+            for (let i = 0; i < data_y_end_buf.length - 1; i++) {
+                // @ts-ignore
+                const rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
+                // @ts-ignore
+                const rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
+                if (rect1.y2 > rect2.y1) {
+                    hasOverlap = true;
+                }
+            }
+
         }
+
+        
+
 // @ts-ignore
         data_y_end_buf.forEach((ttRow) => {
             ttRow[0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, ttRow[1], ttRow[2], 0, true);
