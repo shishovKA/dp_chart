@@ -93,20 +93,26 @@ export function createChart(container, data) {
   chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
-  //обавляем фон
-  chart.addBackGround('coloredGrid_cbh');
+
+  // задаем отступы для области отрисовки
+  chart.setCanvasPaddings(60, 60, 60, 60);
 
   // делаем квадратное соотношение
   chart.switchResolution();
-  // задаем отступы для области отрисовки
-  chart.setCanvasPaddings(60, 60, 60, 60);
+ 
+  //обавляем фон
+  chart.addBackGround('coloredGrid_cbh');
+
+  chart.refresh();
 
   // элементы управления
   const randBtn = document.getElementById('rand_btn');
   //@ts-ignore
   randBtn.addEventListener('click', () => {
     reorganizeChart();
-  })
+  });
+
+  
 }
 
 

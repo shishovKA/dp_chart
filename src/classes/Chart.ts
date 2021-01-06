@@ -52,6 +52,12 @@ export class Chart {
     }
 
 
+    refresh() {
+       this.xAxis.refresh();
+       this.yAxis.refresh(); 
+    }
+
+
     switchResolution() {
         this.xAxis.canvas.squareRes = true;
         this.yAxis.canvas.squareRes = true;
@@ -71,14 +77,12 @@ export class Chart {
         //min max
         this.xAxis.onMinMaxSetted.add((hasPlotAnimation) => {
             // @ts-ignore
-            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             this.tooltipsDraw(true);
         });
 
         //min max
         this.yAxis.onMinMaxSetted.add((hasPlotAnimation) => {
-            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             if (hasPlotAnimation) this.seriesUpdatePlotData();
             this.tooltipsDraw(true);
         });

@@ -39,11 +39,13 @@ export class Ticks {
     onOptionsSetted: Signal;
     onCustomLabelsAdded: Signal;
     onCoordsChanged: Signal;
+    onCoordsChangedLast: Signal;
 
     constructor(axistype: string) {
         this.onOptionsSetted = new Signal();
         this.onCustomLabelsAdded = new Signal();
         this.onCoordsChanged = new Signal();
+        this.onCoordsChangedLast = new Signal();
 
         this.coords = [];
         this.values = [];
@@ -150,6 +152,7 @@ export class Ticks {
                 break;
 
             case 'customDateTicks':
+                //coords = this.generateFixedCountTicksDate(min, max, vp);
                 coords = this.generateCustomDateTicks(min, max, vp, ctx);
                 break;
 
@@ -175,20 +178,23 @@ export class Ticks {
             const from = this.makeFromPointArr(this.coords, coords);
 
             if (from.length == 0) {
-                this.coords = coords;
+                this.coords = [...coords];
                 this.onCoordsChanged.dispatch();
+                this.onCoordsChangedLast.dispatch();
                 return this;
             }
 
-            this.coords = from;
+            this.coords = [...from];
             this.onCoordsChanged.dispatch();
+            this.onCoordsChangedLast.dispatch();
             this.tickCoordAnimation(from, coords, this.animationDuration);
 
             return this
         }
 
-        this.coords = coords;
+        this.coords = [...coords];
         this.onCoordsChanged.dispatch();
+        this.onCoordsChangedLast.dispatch();
     }
 
     generateOneTick(min: number, max: number, vp: Rectangle, value: number) {
@@ -296,6 +302,66 @@ export class Ticks {
         return coords;
     }
 
+    generateFixedCountTicksDate(min: number, max: number, vp: Rectangle) {
+        let coords = [];
+        this.values = [];
+        this.labels = [];
+        let stepCoord = 0;
+        let rectXY: number[] = [];
+        const transformer = new Transformer();
+
+        let stepValue = Math.abs(max - min) / this.count;
+
+        switch (this.type) {
+            case 'vertical':
+                stepCoord = vp.height / this.count;
+                rectXY = [0, min, 1, max];
+                break;
+
+            case 'horizontal':
+                stepCoord = vp.width / this.count;
+                rectXY = [min, 0, max, 1];
+                break;
+        }
+
+        const fromRect = new Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
+
+
+        for (let i = 0; i <= this.count; i++) {
+
+            let pointXY: number[] = [];
+
+            let value = min + i * stepValue;
+
+            if (this.hasCustomLabels) {
+                value = Math.round(value);
+                // @ts-ignore
+                this.labels.push(this.customLabels[value].toLocaleDateString('en'));
+                //const labelText = (this.labels[ind]).toLocaleDateString('en');
+            } else {
+                this.labels.push(value.toFixed(2).toString());
+            }
+
+            switch (this.type) {
+                case 'vertical':
+                    pointXY = [0, value];
+                    break;
+
+                case 'horizontal':
+                    pointXY = [value, 0];
+                    break;
+            }
+
+            const valuePoint = new Point(pointXY[0], pointXY[1]);
+            const coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+            coords.push(coordPoint);
+            this.values.push(value);
+
+        }
+
+        return coords;
+    }
+
 
     generateFixedCountTicks(min: number, max: number, vp: Rectangle) {
         let coords = [];
@@ -332,6 +398,7 @@ export class Ticks {
                 value = Math.round(value);
                 // @ts-ignore
                 this.labels.push(this.customLabels[value]);
+                //const labelText = (this.labels[ind]).toLocaleDateString('en');
             } else {
                 this.labels.push(value.toFixed(2).toString());
             }
@@ -516,11 +583,17 @@ export class Ticks {
                 this.values = values;
                 this.labels = labels;
 
+                if (coords.length <= 2) {
+                    coords = this.generateFixedCountTicksDate(min, max, vp);
+                }
                 return coords;
             }
 
         }
 
+        if (coords.length <= 2) {
+            coords = this.generateFixedCountTicksDate(min, max, vp);
+        }
         return coords;
     }
 
@@ -542,14 +615,15 @@ export class Ticks {
                 return new Point(from[i].x + (to[i].x - from[i].x) * timeFraction, from[i].y + (to[i].y - from[i].y) * timeFraction);
             });
 
-            this.coords = tek;
+            this.coords = [...tek];
             this.onCoordsChanged.dispatch();
 
             if (tekTime < 1) {
                 requestAnimationFrame(animate);
             } else {
-                this.coords = to;
+                this.coords = [...to];
                 this.onCoordsChanged.dispatch();
+                this.onCoordsChangedLast.dispatch();
             }
 
         }
@@ -731,6 +805,7 @@ export class Ticks {
             if (this.display) this.drawTick(ctx, tickCoord);
             if (this.label.display) this.label.draw(ctx, tickCoord, this.labels[i]);
         });
+        //console.log(this.coords);
     }
 
 

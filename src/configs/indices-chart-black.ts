@@ -84,18 +84,18 @@ export function createChart(container, data) {
   chart.addSeries('cyberHedge_labels', seriesL, seriesText).setPlotsIds('labeled');
 
   // настраиваем Min Max осей
-  chart.xAxis.setMinMax(chart.data.findExtremes('val'), false); //по экстремумам оси X
-  chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), false); //scale to fit по Y
-  chart.yAxis.setMinMax([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], false); //добавляем по отступам как на сайте
-
+  chart.xAxis.setMinMaxStatic(chart.data.findExtremes('val')); //по экстремумам оси X
+  chart.yAxis.setMinMaxStatic(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max)); //scale to fit по Y
+  chart.yAxis.setMinMaxStatic([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length]); //добавляем по отступам как на сайте
 
   //включаем анимацию
   chart.xAxis.ticks.switchAnimation(true, 300);
   chart.yAxis.ticks.switchAnimation(true, 300);
   chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
-  chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
+  chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
 
+  chart.refresh();
 }
 
 

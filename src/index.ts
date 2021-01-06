@@ -71,6 +71,8 @@ WebFont.load({
         console.log(err);
       })
 
+    
+
     // черно-белый график
     customLoadDataFromCsv(EU).then((data) => { //загружаем первый CSV с данными для серии
 
@@ -95,6 +97,8 @@ WebFont.load({
       .catch((err) => {
         console.log(err);
       });
+
+    
 
 
     // цветной график CBH-indices-colored
@@ -147,7 +151,9 @@ WebFont.load({
       .catch((err) => {
         console.log(err);
       })
-
+  
+      /*
+  */
 
   },
 });

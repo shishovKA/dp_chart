@@ -111,13 +111,16 @@ export function createChart(container, data) {
   chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), true); //scale to fit по Y
   chart.yAxis.setMinMax([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], true); //добавляем по отступам как на сайте
 
+  chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
+
   //включаем анимацию
   chart.xAxis.ticks.switchAnimation(true, 300);
   chart.yAxis.ticks.switchAnimation(true, 300);
   chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
-  chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
+
+  chart.refresh();
 
 }
 
@@ -153,13 +156,9 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
 
       // @ts-ignore
       customLoadDataFromCsv(link.href).then((data) => {
-        // @ts-ignore
-        console.log(data);
 
         // @ts-ignore
         let chartData = csvToCols(data);
-
-        console.log(chartData);
 
         cbh1 = chartData[2].slice(1).map((el) => { return +el });
         cbh5 = chartData[1].slice(1).map((el) => { return +el });

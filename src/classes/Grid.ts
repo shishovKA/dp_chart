@@ -21,13 +21,11 @@ export class Grid {
     }
 
     setOptions(display: boolean, color:string, width: number, lineDash: number[]) {
-        
         this.display = display;
         this.width = width;
         this.color = color;
         this.lineDash = lineDash;
-
-        this.onOptionsSetted.dispatch();
+        this.onOptionsSetted.dispatch(); 
     }
 
     draw(ctx: CanvasRenderingContext2D, vp:Rectangle, coords: Point[]) {

@@ -76,6 +76,11 @@ export class Axis {
         this.bindSignals();
     }
 
+    refresh() {
+        this.createTicks();
+        this.draw();
+    }
+
     bindSignals() {
         
         this.onMinMaxSetted.add(() => {
@@ -88,7 +93,7 @@ export class Axis {
         })
 
         this.onCustomTicksAdded.add(()=>{
-            this.createTicks();
+            //this.createTicks(true);
             this.draw();
         })
 
@@ -107,18 +112,18 @@ export class Axis {
         });
 
         this.canvas.onPaddingsSetted.add(() => {
-            this.createTicks();
+            //this.createTicks(true);
             this.draw();
         });
 
         //ticks
         this.ticks.onOptionsSetted.add(() => {
-            this.createTicks();
+            //this.createTicks(true);
             this.draw();
         });
 
         this.ticks.onCustomLabelsAdded.add(() => {
-            this.createTicks();
+            //this.createTicks(true);
             this.draw();
         });
 
@@ -186,19 +191,34 @@ export class Axis {
             break;
         }
 
-        /*
-        if (duration) {
-            this.axisRangeAnimation(from, to, duration);
-            return;
-        }
-        */
-   
         this.min = to[0];
-        
         this.max = to[1];
         
         this.onMinMaxSetted.dispatch(hasPlotAnimation);
+    }
 
+    setMinMaxStatic(MinMax: number[]) {
+        let to:number[] = [];
+        let from:number[] = [];
+
+        from = [this.min, this.max];
+
+        switch (MinMax.length) {
+            case 0:
+                to = [0, 100];
+            break;
+
+            case 1:
+                to = [MinMax[0], 100];
+            break;
+
+            case 2:
+                to = [MinMax[0], MinMax[1]];
+            break;
+        }
+
+        this.min = to[0];
+        this.max = to[1];
     }
 
     draw() {
@@ -215,6 +235,7 @@ export class Axis {
             this.customTicks.forEach((ticks) => {
                 ticks.draw(ctx, this.canvas.viewport);
             })
+
             if (this.grid.display) this.grid.draw(ctx, this.canvas.viewport, this.ticks.coords);
             
             this.drawAxisName();
@@ -236,7 +257,7 @@ export class Axis {
     }
 
     addCustomTicks(ticks: Ticks) {
-        ticks.onCoordsChanged.add(() => {
+        ticks.onCoordsChangedLast.add(() => {
             this.draw();
         });
         this.customTicks.push(ticks);
@@ -311,24 +332,5 @@ export class Axis {
         }
     }
 
-/*
-    axisRangeAnimation(from: number[], to: number[], duration: number) {
-        
-        let start = performance.now();
-        
-        const animate = (time) => {
-            let timeFraction = (time - start) / duration;
-            if (timeFraction > 1) timeFraction = 1;
-            this.min = from[0]+(to[0] - from[0])*timeFraction;
-            this.max = from[1]+(to[1] - from[1])*timeFraction;
-            this.onMinMaxSetted.dispatch();
-            if (timeFraction < 1) {
-                requestAnimationFrame(animate);
-            }
-        }
-
-        requestAnimationFrame(animate);
-    }
-*/
 
   }

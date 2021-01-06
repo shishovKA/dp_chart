@@ -108,7 +108,7 @@ export function createChart(container, data) {
   chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
 
-  chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
+  chart.setCanvasPaddings(25, 60, 40, 40); // задаем отступы для области отрисовки
 
 }
 
@@ -272,7 +272,7 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
 
   if (onlyData) {
     // @ts-ignore
-    chart.xAxis.ticks.setCustomLabels(xLabels);
+    //chart.xAxis.ticks.setCustomLabels(xLabels);
     chart.xAxis.setMinMax([min, max], false);
     const MinMaxY = chart.data.findExtremes('ind', min, max);
     const lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);

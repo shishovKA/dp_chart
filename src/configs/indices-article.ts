@@ -124,23 +124,23 @@ export function createChart(container, data) {
   chart.addSeriesRow('cyberHedge55_line', [serie55star]).setPlotsIds('green_line');
   chart.addSeriesRow('cyberHedge5_line', [serie5star]).setPlotsIds('blue_line');
   chart.addSeriesRow('cyberHedge1_line', [serie1star]).setPlotsIds('red_line');
-
   chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
-  
   chart.addSeries('cyberHedge_labels', seriesLabeled, seriesText).setPlotsIds('labeled');
-
-  // настраиваем Min Max осей
-  chart.xAxis.setMinMax(chart.data.findExtremes('val'), true); //по экстремумам оси X
-  chart.yAxis.setMinMax(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max), true); //scale to fit по Y
-  chart.yAxis.setMinMax([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], true); //добавляем по отступам как на сайте
 
   //включаем анимацию
   chart.xAxis.ticks.switchAnimation(true, 300);
   chart.yAxis.ticks.switchAnimation(true, 300);
   chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
+  
+  // настраиваем Min Max осей
+  chart.xAxis.setMinMaxStatic(chart.data.findExtremes('val')); //по экстремумам оси X
+  chart.yAxis.setMinMaxStatic(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max)); //scale to fit по Y
+  chart.yAxis.setMinMaxStatic([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length]); //добавляем по отступам как на сайте
 
-  chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
+  chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
+
+  chart.refresh();
 }
 
 
@@ -212,6 +212,11 @@ function calculateDeviationsVal(rowData: number[], zeroPoint: number) {
         min = 0;
 
       switch (item.innerHTML) {
+        case '2D':
+          minDate = new Date(new Date(maxDate.getTime()).setDate(maxDate.getDate() - 2));
+          min = findDateInd(minDate);
+          break;
+
         case '6M':
           minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
           min = findDateInd(minDate);
@@ -265,7 +270,6 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData?: boolean) {
     // @ts-ignore
     chart.xAxis.setMinMax([min, max], false);
     // @ts-ignore
-    chart.xAxis.ticks.setCustomLabels(xLabels);
     const MinMaxY = chart.data.findExtremes('ind', min, max);
     const lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
     chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
