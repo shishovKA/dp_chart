@@ -132,13 +132,12 @@ export function createChart(container, data) {
   chart.yAxis.ticks.switchAnimation(true, 300);
   chart.switchDataAnimation(true, 300);
   chart.data.changeAllSeriesAnimationTimeFunction(easing);
+  chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
   
   // настраиваем Min Max осей
   chart.xAxis.setMinMaxStatic(chart.data.findExtremes('val')); //по экстремумам оси X
   chart.yAxis.setMinMaxStatic(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max)); //scale to fit по Y
   chart.yAxis.setMinMaxStatic([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length]); //добавляем по отступам как на сайте
-
-  chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
 
   chart.refresh();
 }

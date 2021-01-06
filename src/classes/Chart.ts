@@ -73,6 +73,16 @@ export class Chart {
 
 
     bindChildSignals() {
+
+        this.xAxis.onRefreshed.add(() => {
+            this.seriesUpdatePlotData();
+            this.tooltipsDraw(true);
+        });
+
+        this.yAxis.onRefreshed.add(() => {
+            this.seriesUpdatePlotData();
+            this.tooltipsDraw(true);
+        });
         
         //min max
         this.xAxis.onMinMaxSetted.add((hasPlotAnimation) => {

@@ -39,6 +39,7 @@ export class Axis {
 
     grid: Grid;
 
+    onRefreshed: Signal;
     onOptionsSetted: Signal;
     onMinMaxSetted: Signal;
     onCustomTicksAdded: Signal;
@@ -46,6 +47,7 @@ export class Axis {
     
     constructor( MinMax: number[], type: string, container: HTMLElement) {
         
+        this.onRefreshed = new Signal();
         this.onOptionsSetted = new Signal();
         this.onMinMaxSetted = new Signal();
         this.onCustomTicksAdded = new Signal();
@@ -79,6 +81,7 @@ export class Axis {
     refresh() {
         this.createTicks();
         this.draw();
+        this.onRefreshed.dispatch();
     }
 
     bindSignals() {
@@ -227,7 +230,6 @@ export class Axis {
         if (ctx) {
 
             this.canvas.clear();
-            const axisVp = this.axisViewport;
             
             if (this.display) this.drawAxis();
             
