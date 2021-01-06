@@ -2919,6 +2919,7 @@ function () {
     this.gridOn = false;
     this.customTicks = [];
     this.legends = [];
+    this.onRefreshed = new signals_1.Signal();
     this.onOptionsSetted = new signals_1.Signal();
     this.onMinMaxSetted = new signals_1.Signal();
     this.onCustomTicksAdded = new signals_1.Signal();
@@ -2944,6 +2945,7 @@ function () {
   Axis.prototype.refresh = function () {
     this.createTicks();
     this.draw();
+    this.onRefreshed.dispatch();
   };
 
   Axis.prototype.bindSignals = function () {
@@ -3085,7 +3087,6 @@ function () {
 
     if (ctx) {
       this.canvas.clear();
-      var axisVp = this.axisViewport;
       if (this.display) this.drawAxis();
       this.ticks.draw(ctx, this.canvas.viewport);
       this.customTicks.forEach(function (ticks) {
@@ -3844,8 +3845,18 @@ function () {
   };
 
   Chart.prototype.bindChildSignals = function () {
-    var _this = this; //min max
+    var _this = this;
 
+    this.xAxis.onRefreshed.add(function () {
+      _this.seriesUpdatePlotData();
+
+      _this.tooltipsDraw(true);
+    });
+    this.yAxis.onRefreshed.add(function () {
+      _this.seriesUpdatePlotData();
+
+      _this.tooltipsDraw(true);
+    }); //min max
 
     this.xAxis.onMinMaxSetted.add(function (hasPlotAnimation) {
       // @ts-ignore
@@ -4878,11 +4889,11 @@ function createChart(container, data) {
   exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', '5m', '3m', '2m', '1m', 'only year']);
   exports.chart.xAxis.display = true; // настраиваем Min Max осей
 
-  exports.chart.xAxis.setMinMax(exports.chart.data.findExtremes('val'), true); //по экстремумам оси X
+  exports.chart.xAxis.setMinMaxStatic(exports.chart.data.findExtremes('val')); //по экстремумам оси X
 
-  exports.chart.yAxis.setMinMax(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max), true); //scale to fit по Y
+  exports.chart.yAxis.setMinMaxStatic(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max)); //scale to fit по Y
 
-  exports.chart.yAxis.setMinMax([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], true); //добавляем по отступам как на сайте
+  exports.chart.yAxis.setMinMaxStatic([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], true); //добавляем по отступам как на сайте
   //включаем анимацию
 
   var bezier = require('bezier-easing');
@@ -4894,6 +4905,8 @@ function createChart(container, data) {
   exports.chart.switchDataAnimation(true, 300);
   exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
   exports.chart.setCanvasPaddings(25, 60, 40, 40); // задаем отступы для области отрисовки
+
+  exports.chart.refresh();
 }
 
 exports.createChart = createChart; // подготоваливает данные для Chart
@@ -5472,15 +5485,15 @@ function createChart(container, data) {
   exports.chart.xAxis.ticks.switchAnimation(true, 300);
   exports.chart.yAxis.ticks.switchAnimation(true, 300);
   exports.chart.switchDataAnimation(true, 300);
-  exports.chart.data.changeAllSeriesAnimationTimeFunction(easing); // настраиваем Min Max осей
+  exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
+  exports.chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
+  // настраиваем Min Max осей
 
   exports.chart.xAxis.setMinMaxStatic(exports.chart.data.findExtremes('val')); //по экстремумам оси X
 
   exports.chart.yAxis.setMinMaxStatic(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max)); //scale to fit по Y
 
   exports.chart.yAxis.setMinMaxStatic([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length]); //добавляем по отступам как на сайте
-
-  exports.chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
 
   exports.chart.refresh();
 }
@@ -5852,7 +5865,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "9315" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "13212" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
