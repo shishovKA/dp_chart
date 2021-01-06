@@ -96,7 +96,7 @@ export function createChart(container, data) {
 
   chart.xAxis.setMinMaxStatic(chart.data.findExtremes('val')); //по экстремумам оси X
   chart.yAxis.setMinMaxStatic(chart.data.findExtremes('ind', chart.xAxis.min, chart.xAxis.max)); //scale to fit по Y
-  chart.yAxis.setMinMaxStatic([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length], true); //добавляем по отступам как на сайте
+  chart.yAxis.setMinMaxStatic([chart.yAxis.min - gapY * chart.yAxis.length, chart.yAxis.max + gapY * chart.yAxis.length]); //добавляем по отступам как на сайте
 
   //включаем анимацию
   const bezier = require('bezier-easing');
@@ -110,6 +110,7 @@ export function createChart(container, data) {
 
   chart.setCanvasPaddings(25, 60, 40, 40); // задаем отступы для области отрисовки
 
+  //generate inital data
   chart.refresh();
 }
 

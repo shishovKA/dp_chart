@@ -630,6 +630,7 @@ var Axis = /** @class */ (function () {
         this.gridOn = false;
         this.customTicks = [];
         this.legends = [];
+        this.onRefreshed = new signals_1.Signal();
         this.onOptionsSetted = new signals_1.Signal();
         this.onMinMaxSetted = new signals_1.Signal();
         this.onCustomTicksAdded = new signals_1.Signal();
@@ -651,6 +652,11 @@ var Axis = /** @class */ (function () {
         this.bindChildSignals();
         this.bindSignals();
     }
+    Axis.prototype.refresh = function () {
+        this.createTicks();
+        this.draw();
+        this.onRefreshed.dispatch();
+    };
     Axis.prototype.bindSignals = function () {
         var _this = this;
         this.onMinMaxSetted.add(function () {
@@ -661,7 +667,7 @@ var Axis = /** @class */ (function () {
             _this.draw();
         });
         this.onCustomTicksAdded.add(function () {
-            _this.createTicks();
+            //this.createTicks(true);
             _this.draw();
         });
         this.onNameSetted.add(function () {
@@ -676,16 +682,16 @@ var Axis = /** @class */ (function () {
             _this.draw();
         });
         this.canvas.onPaddingsSetted.add(function () {
-            _this.createTicks();
+            //this.createTicks(true);
             _this.draw();
         });
         //ticks
         this.ticks.onOptionsSetted.add(function () {
-            _this.createTicks();
+            //this.createTicks(true);
             _this.draw();
         });
         this.ticks.onCustomLabelsAdded.add(function () {
-            _this.createTicks();
+            //this.createTicks(true);
             _this.draw();
         });
         this.ticks.onCoordsChanged.add(function () {
@@ -745,22 +751,33 @@ var Axis = /** @class */ (function () {
                 to = [MinMax[0], MinMax[1]];
                 break;
         }
-        /*
-        if (duration) {
-            this.axisRangeAnimation(from, to, duration);
-            return;
-        }
-        */
         this.min = to[0];
         this.max = to[1];
         this.onMinMaxSetted.dispatch(hasPlotAnimation);
+    };
+    Axis.prototype.setMinMaxStatic = function (MinMax) {
+        var to = [];
+        var from = [];
+        from = [this.min, this.max];
+        switch (MinMax.length) {
+            case 0:
+                to = [0, 100];
+                break;
+            case 1:
+                to = [MinMax[0], 100];
+                break;
+            case 2:
+                to = [MinMax[0], MinMax[1]];
+                break;
+        }
+        this.min = to[0];
+        this.max = to[1];
     };
     Axis.prototype.draw = function () {
         var _this = this;
         var ctx = this.canvas.ctx;
         if (ctx) {
             this.canvas.clear();
-            var axisVp = this.axisViewport;
             if (this.display)
                 this.drawAxis();
             this.ticks.draw(ctx, this.canvas.viewport);
@@ -787,7 +804,7 @@ var Axis = /** @class */ (function () {
     };
     Axis.prototype.addCustomTicks = function (ticks) {
         var _this = this;
-        ticks.onCoordsChanged.add(function () {
+        ticks.onCoordsChangedLast.add(function () {
             _this.draw();
         });
         this.customTicks.push(ticks);
@@ -1151,6 +1168,10 @@ var Chart = /** @class */ (function () {
         this.bindChildSignals();
         this.tooltipsDraw(true);
     }
+    Chart.prototype.refresh = function () {
+        this.xAxis.refresh();
+        this.yAxis.refresh();
+    };
     Chart.prototype.switchResolution = function () {
         this.xAxis.canvas.squareRes = true;
         this.yAxis.canvas.squareRes = true;
@@ -1163,17 +1184,23 @@ var Chart = /** @class */ (function () {
     };
     Chart.prototype.bindChildSignals = function () {
         var _this = this;
+        this.xAxis.onRefreshed.add(function () {
+            _this.seriesUpdatePlotData();
+            _this.tooltipsDraw(true);
+        });
+        this.yAxis.onRefreshed.add(function () {
+            _this.seriesUpdatePlotData();
+            _this.tooltipsDraw(true);
+        });
         //min max
         this.xAxis.onMinMaxSetted.add(function (hasPlotAnimation) {
             // @ts-ignore
-            //this.xAxis.createTicks(this.xAxis.min, this.xAxis.max, this.xAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             if (hasPlotAnimation)
                 _this.seriesUpdatePlotData();
             _this.tooltipsDraw(true);
         });
         //min max
         this.yAxis.onMinMaxSetted.add(function (hasPlotAnimation) {
-            //this.yAxis.createTicks(this.yAxis.min, this.yAxis.max, this.yAxis.getaxisViewport(this.canvasA.viewport), this.canvasA.ctx);
             if (hasPlotAnimation)
                 _this.seriesUpdatePlotData();
             _this.tooltipsDraw(true);
@@ -1328,6 +1355,7 @@ var Chart = /** @class */ (function () {
             var seriesY = _this.yAxis.max - mouseXY.y * (_this.yAxis.length) / _this.canvasTT.viewport.height;
             var sriesP = new Point_1.Point(seriesX, seriesY);
             var _a = series.getClosestDataPointX(sriesP), pointData = _a[0], tt_ind = _a[1];
+            var _b = series.getClosestDataPointXY(sriesP), pointDataXY = _b[0], tt_ind_XY = _b[1];
             var tooltipCoordX = series.getClosestPlotPointX(new Point_1.Point(mouseXY.x + _this.canvasTT.left, mouseXY.y + _this.canvasTT.top));
             var tooltipCoordXY = series.getClosestPlotPointXY(new Point_1.Point(mouseXY.x + _this.canvasTT.left, mouseXY.y + _this.canvasTT.top));
             _this.tooltipsDataIndexUpdated.dispatch(pointData.x);
@@ -1376,10 +1404,10 @@ var Chart = /** @class */ (function () {
                                     break;
                                 case 'data_label':
                                     // @ts-ignore
-                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoordXY.x, tooltipCoordXY.y), pointData, tt_ind);
+                                    tooltip.drawTooltip(_this.canvasTT.ctx, _this.canvasTT.viewport, new Point_1.Point(tooltipCoordXY.x, tooltipCoordXY.y), pointDataXY, tt_ind_XY);
                                     // @ts-ignore
                                     if (plot.type == 'unicode')
-                                        plot.drawPlot(_this.canvasTT.ctx, [tooltipCoordXY], _this.canvasTT.viewport, true);
+                                        plot.drawPlot(_this.canvasTT.ctx, [tooltipCoordXY], _this.canvasTT.viewport, '', true);
                                     break;
                                 default:
                                     // @ts-ignore
@@ -1395,27 +1423,44 @@ var Chart = /** @class */ (function () {
         // рассталкиваем друг от друга боковые тултипы
         // @ts-ignore
         data_y_end_buf.sort(function (a, b) { return a[1].y - b[1].y; });
-        for (var i = 0; i < data_y_end_buf.length - 1; i++) {
-            // @ts-ignore
-            var rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
-            // @ts-ignore
-            var rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
-            if (rect1.y2 > rect2.y1) {
-                var abs = Math.abs(rect1.y2 - rect2.y1);
-                var abs1 = -abs * 0.5;
-                var abs2 = abs * 0.5;
-                if (Math.abs(rect1.y1 - this.canvasTT.viewport.y1) < Math.abs(abs1)) {
-                    abs1 = -Math.abs(rect1.y1 - this.canvasTT.viewport.y1);
-                    abs2 = (abs + abs1);
-                }
-                if (Math.abs(rect2.y2 - this.canvasTT.viewport.y2) < abs2) {
-                    abs2 = -Math.abs(rect1.y2 - this.canvasTT.viewport.y2);
-                    abs1 = -(abs - abs2);
-                }
+        var hasOverlap = true;
+        var counter = 0;
+        while ((hasOverlap) && (counter < data_y_end_buf.length * data_y_end_buf.length)) {
+            // код
+            // также называемый "телом цикла"
+            counter = counter + 1;
+            for (var i = 0; i < data_y_end_buf.length - 1; i++) {
                 // @ts-ignore
-                data_y_end_buf[i][1].y = data_y_end_buf[i][1].y + abs1;
+                var rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
                 // @ts-ignore
-                data_y_end_buf[i + 1][1].y = data_y_end_buf[i + 1][1].y + abs2;
+                var rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
+                if (rect1.y2 > rect2.y1) {
+                    var abs = Math.abs(rect1.y2 - rect2.y1);
+                    var abs1 = -abs * 0.5;
+                    var abs2 = abs * 0.5;
+                    if (Math.abs(rect1.y1 - this.canvasTT.viewport.y1) < Math.abs(abs1)) {
+                        abs1 = -Math.abs(rect1.y1 - this.canvasTT.viewport.y1);
+                        abs2 = (abs + abs1);
+                    }
+                    if (Math.abs(rect2.y2 - this.canvasTT.viewport.y2) < abs2) {
+                        abs2 = -Math.abs(rect1.y2 - this.canvasTT.viewport.y2);
+                        abs1 = -(abs - abs2);
+                    }
+                    // @ts-ignore
+                    data_y_end_buf[i][1].y = data_y_end_buf[i][1].y + abs1;
+                    // @ts-ignore
+                    data_y_end_buf[i + 1][1].y = data_y_end_buf[i + 1][1].y + abs2;
+                }
+            }
+            hasOverlap = false;
+            for (var i = 0; i < data_y_end_buf.length - 1; i++) {
+                // @ts-ignore
+                var rect1 = data_y_end_buf[i][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i][1], data_y_end_buf[i][2], 0, false);
+                // @ts-ignore
+                var rect2 = data_y_end_buf[i + 1][0].drawTooltip(this.canvasTT.ctx, this.canvasTT.viewport, data_y_end_buf[i + 1][1], data_y_end_buf[i + 1][2], 0, false);
+                if (rect1.y2 > rect2.y1) {
+                    hasOverlap = true;
+                }
             }
         }
         // @ts-ignore
@@ -1449,12 +1494,16 @@ var Data = /** @class */ (function () {
             var extremes = series.findExtremes(dataRange);
             switch (type) {
                 case 'ind':
-                    minArr.push(extremes[2]);
-                    maxArr.push(extremes[3]);
+                    if (extremes[2] !== undefined)
+                        minArr.push(extremes[2]);
+                    if (extremes[3] !== undefined)
+                        maxArr.push(extremes[3]);
                     break;
                 case 'val':
-                    minArr.push(extremes[0]);
-                    maxArr.push(extremes[1]);
+                    if (extremes[0] !== undefined)
+                        minArr.push(extremes[0]);
+                    if (extremes[1] !== undefined)
+                        maxArr.push(extremes[1]);
                     break;
             }
         });
@@ -1544,12 +1593,17 @@ var Label = /** @class */ (function () {
         this.display = true;
         this.color = 'black';
         this.color_counter = 0;
-        this.font = '16px serif';
+        this.fontFamily = 'serif';
         this.fontSize = 16;
+        this.isScalebale = false;
+        this.fontTarget = 12;
+        this.fontBase = 1000;
         this.position = 'bottom';
         this.offset = 0;
         this.rotationAngle = 0;
         this.isUpperCase = false;
+        this.fontSizeList = [];
+        this.queryList = [];
         this.hasOutline = false;
         this.onOptionsSetted = new signals_1.Signal();
         switch (type) {
@@ -1571,12 +1625,65 @@ var Label = /** @class */ (function () {
             this.color_counter = 0;
         }
         if (fontOptions) {
-            this.font = fontOptions[0] + "px " + fontOptions[1];
+            this.fontFamily = fontOptions[1];
             this.fontSize = +fontOptions[0];
+            if (fontOptions[2] !== undefined) {
+                if (fontOptions[3] !== undefined) {
+                    this.fontSizeList = fontOptions[3];
+                }
+                if (fontOptions[4] !== undefined) {
+                    this.queryList = fontOptions[4];
+                }
+                this.turnOnMediaQueries();
+            }
         }
         this.onOptionsSetted.dispatch();
         return this;
     };
+    Label.prototype.turnOnMediaQueries = function () {
+        var _this = this;
+        this.queryList.forEach(function (q, ind) {
+            var mediaQuery = window.matchMedia(q);
+            mediaQuery.addEventListener("change", function () {
+                if (mediaQuery.matches) {
+                    _this.fontSize = _this.fontSizeList[ind];
+                }
+            });
+        });
+    };
+    Label.prototype.calculateFontSize = function (ctx) {
+        if (this.isScalebale) {
+            var size = this.getRowHeight(ctx);
+            var fontString = size + "px " + this.fontFamily;
+            return fontString;
+        }
+        else {
+            var fontString = this.fontSize + "px " + this.fontFamily;
+            return fontString;
+        }
+    };
+    Label.prototype.getRowHeight = function (ctx) {
+        if (this.isScalebale) {
+            var canvasWidth = ctx.canvas.clientWidth;
+            var ratio = this.fontTarget / this.fontBase; // calc ratio
+            var size = canvasWidth * ratio;
+            if (size > this.fontSize) {
+                size = this.fontSize;
+            }
+            return size;
+        }
+        else {
+            return this.fontSize;
+        }
+    };
+    Object.defineProperty(Label.prototype, "font", {
+        get: function () {
+            var fontString = this.fontSize + "px " + this.fontFamily;
+            return fontString;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Label.prototype.setOutline = function (options) {
         this.hasOutline = true;
         this.outlineOptions = options;
@@ -1617,6 +1724,7 @@ var Label = /** @class */ (function () {
         else {
             ctx.fillStyle = this.color;
         }
+        //ctx.font = this.calculateFontSize(ctx);
         ctx.font = this.font;
         ctx.textBaseline = 'middle';
         if ((this.isUpperCase) && (typeof labeltext == 'string')) {
@@ -1721,6 +1829,7 @@ var Plot = /** @class */ (function () {
             fontSize: 10,
             char: '1',
             lineDash: [],
+            lineJoin: 'miter',
         };
         this.setOptions(options);
         this.tooltips = [];
@@ -1739,6 +1848,8 @@ var Plot = /** @class */ (function () {
                 this._options.lineWidth = options[0];
                 this._options.lineColor = options[1];
                 this._options.lineDash = options[2];
+                if (options[3])
+                    this._options.lineJoin = options[3];
                 break;
             case 'area':
                 this._options.lineWidth = options[0];
@@ -1773,6 +1884,7 @@ var Plot = /** @class */ (function () {
         ctx.lineWidth = this._options.lineWidth;
         ctx.globalAlpha = 1;
         ctx.fillStyle = this._options.brushColor;
+        ctx.lineJoin = this._options.lineJoin;
         switch (this.type) {
             case 'dotted':
                 this.drawDotted(ctx, plotData);
@@ -1835,7 +1947,7 @@ var Plot = /** @class */ (function () {
                 printText = '';
             var printTextArr = printText.split('\\n');
             printTextArr.forEach(function (row, ind, mas) {
-                var coord = new Point_1.Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1) * _this.label.fontSize);
+                var coord = new Point_1.Point(plotData[i].x, plotData[i].y - (mas.length - ind - 1) * _this.label.getRowHeight(ctx));
                 _this.label.draw(ctx, coord, row);
             });
         };
@@ -1996,6 +2108,13 @@ exports.Rectangle = Rectangle;
 
 },{}],16:[function(require,module,exports){
 "use strict";
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ticks = void 0;
 var signals_1 = require("signals");
@@ -2020,6 +2139,7 @@ var Ticks = /** @class */ (function () {
         this.onOptionsSetted = new signals_1.Signal();
         this.onCustomLabelsAdded = new signals_1.Signal();
         this.onCoordsChanged = new signals_1.Signal();
+        this.onCoordsChangedLast = new signals_1.Signal();
         this.coords = [];
         this.values = [];
         this.labels = [];
@@ -2104,6 +2224,7 @@ var Ticks = /** @class */ (function () {
                 coords = this.generateFixedCountTicks(min, max, vp);
                 break;
             case 'customDateTicks':
+                //coords = this.generateFixedCountTicksDate(min, max, vp);
                 coords = this.generateCustomDateTicks(min, max, vp, ctx);
                 break;
             case 'niceCbhStep':
@@ -2123,17 +2244,20 @@ var Ticks = /** @class */ (function () {
         if ((this.hasAnimation) && (!noAnimate)) {
             var from = this.makeFromPointArr(this.coords, coords);
             if (from.length == 0) {
-                this.coords = coords;
+                this.coords = __spreadArrays(coords);
                 this.onCoordsChanged.dispatch();
+                this.onCoordsChangedLast.dispatch();
                 return this;
             }
-            this.coords = from;
+            this.coords = __spreadArrays(from);
             this.onCoordsChanged.dispatch();
+            this.onCoordsChangedLast.dispatch();
             this.tickCoordAnimation(from, coords, this.animationDuration);
             return this;
         }
-        this.coords = coords;
+        this.coords = __spreadArrays(coords);
         this.onCoordsChanged.dispatch();
+        this.onCoordsChangedLast.dispatch();
     };
     Ticks.prototype.generateOneTick = function (min, max, vp, value) {
         var coords = [];
@@ -2217,6 +2341,52 @@ var Ticks = /** @class */ (function () {
         }
         return coords;
     };
+    Ticks.prototype.generateFixedCountTicksDate = function (min, max, vp) {
+        var coords = [];
+        this.values = [];
+        this.labels = [];
+        var stepCoord = 0;
+        var rectXY = [];
+        var transformer = new Transformer_1.Transformer();
+        var stepValue = Math.abs(max - min) / this.count;
+        switch (this.type) {
+            case 'vertical':
+                stepCoord = vp.height / this.count;
+                rectXY = [0, min, 1, max];
+                break;
+            case 'horizontal':
+                stepCoord = vp.width / this.count;
+                rectXY = [min, 0, max, 1];
+                break;
+        }
+        var fromRect = new Rectangle_1.Rectangle(rectXY[0], rectXY[1], rectXY[2], rectXY[3]);
+        for (var i = 0; i <= this.count; i++) {
+            var pointXY = [];
+            var value = min + i * stepValue;
+            if (this.hasCustomLabels) {
+                value = Math.round(value);
+                // @ts-ignore
+                this.labels.push(this.customLabels[value].toLocaleDateString('en'));
+                //const labelText = (this.labels[ind]).toLocaleDateString('en');
+            }
+            else {
+                this.labels.push(value.toFixed(2).toString());
+            }
+            switch (this.type) {
+                case 'vertical':
+                    pointXY = [0, value];
+                    break;
+                case 'horizontal':
+                    pointXY = [value, 0];
+                    break;
+            }
+            var valuePoint = new Point_1.Point(pointXY[0], pointXY[1]);
+            var coordPoint = transformer.getVeiwportCoord(fromRect, vp, valuePoint);
+            coords.push(coordPoint);
+            this.values.push(value);
+        }
+        return coords;
+    };
     Ticks.prototype.generateFixedCountTicks = function (min, max, vp) {
         var coords = [];
         this.values = [];
@@ -2243,6 +2413,7 @@ var Ticks = /** @class */ (function () {
                 value = Math.round(value);
                 // @ts-ignore
                 this.labels.push(this.customLabels[value]);
+                //const labelText = (this.labels[ind]).toLocaleDateString('en');
             }
             else {
                 this.labels.push(value.toFixed(2).toString());
@@ -2382,8 +2553,14 @@ var Ticks = /** @class */ (function () {
             if (this.checkLabelsOverlap(ctx, coords, labels)) {
                 this.values = values;
                 this.labels = labels;
+                if (coords.length <= 2) {
+                    coords = this.generateFixedCountTicksDate(min, max, vp);
+                }
                 return coords;
             }
+        }
+        if (coords.length <= 2) {
+            coords = this.generateFixedCountTicksDate(min, max, vp);
         }
         return coords;
     };
@@ -2400,14 +2577,15 @@ var Ticks = /** @class */ (function () {
             var tek = from.map(function (el, i) {
                 return new Point_1.Point(from[i].x + (to[i].x - from[i].x) * timeFraction, from[i].y + (to[i].y - from[i].y) * timeFraction);
             });
-            _this.coords = tek;
+            _this.coords = __spreadArrays(tek);
             _this.onCoordsChanged.dispatch();
             if (tekTime < 1) {
                 requestAnimationFrame(animate);
             }
             else {
-                _this.coords = to;
+                _this.coords = __spreadArrays(to);
                 _this.onCoordsChanged.dispatch();
+                _this.onCoordsChangedLast.dispatch();
             }
         };
         requestAnimationFrame(animate);
@@ -2428,12 +2606,6 @@ var Ticks = /** @class */ (function () {
     };
     // генерация пробных тиков
     Ticks.prototype.generateCustomDateTicksByOption = function (j, min, max, vp, ctx) {
-        function dateParser(myDate) {
-            var arr = myDate.split('.');
-            arr[2] = '20' + arr[2];
-            var date = new Date(+arr[2], +arr[1] - 1, +arr[0]);
-            return date;
-        }
         var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         var rectXY = [];
         var transformer = new Transformer_1.Transformer();
@@ -2454,21 +2626,25 @@ var Ticks = /** @class */ (function () {
         // @ts-ignore
         var partYear = this.customTicksOptions[j];
         switch (partYear) {
-            case 'half year':
+            case '5m':
                 yearDel = 2;
                 break;
-            case 'third year':
+            case '3m':
                 yearDel = 3;
                 break;
-            case 'quarter year':
+            case '2m':
                 yearDel = 4;
                 break;
+            case '1m':
+                yearDel = 6;
+                break;
+            case 'only year':
+                yearDel = 12;
+                break;
         }
-        for (var i = min + 1; i <= max; i++) {
-            //let curLabel = this.customLabels[i];
-            //let preLabel = this.customLabels[i-1];
-            //let curDate = dateParser(curLabel);
-            //let preDate = dateParser(preLabel);
+        // @ts-ignore
+        var last = (max > this.customLabels.length) ? this.customLabels.length : max;
+        for (var i = min + 1; i <= last - 1; i++) {
             // @ts-ignore
             var curDate = this.customLabels[i];
             // @ts-ignore
@@ -2539,7 +2715,7 @@ var Ticks = /** @class */ (function () {
         for (var i = 1; i < coords.length; i++) {
             var curRec = this.label.getlabelRect(ctx, coords[i], labels[i]);
             var preRec = this.label.getlabelRect(ctx, coords[i - 1], labels[i - 1]);
-            if (curRec.countDistBetweenRects(this.type, preRec) <= 0)
+            if (curRec.countDistBetweenRects(this.type, preRec) <= 3)
                 return false;
         }
         return true;
@@ -2552,6 +2728,7 @@ var Ticks = /** @class */ (function () {
             if (_this.label.display)
                 _this.label.draw(ctx, tickCoord, _this.labels[i]);
         });
+        //console.log(this.coords);
     };
     Ticks.prototype.drawTick = function (ctx, tick) {
         ctx.beginPath();
@@ -3077,10 +3254,11 @@ var SeriesBase = /** @class */ (function () {
         }
         return data;
     };
-    SeriesBase.prototype.replaceSeriesData = function (seriesData_to) {
+    SeriesBase.prototype.replaceSeriesData = function (seriesData_to, animate) {
         this.seriesData = this.getInitialData(seriesData_to);
         this.extremes = this.findExtremes();
-        //this.onSeriesDataChanged.dispatch(this);
+        if (animate)
+            this.onSeriesDataChanged.dispatch(this);
     };
     SeriesBase.prototype.getClosestDataPointX = function (seriesPoint) {
         var _this = this;
@@ -3097,6 +3275,21 @@ var SeriesBase = /** @class */ (function () {
         }, new Point_1.Point(this.seriesData[0][0], this.seriesData[1][0]));
         return [resultPoint, ind];
     };
+    SeriesBase.prototype.getClosestDataPointXY = function (seriesPoint) {
+        var _this = this;
+        var ind = 0;
+        var resultPoint = this.seriesData[0].reduce(function (prev, curr, i) {
+            var curPoint = new Point_1.Point(curr, _this.seriesData[1][i]);
+            var curDif = seriesPoint.findDist(curPoint);
+            var prevDif = seriesPoint.findDist(prev);
+            if (curDif < prevDif) {
+                ind = i;
+                return curPoint;
+            }
+            return prev;
+        }, new Point_1.Point(this.seriesData[0][0], this.seriesData[1][0]));
+        return [resultPoint, ind];
+    };
     SeriesBase.prototype.getClosestPlotPointX = function (coordPoint) {
         var coord = this.plotDataArr.reduce(function (prev, curr, i) {
             var curDif = coordPoint.findDistX(curr);
@@ -3105,6 +3298,10 @@ var SeriesBase = /** @class */ (function () {
                 return curr;
             return prev;
         }, this.plotDataArr[0]);
+        if (!coord) {
+            //console.log(coordPoint, this.plotDataArr, this.plotData, this.seriesData);
+            return new Point_1.Point(0, 0);
+        }
         return new Point_1.Point(coord.x, coord.y);
     };
     SeriesBase.prototype.getClosestPlotPointXY = function (coordPoint) {
@@ -3115,6 +3312,10 @@ var SeriesBase = /** @class */ (function () {
                 return curr;
             return prev;
         }, this.plotDataArr[0]);
+        if (!coord) {
+            //console.log(coordPoint, this.plotDataArr, this.plotData, this.seriesData);
+            return new Point_1.Point(0, 0);
+        }
         return new Point_1.Point(coord.x, coord.y);
     };
     Object.defineProperty(SeriesBase.prototype, "plotDataArr", {
@@ -3136,6 +3337,15 @@ var SeriesBase = /** @class */ (function () {
     });
     SeriesBase.prototype.updatePlotData = function (axisRect, vp, noAnimation) {
         var plotData = this.generatePlotData(axisRect, vp);
+        if (plotData[0].length === 0) {
+            noAnimation = true;
+        }
+        if (this.plotData.length === 0) {
+            noAnimation = true;
+        }
+        else if (this.plotData[0].length === 0) {
+            noAnimation = true;
+        }
         //если нужна анимация графиков
         if (noAnimation) {
             this.plotData = plotData;
@@ -3358,6 +3568,256 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createChart = exports.chart = void 0;
 var Chart_1 = require("../classes/Chart");
 var Ticks_1 = require("../classes/Ticks");
+var helpers_1 = require("../scripts/helpers");
+var cbh1 = [];
+var cbh5 = [];
+var cbh55 = []; // additional serie
+var xLabels = [];
+var zeroSeries = [];
+var seriesLabeled;
+var seriesText;
+var gapY = 0.08;
+var bezier = require('bezier-easing');
+var easing = bezier(0.65, 0, 0.35, 1);
+// @ts-ignore
+function createChart(container, data) {
+    var _a;
+    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+    // @ts-ignore
+    //chart = new Chart(container, [0, 900], [0, 2000]);
+    exports.chart = new Chart_1.Chart(container, [0, 900], [0, 2000]);
+    _a = __spreadArrays(data), xLabels = _a[0], cbh5 = _a[1], cbh1 = _a[2], cbh55 = _a[3], zeroSeries = _a[4], seriesLabeled = _a[5], seriesText = _a[6];
+    // перевести данные в % если нужно (точка 0 = cbh5[0] и cbh1[0] соответсвенно)
+    //let serie5star = calculateDeviationsVal(cbh5, cbh5[0]);
+    //let serie1star = calculateDeviationsVal(cbh1, cbh1[0]);
+    // оставить исходные данные
+    var serie5star = cbh5;
+    var serie1star = cbh1;
+    var serie55star = cbh55;
+    setLastUpdateDate(xLabels[xLabels.length - 1]);
+    // ось X
+    exports.chart.xAxis.setOptions('start', 0.5, 'black');
+    // @ts-ignore
+    exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+    exports.chart.xAxis.display = true;
+    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', '5m', '3m', '2m', '1m', 'only year']);
+    exports.chart.xAxis.ticks.display = true;
+    exports.chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
+    exports.chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
+    exports.chart.xAxis.ticks.label.isUpperCase = true;
+    // ось Y
+    exports.chart.yAxis.setOptions('end', 1, '#B2B2B2', [1, 2]);
+    exports.chart.yAxis.display = true;
+    exports.chart.yAxis.position = 'end';
+    exports.chart.yAxis.ticks.settickDrawOptions(-50, 1, '#B2B2B2', [1, 2]);
+    exports.chart.yAxis.ticks.setOptions(true, 'niceCbhStep', [1, 5, 10, 15, 20, 25, 30]);
+    exports.chart.yAxis.ticks.label.setOptions(true, '#B2B2B2', 'right', 0, ['12', '"Transcript Pro"']).setOffset(30, 10);
+    exports.chart.yAxis.ticks.label.units = '%';
+    exports.chart.yAxis.grid.setOptions(true, '#B2B2B2', 1, [1, 2]);
+    //добавляем custom ticks для Y
+    var zeroTick = new Ticks_1.Ticks(exports.chart.yAxis.type);
+    zeroTick.setOptions(true, 'zero');
+    zeroTick.settickDrawOptions(-50, 1, '#000000', [2, 1]);
+    zeroTick.label.display = false;
+    zeroTick.hasAnimation = true;
+    zeroTick.timeFunc = easing;
+    exports.chart.yAxis.addCustomTicks(zeroTick);
+    var minTick = new Ticks_1.Ticks(exports.chart.yAxis.type);
+    minTick.setOptions(true, 'min');
+    minTick.settickDrawOptions(-50, 0.5, 'black', []);
+    minTick.label.display = false;
+    exports.chart.yAxis.addCustomTicks(minTick);
+    // создаем Plots
+    exports.chart.addPlot('red_line', 'line', 1, '#FF2222', []);
+    exports.chart.addPlot('red_area', 'area_bottom', 0, '#FFE5E5', '#FFE5E5', 0);
+    exports.chart.addPlot('blue_line', 'line', 1, '#0070FF', []);
+    exports.chart.addPlot('blue_area', 'area_bottom', 0, '#D9EAFF', '#D9EAFF', 0);
+    exports.chart.addPlot('green_line', 'line', 1, '#009e2f', []);
+    exports.chart.addPlot('green_area', 'area_bottom', 0, '#75d993', '#75d993', 0);
+    exports.chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
+    exports.chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
+        .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"'])
+        .setOutline({ width: 5, color: 'white' });
+    // создаем Tooltips
+    // lines
+    (_b = exports.chart.findPlotById('blue_line')) === null || _b === void 0 ? void 0 : _b.addTooltip('ttId', 'line_vertical_full', 1, '#B2B2B2', [1, 2]);
+    (_c = exports.chart.findPlotById('red_line')) === null || _c === void 0 ? void 0 : _c.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+    (_d = exports.chart.findPlotById('blue_line')) === null || _d === void 0 ? void 0 : _d.addTooltip('ttId', 'line_horizontal_end', 1, '#B2B2B2', [1, 2]);
+    // circles
+    (_e = exports.chart.findPlotById('green_line')) === null || _e === void 0 ? void 0 : _e.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#009e2f', 4);
+    (_f = exports.chart.findPlotById('blue_line')) === null || _f === void 0 ? void 0 : _f.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#0070FF', 4);
+    (_g = exports.chart.findPlotById('red_line')) === null || _g === void 0 ? void 0 : _g.addTooltip('ttId', 'circle_series', 3, '#ffffff', '#FF2222', 4);
+    (_h = exports.chart.findPlotById('green_line')) === null || _h === void 0 ? void 0 : _h.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#009e2f', 4);
+    (_j = exports.chart.findPlotById('blue_line')) === null || _j === void 0 ? void 0 : _j.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#0070FF', 4);
+    (_k = exports.chart.findPlotById('red_line')) === null || _k === void 0 ? void 0 : _k.addTooltip('ttId', 'circle_y_end', 3, '#ffffff', '#FF2222', 4);
+    // labels
+    (_l = exports.chart.findPlotById('red_line')) === null || _l === void 0 ? void 0 : _l.addTooltip('ttId', 'label_x_start', 0.5, 'black', '#ebebeb', 4, xLabels).label.setOptions(true, 'black', 'bottom', 14, ['12', '"Transcript Pro"']);
+    // data
+    (_m = exports.chart.findPlotById('green_line')) === null || _m === void 0 ? void 0 : _m.addTooltip('ttId', 'data_y_end', 0.5, '#009e2f', '#009e2f', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
+    (_o = exports.chart.findPlotById('red_line')) === null || _o === void 0 ? void 0 : _o.addTooltip('ttId', 'data_y_end', 0.5, '#FF2222', '#FF2222', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
+    (_p = exports.chart.findPlotById('blue_line')) === null || _p === void 0 ? void 0 : _p.addTooltip('ttId', 'data_y_end', 0.5, '#0070FF', '#0070FF', 4).label.setOptions(true, 'white', 'right', 30, ['12', '"Transcript Pro"']);
+    // delta
+    (_q = exports.chart.findPlotById('red_line')) === null || _q === void 0 ? void 0 : _q.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
+    (_r = exports.chart.findPlotById('blue_line')) === null || _r === void 0 ? void 0 : _r.addTooltip('delta_1', 'delta_abs', 0.5, 'black', '#ebebeb', 4).label.setOptions(true, 'black', 'right', 35, ['12', '"Transcript Pro"']);
+    // создаем Series
+    exports.chart.addSeriesRow('cyberHedge55_area', [serie55star]).setPlotsIds('green_area');
+    exports.chart.addSeriesRow('cyberHedge5_area', [serie5star]).setPlotsIds('blue_area');
+    exports.chart.addSeriesRow('cyberHedge1_area', [serie1star]).setPlotsIds('red_area');
+    exports.chart.addSeriesRow('cyberHedge55_line', [serie55star]).setPlotsIds('green_line');
+    exports.chart.addSeriesRow('cyberHedge5_line', [serie5star]).setPlotsIds('blue_line');
+    exports.chart.addSeriesRow('cyberHedge1_line', [serie1star]).setPlotsIds('red_line');
+    exports.chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
+    exports.chart.addSeries('cyberHedge_labels', seriesLabeled, seriesText).setPlotsIds('labeled');
+    //включаем анимацию
+    exports.chart.xAxis.ticks.switchAnimation(true, 300);
+    exports.chart.yAxis.ticks.switchAnimation(true, 300);
+    exports.chart.switchDataAnimation(true, 300);
+    exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
+    exports.chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
+    // настраиваем Min Max осей
+    exports.chart.xAxis.setMinMaxStatic(exports.chart.data.findExtremes('val')); //по экстремумам оси X
+    exports.chart.yAxis.setMinMaxStatic(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max)); //scale to fit по Y
+    exports.chart.yAxis.setMinMaxStatic([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length]); //добавляем по отступам как на сайте
+    exports.chart.refresh();
+}
+exports.createChart = createChart;
+// преобразование данных ряда из абсолютных величин в % относительно zeroPoint
+function calculateDeviationsVal(rowData, zeroPoint) {
+    var chartDataVariation = [];
+    chartDataVariation = [];
+    for (var j = 0, m = rowData.length; j < m; j++) {
+        chartDataVariation.push(100 * (rowData[j] - zeroPoint) / zeroPoint);
+    }
+    return chartDataVariation;
+}
+// подключение слушателей к разметке как на cbh
+//функция вешает слушатели на панель nav - USA / EU
+(function prepareCsvLoadMenu() {
+    var zoneItems = document.querySelectorAll('.zones_article li');
+    zoneItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            var link = item.querySelector('a');
+            // @ts-ignore
+            document.querySelector('.zones_article li.selected').classList.remove('selected');
+            item.classList.add('selected');
+            var rangeSelected = document.querySelector('.ranges_article li.selected');
+            // @ts-ignore
+            helpers_1.customLoadDataFromCsv(link.href).then(function (data) {
+                // @ts-ignore
+                var chartData = helpers_1.csvToCols(data);
+                cbh1 = chartData[2].slice(1).map(function (el) { return +el; });
+                cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
+                xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
+                zeroSeries = cbh1.map(function () { return 0; });
+                cbh1 = cbh1.reverse();
+                cbh5 = cbh5.reverse();
+                xLabels = xLabels.reverse();
+                setLastUpdateDate(xLabels[xLabels.length - 1]);
+                var max = xLabels.length - 1;
+                var min = 0;
+                reorganizeChart(cbh5, cbh1, min, max, false);
+                // @ts-ignore
+                rangeSelected.click(rangeSelected);
+            });
+        });
+    });
+}());
+//функция вешает слушатели на панель ranges
+(function prepareRangesMenu() {
+    var ranges = document.querySelectorAll('.ranges_article li');
+    ranges.forEach(function (item) {
+        item.addEventListener('click', function () {
+            // @ts-ignore
+            document.querySelector('.ranges_article li.selected').classList.remove('selected');
+            item.classList.add('selected');
+            var lastLb = xLabels[xLabels.length - 1];
+            var maxDate = lastLb, minDate, max = xLabels.length - 1, min = 0;
+            switch (item.innerHTML) {
+                case '2D':
+                    minDate = new Date(new Date(maxDate.getTime()).setDate(maxDate.getDate() - 2));
+                    min = findDateInd(minDate);
+                    break;
+                case '6M':
+                    minDate = new Date(new Date(maxDate.getTime()).setMonth(maxDate.getMonth() - 6));
+                    min = findDateInd(minDate);
+                    break;
+                case '1Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 1));
+                    min = findDateInd(minDate);
+                    break;
+                case '2Y':
+                    minDate = new Date(new Date(maxDate.getTime()).setFullYear(maxDate.getFullYear() - 2));
+                    min = findDateInd(minDate);
+                    break;
+                case 'YTD':
+                    minDate = new Date(new Date(maxDate.getFullYear(), 0, 1).getTime()),
+                        min = findDateInd(minDate);
+                    break;
+            }
+            reorganizeChart(cbh5, cbh1, min, max, true);
+        });
+    });
+}());
+// настройка Chart
+// @ts-ignore
+function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
+    // перевести данные в % если нужно (точка 0 = cbh5[0] и cbh1[0] соответсвенно)
+    // let serie5star = calculateDeviationsVal(cbh5, cbh5[min]);
+    // let serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
+    // оставить исходные данные
+    //let serie5star = cbh5;
+    //let serie1star = cbh1;
+    //let serie55star = cbh55;
+    //chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star], false);
+    //chart.data.findSeriesById('cyberHedge5_area')?.replaceSeriesData([serie5star], false);
+    //chart.data.findSeriesById('cyberHedge1_area')?.replaceSeriesData([serie1star], false);
+    //chart.data.findSeriesById('cyberHedge5_line')?.replaceSeriesData([serie5star], false);
+    //chart.data.findSeriesById('cyberHedge1_line')?.replaceSeriesData([serie1star], false);
+    //chart.data.findSeriesById('zero_line')?.replaceSeriesData([zeroSeries], false);
+    if (onlyData) {
+        // @ts-ignore
+        exports.chart.xAxis.setMinMax([min, max], false);
+        // @ts-ignore
+        var MinMaxY = exports.chart.data.findExtremes('ind', min, max);
+        var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
+        exports.chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
+    }
+}
+function setLastUpdateDate(lastDate) {
+    // NOTE: fill last update node
+    var lastUpdateNode = document.querySelector('.last-update-article time');
+    // @ts-ignore
+    lastUpdateNode.datetime = lastDate.toISOString();
+    // @ts-ignore
+    lastUpdateNode.innerHTML = [lastDate.getDate(), lastDate.toLocaleString('en-US', { month: 'long' }), lastDate.getFullYear()].join(' ');
+}
+//поиск индекса ближайщей даты
+function findDateInd(date) {
+    var ind = xLabels.reduce(function (prev, curr, i) {
+        // @ts-ignore
+        var curDif = Math.abs(curr - date);
+        // @ts-ignore
+        var prevDif = Math.abs(xLabels[prev] - date);
+        if (curDif < prevDif)
+            return i;
+        return prev;
+    }, 0);
+    return ind;
+}
+
+},{"../classes/Chart":8,"../classes/Ticks":16,"../scripts/helpers":27,"bezier-easing":1}],22:[function(require,module,exports){
+"use strict";
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createChart = exports.chart = void 0;
+var Chart_1 = require("../classes/Chart");
+var Ticks_1 = require("../classes/Ticks");
 var cbhRow = [];
 var xLabels = [];
 var zeroSeries = [];
@@ -3378,7 +3838,7 @@ function createChart(container, data) {
     exports.chart.xAxis.ticks.display = true;
     // @ts-ignore
     exports.chart.xAxis.ticks.setCustomLabels(xLabels);
-    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', '5m', '3m', '2m', '1m', 'only year']);
     exports.chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
     exports.chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
     exports.chart.xAxis.ticks.label.isUpperCase = true;
@@ -3407,11 +3867,14 @@ function createChart(container, data) {
     minTick.label.display = false;
     exports.chart.yAxis.addCustomTicks(minTick);
     // создаем Plots
-    exports.chart.addPlot('black_line', 'line', 1, '#000000', []); //черная линия
+    exports.chart.addPlot('black_line', 'line', 1, '#000000', [], 'round'); //черная линия
+    //chart.addPlot('black_line', 'line', 1, '#000000', [])._options.lineJoin = 'round';
     exports.chart.addPlot('light_gray_area', 'area_bottom', 0, '#F2F2F2', '#F2F2F2', 0); //серая заливка области
     exports.chart.addPlot('zero_line', 'line', 1, '#000000', [2, 1]); //пунктирная линия 0
+    var fontSizesList = [10, 14, 18];
+    var queryList = ['(min-width:320px) and (max-width:480px)', '(min-width:480px) and (max-width:768px)', '(min-width: 768px)'];
     exports.chart.addPlot('labeled', 'text', 1, '#000000', '#000000') //график с лейблами
-        .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"'])
+        .label.setOptions(true, 'black', 'top', 10 + 15 + 10, ['18', '"Transcript Pro"', true, fontSizesList, queryList])
         .setOutline({ width: 5, color: 'white' });
     var seriesRow = calculateDeviationsVal(cbhRow, cbhRow[0]);
     var seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[0])];
@@ -3421,15 +3884,16 @@ function createChart(container, data) {
     exports.chart.addSeriesRow('zero_line', [zeroSeries]).setPlotsIds('zero_line');
     exports.chart.addSeries('cyberHedge_labels', seriesL, seriesText).setPlotsIds('labeled');
     // настраиваем Min Max осей
-    exports.chart.xAxis.setMinMax(exports.chart.data.findExtremes('val'), false); //по экстремумам оси X
-    exports.chart.yAxis.setMinMax(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max), false); //scale to fit по Y
-    exports.chart.yAxis.setMinMax([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], false); //добавляем по отступам как на сайте
+    exports.chart.xAxis.setMinMaxStatic(exports.chart.data.findExtremes('val')); //по экстремумам оси X
+    exports.chart.yAxis.setMinMaxStatic(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max)); //scale to fit по Y
+    exports.chart.yAxis.setMinMaxStatic([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length]); //добавляем по отступам как на сайте
     //включаем анимацию
     exports.chart.xAxis.ticks.switchAnimation(true, 300);
     exports.chart.yAxis.ticks.switchAnimation(true, 300);
     exports.chart.switchDataAnimation(true, 300);
     exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
-    exports.chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
+    exports.chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
+    exports.chart.refresh();
 }
 exports.createChart = createChart;
 // преобразование данных ряда из абсолютных величин в % относительно zeroPoint
@@ -3481,10 +3945,10 @@ function reorganizeChart(cbhRow, min, max, onlyData) {
     var seriesRow = calculateDeviationsVal(cbhRow, cbhRow[min]);
     var seriesL = [seriesLabeled[0], calculateDeviationsVal(seriesLabeled[1], cbhRow[min])];
     // создаем Series
-    (_a = exports.chart.data.findSeriesById('cyberHedge_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([seriesRow]);
-    (_b = exports.chart.data.findSeriesById('cyberHedge_line')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([seriesRow]);
-    (_c = exports.chart.data.findSeriesById('zero_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([zeroSeries]);
-    (_d = exports.chart.data.findSeriesById('cyberHedge_labels')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData(seriesL);
+    (_a = exports.chart.data.findSeriesById('cyberHedge_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([seriesRow], false);
+    (_b = exports.chart.data.findSeriesById('cyberHedge_line')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([seriesRow], false);
+    (_c = exports.chart.data.findSeriesById('zero_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([zeroSeries], false);
+    (_d = exports.chart.data.findSeriesById('cyberHedge_labels')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData(seriesL, false);
     if (onlyData) {
         // @ts-ignore
         exports.chart.xAxis.ticks.setCustomLabels(xLabels);
@@ -3508,7 +3972,7 @@ function findDateInd(date) {
     return ind;
 }
 
-},{"../classes/Chart":8,"../classes/Ticks":16,"bezier-easing":1}],22:[function(require,module,exports){
+},{"../classes/Chart":8,"../classes/Ticks":16,"bezier-easing":1}],23:[function(require,module,exports){
 "use strict";
 var __spreadArrays = (this && this.__spreadArrays) || function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
@@ -3544,7 +4008,7 @@ function createChart(container, data) {
     // @ts-ignore
     exports.chart.xAxis.ticks.setCustomLabels(xLabels);
     exports.chart.xAxis.display = true;
-    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', '5m', '3m', '2m', '1m', 'only year']);
     exports.chart.xAxis.ticks.display = true;
     exports.chart.xAxis.ticks.settickDrawOptions(-6, 0.5, 'black');
     exports.chart.xAxis.ticks.label.setOptions(true, '#B2B2B2', 'bottom', 11, ['12', '"Transcript Pro"']);
@@ -3609,12 +4073,13 @@ function createChart(container, data) {
     exports.chart.xAxis.setMinMax(exports.chart.data.findExtremes('val'), true); //по экстремумам оси X
     exports.chart.yAxis.setMinMax(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max), true); //scale to fit по Y
     exports.chart.yAxis.setMinMax([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], true); //добавляем по отступам как на сайте
+    exports.chart.setCanvasPaddings(25, 80, 40, 40); // задаем отступы для области отрисовки
     //включаем анимацию
     exports.chart.xAxis.ticks.switchAnimation(true, 300);
     exports.chart.yAxis.ticks.switchAnimation(true, 300);
     exports.chart.switchDataAnimation(true, 300);
     exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
-    exports.chart.setCanvasPaddings(25, 80, 40, 20); // задаем отступы для области отрисовки
+    exports.chart.refresh();
 }
 exports.createChart = createChart;
 // преобразование данных ряда из абсолютных величин в % относительно zeroPoint
@@ -3645,6 +4110,7 @@ function calculateDeviationsVal(rowData, zeroPoint) {
                 cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
                 xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
                 zeroSeries = cbh1.map(function () { return 0; });
+                //xLabels.sort();
                 setLastUpdateDate(xLabels[xLabels.length - 1]);
                 var max = xLabels.length - 1;
                 var min = 0;
@@ -3705,15 +4171,16 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
     // подготавливаем данные как на сайте CyberHedge
     var serie5star = calculateDeviationsVal(cbh5, cbh5[min]);
     var serie1star = calculateDeviationsVal(cbh1, cbh1[min]);
-    (_a = exports.chart.data.findSeriesById('cyberHedge5_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([serie5star]);
-    (_b = exports.chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([serie1star]);
-    (_c = exports.chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star]);
-    (_d = exports.chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star]);
-    (_e = exports.chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
+    (_a = exports.chart.data.findSeriesById('cyberHedge5_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([serie5star], false);
+    (_b = exports.chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([serie1star], false);
+    (_c = exports.chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star], false);
+    (_d = exports.chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star], false);
+    (_e = exports.chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries], false);
     if (onlyData) {
         // @ts-ignore
-        exports.chart.xAxis.ticks.setCustomLabels(xLabels);
         exports.chart.xAxis.setMinMax([min, max], false);
+        // @ts-ignore
+        exports.chart.xAxis.ticks.setCustomLabels(xLabels);
         var MinMaxY = exports.chart.data.findExtremes('ind', min, max);
         var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
         exports.chart.yAxis.setMinMax([MinMaxY[0] - gapY * lengthY, MinMaxY[1] + gapY * lengthY], true);
@@ -3741,7 +4208,7 @@ function findDateInd(date) {
     return ind;
 }
 
-},{"../classes/Chart":8,"../classes/Ticks":16,"../scripts/helpers":26,"bezier-easing":1}],23:[function(require,module,exports){
+},{"../classes/Chart":8,"../classes/Ticks":16,"../scripts/helpers":27,"bezier-easing":1}],24:[function(require,module,exports){
 "use strict";
 var __spreadArrays = (this && this.__spreadArrays) || function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
@@ -3819,12 +4286,12 @@ function createChart(container, data) {
     exports.chart.yAxis.ticks.label.units = '%';
     // @ts-ignore
     exports.chart.xAxis.ticks.setCustomLabels(xLabels);
-    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', 'year', 'half year', 'third year', 'quarter year']);
+    exports.chart.xAxis.ticks.setOptions(true, 'customDateTicks', ['half month', '5m', '3m', '2m', '1m', 'only year']);
     exports.chart.xAxis.display = true;
     // настраиваем Min Max осей
-    exports.chart.xAxis.setMinMax(exports.chart.data.findExtremes('val'), true); //по экстремумам оси X
-    exports.chart.yAxis.setMinMax(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max), true); //scale to fit по Y
-    exports.chart.yAxis.setMinMax([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], true); //добавляем по отступам как на сайте
+    exports.chart.xAxis.setMinMaxStatic(exports.chart.data.findExtremes('val')); //по экстремумам оси X
+    exports.chart.yAxis.setMinMaxStatic(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max)); //scale to fit по Y
+    exports.chart.yAxis.setMinMaxStatic([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length]); //добавляем по отступам как на сайте
     //включаем анимацию
     var bezier = require('bezier-easing');
     var easing = bezier(0.65, 0, 0.35, 1);
@@ -3833,7 +4300,9 @@ function createChart(container, data) {
     exports.chart.yAxis.ticks.switchAnimation(true, 300);
     exports.chart.switchDataAnimation(true, 300);
     exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
-    exports.chart.setCanvasPaddings(25, 60, 40, 20); // задаем отступы для области отрисовки
+    exports.chart.setCanvasPaddings(25, 60, 40, 40); // задаем отступы для области отрисовки
+    //generate inital data
+    exports.chart.refresh();
 }
 exports.createChart = createChart;
 // подготоваливает данные для Chart
@@ -3942,14 +4411,14 @@ function reorganizeChart(cbh5, cbh1, min, max, onlyData) {
     var _a, _b, _c, _d, _e;
     var data = prepareDataforCbh(cbh5, cbh1, min);
     var serie5star = data.serie5star, area5starTop = data.area5starTop, area5starBottom = data.area5starBottom, serie1star = data.serie1star, area1starTop = data.area1starTop, area1starBottom = data.area1starBottom;
-    (_a = exports.chart.data.findSeriesById('cyberHedge5_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([area5starTop, area5starBottom]);
-    (_b = exports.chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([area1starTop, area1starBottom]);
-    (_c = exports.chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star]);
-    (_d = exports.chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star]);
-    (_e = exports.chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries]);
+    (_a = exports.chart.data.findSeriesById('cyberHedge5_area')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([area5starTop, area5starBottom], false);
+    (_b = exports.chart.data.findSeriesById('cyberHedge1_area')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([area1starTop, area1starBottom], false);
+    (_c = exports.chart.data.findSeriesById('cyberHedge5_line')) === null || _c === void 0 ? void 0 : _c.replaceSeriesData([serie5star], false);
+    (_d = exports.chart.data.findSeriesById('cyberHedge1_line')) === null || _d === void 0 ? void 0 : _d.replaceSeriesData([serie1star], false);
+    (_e = exports.chart.data.findSeriesById('zero_line')) === null || _e === void 0 ? void 0 : _e.replaceSeriesData([zeroSeries], false);
     if (onlyData) {
         // @ts-ignore
-        exports.chart.xAxis.ticks.setCustomLabels(xLabels);
+        //chart.xAxis.ticks.setCustomLabels(xLabels);
         exports.chart.xAxis.setMinMax([min, max], false);
         var MinMaxY = exports.chart.data.findExtremes('ind', min, max);
         var lengthY = Math.abs(MinMaxY[0] - MinMaxY[1]);
@@ -3978,7 +4447,7 @@ function findDateInd(date) {
     return ind;
 }
 
-},{"../classes/Chart":8,"../scripts/helpers":26,"bezier-easing":1}],24:[function(require,module,exports){
+},{"../classes/Chart":8,"../scripts/helpers":27,"bezier-easing":1}],25:[function(require,module,exports){
 "use strict";
 var __spreadArrays = (this && this.__spreadArrays) || function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
@@ -4067,12 +4536,19 @@ function createChart(container, data) {
     exports.chart.yAxis.ticks.switchAnimation(false, 300);
     exports.chart.switchDataAnimation(true, 300);
     exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
-    //обавляем фон
-    exports.chart.addBackGround('coloredGrid_cbh');
-    // делаем квадратное соотношение
-    exports.chart.switchResolution();
     // задаем отступы для области отрисовки
     exports.chart.setCanvasPaddings(60, 60, 60, 60);
+    // делаем квадратное соотношение
+    exports.chart.switchResolution();
+    //обавляем фон
+    exports.chart.addBackGround('coloredGrid_cbh');
+    exports.chart.refresh();
+    // элементы управления
+    var randBtn = document.getElementById('rand_btn');
+    //@ts-ignore
+    randBtn.addEventListener('click', function () {
+        reorganizeChart();
+    });
 }
 exports.createChart = createChart;
 function reorganizeChart() {
@@ -4091,8 +4567,8 @@ function reorganizeChart() {
     }
     oneX = [0.1 + Math.random() * 4.8];
     oneY = [0.1 + Math.random() * 4.8];
-    (_a = exports.chart.data.findSeriesById('portfolio')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([x, y]);
-    (_b = exports.chart.data.findSeriesById('portfolio_1')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([oneX, oneY]);
+    (_a = exports.chart.data.findSeriesById('portfolio')) === null || _a === void 0 ? void 0 : _a.replaceSeriesData([x, y], true);
+    (_b = exports.chart.data.findSeriesById('portfolio_1')) === null || _b === void 0 ? void 0 : _b.replaceSeriesData([oneX, oneY], true);
     // @ts-ignore
     (_c = exports.chart.findPlotById('uni_circles')) === null || _c === void 0 ? void 0 : _c.findTooltipById('ttId').labels = labels;
 }
@@ -4143,19 +4619,14 @@ WebFont.load({
   },
 });
 
-// элементы управления
-const randBtn = document.getElementById('rand_btn');
-//@ts-ignore
-randBtn.addEventListener('click', () => {
-  reorganizeChart(chart);
-})
+
 
 
 
 
 */ 
 
-},{"../classes/Chart":8,"../classes/Legend":12,"../classes/Point":14,"../classes/Ticks":16,"bezier-easing":1}],25:[function(require,module,exports){
+},{"../classes/Chart":8,"../classes/Legend":12,"../classes/Point":14,"../classes/Ticks":16,"bezier-easing":1}],26:[function(require,module,exports){
 "use strict";
 // browserify ./src/index.ts -p [ tsify --noImplicitAny ] > chart-bundle.js
 var __spreadArrays = (this && this.__spreadArrays) || function () {
@@ -4183,17 +4654,44 @@ var indices_chart_1 = require("./configs/indices-chart");
 // config square-chart
 var square_chart_1 = require("./configs/square-chart");
 var square_chart_2 = require("./configs/square-chart");
+// config indicies-article1
+var indices_article_1 = require("./configs/indices-article");
 //пути до CSV файлов
 var sqrData = './src/data/cbhVulnerability_test.csv';
 var EU = './src/data/cbhPlotData_EU.csv';
 var EU_Labels = './src/data/cbhPlotData_EU_labeled.csv';
 var startCSVurl = './src/data/cbhPlotData_US.csv';
+var article1 = './src/data/article1.csv';
+var article1_labels = './src/data/article1_labels.csv';
 // проверка подгрузки шрифта
 webfontloader_1.default.load({
     custom: {
         families: ['Transcript Pro']
     },
     active: function () {
+        // график по серии Article1
+        helpers_1.customLoadDataFromCsv(article1).then(function (data) {
+            helpers_1.customLoadDataFromCsv(article1_labels).then(function (dataLables) {
+                var chartContainer = document.getElementById('indexChart_4');
+                // @ts-ignore
+                var chartData = helpers_1.csvToCols(data);
+                var cbh1 = chartData[2].slice(1).map(function (el) { return +el; }).reverse();
+                var cbh5 = chartData[1].slice(1).map(function (el) { return +el; }).reverse();
+                var cbh55 = chartData[1].slice(1).map(function (el) { return (+el * -1); }).reverse();
+                var xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); }).reverse();
+                var zeroSeries = cbh1.map(function () { return 0; });
+                // @ts-ignore
+                var chartLables = helpers_1.csvToCols(dataLables);
+                var x = chartLables[0].slice(1).map(function (el) { return +el; });
+                var y = chartLables[1].slice(1).map(function (el) { return +el; });
+                var texts = chartLables[2].slice(1).map(function (el) { return el; });
+                // вызов функции создания графика из конфига .src/configs/indices-chart-colored.ts
+                indices_article_1.createChart(chartContainer, [xLabels, cbh5, cbh1, cbh55, zeroSeries, [x, y], texts]);
+            });
+        })
+            .catch(function (err) {
+            console.log(err);
+        });
         // черно-белый график
         helpers_1.customLoadDataFromCsv(EU).then(function (data) {
             helpers_1.customLoadDataFromCsv(EU_Labels).then(function (dataLables) {
@@ -4223,6 +4721,7 @@ webfontloader_1.default.load({
             var cbh5 = chartData[1].slice(1).map(function (el) { return +el; });
             var xLabels = chartData[0].slice(1).map(function (el) { return new Date(el); });
             var zeroSeries = cbh1.map(function () { return 0; });
+            // вызов функции создания графика из конфига .src/configs/indices-chart-colored.ts
             indices_chart_colored_1.createChart(chartContainer, [xLabels, cbh5, cbh1, zeroSeries]);
         })
             .catch(function (err) {
@@ -4255,10 +4754,12 @@ webfontloader_1.default.load({
             .catch(function (err) {
             console.log(err);
         });
+        /*
+    */
     },
 });
 
-},{"./configs/indices-chart":23,"./configs/indices-chart-black":21,"./configs/indices-chart-colored":22,"./configs/square-chart":24,"./scripts/helpers":26,"webfontloader":4}],26:[function(require,module,exports){
+},{"./configs/indices-article":21,"./configs/indices-chart":24,"./configs/indices-chart-black":22,"./configs/indices-chart-colored":23,"./configs/square-chart":25,"./scripts/helpers":27,"webfontloader":4}],27:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.csvToCols = exports.customLoadDataFromCsv = void 0;
@@ -4293,4 +4794,4 @@ function csvToCols(strData, strDelimiter) {
 }
 exports.csvToCols = csvToCols;
 
-},{}]},{},[25]);
+},{}]},{},[26]);
