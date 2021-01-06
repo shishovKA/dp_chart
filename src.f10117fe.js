@@ -4893,7 +4893,7 @@ function createChart(container, data) {
 
   exports.chart.yAxis.setMinMaxStatic(exports.chart.data.findExtremes('ind', exports.chart.xAxis.min, exports.chart.xAxis.max)); //scale to fit по Y
 
-  exports.chart.yAxis.setMinMaxStatic([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length], true); //добавляем по отступам как на сайте
+  exports.chart.yAxis.setMinMaxStatic([exports.chart.yAxis.min - gapY * exports.chart.yAxis.length, exports.chart.yAxis.max + gapY * exports.chart.yAxis.length]); //добавляем по отступам как на сайте
   //включаем анимацию
 
   var bezier = require('bezier-easing');
@@ -4905,6 +4905,7 @@ function createChart(container, data) {
   exports.chart.switchDataAnimation(true, 300);
   exports.chart.data.changeAllSeriesAnimationTimeFunction(easing);
   exports.chart.setCanvasPaddings(25, 60, 40, 40); // задаем отступы для области отрисовки
+  //generate inital data
 
   exports.chart.refresh();
 }
@@ -5865,7 +5866,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "13212" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "14432" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
